@@ -242,7 +242,7 @@
 						h('br'),
 						h('div',{style: 'display:flex'},[
 							h('div','2、可进入到“开放签”官网进行验签'),
-							h('a',{href:'http://www.kaifangqian.com/#/verification',target:'_blank',style:'margin-left:10px'},'去验签'),
+							h('a',{href:'https://www.kaifangqian.com/#/verification',target:'_blank',style:'margin-left:10px'},'去验签'),
 						]),
 					]),
 					okText:'确定'
@@ -326,8 +326,8 @@
 					<!-- 外部链接 -->
 					<li class="header-external">
 						<Space :size="40">
-							<Button type="primary" size="large" class="custom-ant-button" @click="jumpExternal('http://www.kaifangqian.com/#/verification')" >文件验签</Button>
-							<Button type="primary" size="large" class="custom-ant-button" @click="jumpExternal('http://www.kaifangqian.com')">了解“开放签”</Button>
+							<Button type="primary" size="large" class="custom-ant-button" @click="jumpExternal('https://www.kaifangqian.com/#/verification')" >文件验签</Button>
+							<Button type="primary" size="large" class="custom-ant-button" @click="jumpExternal('https://www.kaifangqian.com')">了解“开放签”</Button>
 						</Space>
 					</li>
 				</ul>
