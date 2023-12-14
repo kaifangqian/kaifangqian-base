@@ -19,6 +19,8 @@
 # 安装依赖
 npm install -registry=https://registry.npm.taobao.org
 
+# 启动前需要将后端服务启动,否则无法体验签署功能
+# 并修改vite.config.js中的代理地址
 # 启动服务 localhost:8080
 npm run dev
 
