@@ -4,8 +4,8 @@
 #### 项目源码
 |     |   后端源码  |   前端源码  |
 |---  |--- | --- |
-|  github   |  https://github.com/resrun/open-sign-java   |  https://github.com/resrun/open-sign-vue  |
-|  码云   |  https://gitee.com/resrun/open-sign-java   |  https://gitee.com/resrun/open-sign-vue  |
+|  github   |  https://github.com/kaifangqian/open-sign   |  https://github.com/kaifangqian/open-sign-vue  |
+|  码云   |  https://gitee.com/kaifangqian/open-sign   |  https://gitee.com/kaifangqian/open-sign-vue  |
 
 #### 官网地址
 [http://www.kaifangqian.com](http://www.kaifangqian.com)
