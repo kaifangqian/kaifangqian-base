@@ -14,7 +14,7 @@
 [http://demo.kaifangqian.com](http://demo.kaifangqian.com)
 
 #### Build Setup
-**推荐 node 版本：v16.20.2**
+**推荐 node 版本：v16.x**
 ``` bash
 # 安装依赖
 npm install -registry=https://registry.npm.taobao.org
