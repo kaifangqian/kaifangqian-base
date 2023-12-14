@@ -1,5 +1,5 @@
 <template>
-	<Modal v-model:visible="modalOpen" title="创建印章"  width="800px">
+	<Modal v-model:visible="modalOpen" title="创建手写签名"  width="800px">
 		<div style="width: 720px;padding-left: 40px;">
 			<Form  :model="signatureForm" name="basic"
 			  aut="off" ref="signatureFormRef" >
