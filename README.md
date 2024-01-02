@@ -45,20 +45,19 @@
 ## 三、后端代码结构
 推荐 node 版本：v16.x
 ```
-- open-sign-vue       开放签工具前端页面
-    - public          favicon.ico
-    - src          
-        - assets        静态资源文件
-        - components    组件 
-        - layouts       布局
-        - router        路由配置
-        - utils         工具包
-        - views         页面文件
-            - main             demo主页面
-            - SealModal        印章制作弹窗
-            - SignatureModal   手写前面弹窗
-        - App.vue      VUE根组件
-        - main.js      入口文件
+- public          favicon.ico
+- src          
+	- assets        静态资源文件
+	- components    组件 
+	- layouts       布局
+	- router        路由配置
+	- utils         工具包
+	- views         页面文件
+		- main             demo主页面
+		- SealModal        印章制作弹窗
+		- SignatureModal   手写签名弹窗
+	- App.vue      VUE根组件
+	- main.js      入口文件
 ```
 
 
