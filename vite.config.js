@@ -17,7 +17,7 @@ export default defineConfig({
 		open: true, // vue项目启动时自动打开浏览器
 		proxy: {
 			"/openSign": {
-				target: "http://127.0.0.1:80",
+				target: "http://127.0.0.1:8666",
 				changeOrigin: true,
 			}
 		},
