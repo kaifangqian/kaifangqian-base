@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="60 seconds"
+               debug="false">
+    <contextName>kaifangqian-api</contextName>
+    <property name="logback.logdir" value="logs" />
+    <property name="logback.appname" value="kaifangqian-api" />
+
+    <!--输出到控制台 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 输出到控制台的级别 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger\(%line\)- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--输出到文件 -->
+    <appender name="fileLog"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--日志名称，如果没有File 属性，那么只会使用FileNamePattern的文件路径规则 如果同时有<File>和<FileNamePattern>，那么当天日志是<File>，明天会自动把今天
+            的日志改名为今天的日期。即，<File> 的日志都是当天的。 -->
+        <File>${logback.logdir}/${logback.appname}.log</File>
+        <!--滚动策略，按照时间滚动 TimeBasedRollingPolicy -->
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间 -->
+            <FileNamePattern>${logback.logdir}/${logback.appname}.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--单个文件上限大小
+            <maxFileSize>50MB</maxFileSize>-->
+            <!--只保留最近90天的日志 -->
+            <maxHistory>90</maxHistory>
+            <!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志 -->
+            <totalSizeCap>300GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!--日志输出编码格式化 -->
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger\(%line\)- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--需要将日志单独输出的包路径 DEBUG -->
+    <root level="INFO">
+        <appender-ref ref="console" />
+        <appender-ref ref="fileLog" />
+    </root>
+
+    <logger name="org.resrun" level="INFO" />
+
+    <!-- 等级关系 <root> < <logger> < <appender <level>>  -->
+</configuration>
