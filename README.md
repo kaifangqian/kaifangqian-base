@@ -15,11 +15,6 @@
 SDK能力同API接口，便于使用java语言开发的用户直接集成使用。</br>
 #### 特别提醒：开放签开源版签发的数字证书包括测试数字证书和CA正式数字证书，其中测试数字证书只能应用于技术测试环境，且应用测试数字证书签署的任何电子文件均不具备法律效力，如需签发权威CA机构的数字证书，请与我们联系，获取商业授权token。
 
-|       | 源码地址                           |
-|-------|--------------------------------|
-| github | https://github.com/kaifangqian |
-| 码云    | https://gitee.com/kaifangqian  |
-
 
 ## 二、功能模块
 
@@ -35,7 +30,7 @@ kaifangqian-base--------------开放签源码
 ## 三、功能介绍
 ### 3.1 API接口
 #### [开放签API接口文档](./docs/kaifangqian-doc.pdf)<br/>
-#### [开放签安装部署](./kaifangqian-api/README.md)
+#### [开放签API安装部署](./kaifangqian-api/README.md)
 ### 3.2 SDK
 #### [SDK集成](./kaifangqian-sdk/README.md)
 ### 3.3 demo
@@ -75,19 +70,23 @@ kaifangqian-base--------------开放签源码
 
 ### 官方网站
 
-开放签官网网站：https://www.kaifangqian.com
+开放签官网：https://www.kaifangqian.com
 
 ### 开源工具版
 （1）开放签电子签章系统-开源工具版体验地址：https://demo.kaifangqian.com
 
-（2）开放签电子签章系统-开源工具版gitee源码：https://gitee.com/kaifangqian
+（2）开放签电子签章系统-开源工具版gitee源码：https://gitee.com/kaifangqian/kaifangqian-base
 
-（3）开放签电子签章系统-开源工具版github源码：https://github.com/kaifangqian
+（3）开放签电子签章系统-开源工具版github源码：https://github.com/kaifangqian/kaifangqian-base
 
 ### 企业版
-（1）开放签电子签章系统-企业版体验地址：https://home.kaifangqian.com/#/login
+#### 简介 
+开放签企业版支持私有化部署、多租户、SaaS化等多种服务模式，提供文件在线签署、文档模板管理、签约业务线管理、企业印章管理、CA数字证书管理等服务，满足电子合同、电子保单、电子报告单、招投标文件、电子成绩单、电子证明、金融凭证、会计凭证、电子处方等多种电子文件签署场景。
 
-（2）开放签电子签章系统-企业版使用手册：https://www.yuque.com/huxin-ch41t/kaifangqian
+#### 体验地址
+（1）企业版体验地址：https://home.kaifangqian.com/#/login
+
+（2）企业版使用手册：https://www.yuque.com/huxin-ch41t/kaifangqian
 
 
 
