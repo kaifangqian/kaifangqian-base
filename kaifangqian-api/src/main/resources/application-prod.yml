@@ -38,6 +38,9 @@ ip:
 
 
 kaifangqian:
+  #证书服务地址
   cert-apply-url: https://localhost/service/cert/event
+  #授权token
   token: 123456
+  # 默认 false 签发本地测试证书 true 签发 CA 证书
   prod: false

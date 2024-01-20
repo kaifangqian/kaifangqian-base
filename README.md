@@ -35,7 +35,7 @@ kaifangqian-base--------------开放签源码
 ## 三、功能介绍
 ### 3.1 API接口
 #### [开放签API接口文档](./docs/kaifangqian-doc.pdf)<br/>
-#### [开放签安装部署](./kaifangqian-sdk/README.md)
+#### [开放签安装部署](./kaifangqian-api/README.md)
 ### 3.2 SDK
 #### [SDK集成](./kaifangqian-sdk/README.md)
 ### 3.3 demo

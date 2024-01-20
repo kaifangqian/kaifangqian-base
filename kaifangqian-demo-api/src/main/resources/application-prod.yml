@@ -9,9 +9,9 @@ server:
     context-path: /openSign
 
 kaifangqian:
-  #签发CA证书路径
+  #证书服务地址
   cert-apply-url: https://localhost/service/cert/event
   #授权token
   token: 123456
-  # 默认false 签发本地防篡改证书    true 签发CA证书
+  # 默认 false 签发本地测试证书 true 签发 CA 证书
   prod: false
