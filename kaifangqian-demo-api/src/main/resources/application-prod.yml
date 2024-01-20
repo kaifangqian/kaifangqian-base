@@ -1,0 +1,17 @@
+server:
+  # 项目启动端口号
+  port: 8666
+  tomcat:
+    # 上传文件限制 -1 无限制
+    max-swallow-size: -1
+  servlet:
+    #路径前缀
+    context-path: /openSign
+
+kaifangqian:
+  #签发CA证书路径
+  cert-apply-url: https://localhost/service/cert/event
+  #授权token
+  token: 123456
+  # 默认false 签发本地防篡改证书    true 签发CA证书
+  prod: false

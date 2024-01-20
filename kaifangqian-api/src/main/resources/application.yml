@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: kaifangqian-api
+  profiles:
+    active: prod

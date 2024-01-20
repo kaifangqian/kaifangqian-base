@@ -1,0 +1,43 @@
+server:
+  # 项目启动端口号
+  port: 8891
+  tomcat:
+    # 上传文件限制 -1 无限制
+    max-swallow-size: -1
+  error:
+    #true：开启自定义异常处理
+    include-exception: true
+    # 是否包含异常的堆栈信息，默认是NEVER，其他ALWAYS，ON_TRACE_PARAM等。
+    include-stacktrace: ALWAYS
+    # 是否包含异常的返回信息，默认是NEVER，其他ALWAYS，ON_TRACE_PARAM等。
+    include-message: ALWAYS
+  servlet:
+    #路径前缀
+    context-path: /
+
+
+spring:
+  servlet:
+    multipart:
+      #请求文件大小限制
+      max-file-size: 20MB
+      #请求体大小限制
+      max-request-size: 20MB
+  #json时间戳统一转换
+  jackson:
+    date-format:   yyyy-MM-dd HH:mm:ss
+    time-zone:   GMT+8
+  aop:
+    #代理方式（手动创建时生效） 默认为false,表示使用JDK动态代理织入增强;当值为true时,表示使用CGLib动态代理织入增强。
+    proxy-target-class: true
+  mvc:
+    static-path-pattern: /**
+# IP 本地解析
+ip:
+  local-parsing: true
+
+
+kaifangqian:
+  cert-apply-url: https://localhost/service/cert/event
+  token: 123456
+  prod: false
