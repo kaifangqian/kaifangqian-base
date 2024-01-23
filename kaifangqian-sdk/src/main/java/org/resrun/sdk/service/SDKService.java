@@ -51,6 +51,18 @@ public class SDKService {
     @Autowired
     private CalculatePositionService calculatePositionService ;
 
+    @Autowired
+    private EntSealGenerateService entSealGenerateService;
+
+    /**
+     * 签章生成
+     * @param topText   上弦文字
+     * @param middleText  下旋文字
+     * @return
+     */
+    public byte[] generateEntSeal(String topText,String middleText){
+        return entSealGenerateService.generateEntSeal(topText,middleText);
+    }
     /**
      * @Description #事件证书签发
      * @Param [request]
