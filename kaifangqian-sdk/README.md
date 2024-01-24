@@ -28,6 +28,7 @@ mvn install:install-file -Dfile=target/kaifangqian-sdk.jar -DartifactId=kaifangq
 
 ### 2.2 Spring集成
 ```
+第一步
 <!-- applicationContext.xml中新增如下配置 -->
 <bean id="clientConfig" class="org.resrun.sdk.config.SDKClientConfig">
  <!-- 默认 false 签发本地测试证书 true 签发 CA 证书 -->
@@ -37,6 +38,10 @@ mvn install:install-file -Dfile=target/kaifangqian-sdk.jar -DartifactId=kaifangq
  <!-- 证书签发路径 -->
  <property name="certApplyUrl" value="${certApplyUrl}" />
 </bean>
+
+第二步 applicationContext.xml增加扫描org.resrun 这个包
+<context:component-scan base-package="com.example,org.resrun"/>
+
 ```
 
 ### 2.3 SpringBoot集成
@@ -52,13 +57,21 @@ kaifangqian:
   prod: false
   
 第二步
-# 初始化SDKClientConfig
+// 初始化SDKClientConfig
 @Configuration
 public class SpringBeanManage {
     @Bean
     @ConfigurationProperties(prefix = "kaifangqian")
     public SDKClientConfig clientConfig(){
         return new SDKClientConfig();
+    }
+}
+第三步
+// 启动类上增加扫描org.resrun 这个包
+@SpringBootApplication(scanBasePackages = {"org.resrun"})
+public class Application {
+    public static void main(String[] args) {
+        ...
     }
 }
 ```
