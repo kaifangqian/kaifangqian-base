@@ -27,7 +27,14 @@ import javax.validation.constraints.Size;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
-
+/**
+ * create by wangwenting at 2021/9/29 4:56 PM
+ *
+ * @param
+ * @description 根据controller，记录详细日志到日志文件
+ * @return
+ * @throws
+ */
 @Slf4j
 @Aspect
 @Order(value = 1)
