@@ -1,10 +1,16 @@
 package org.resrun.service.verify;
 
 
+import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.resrun.controller.vo.response.VerifyResponse;
 import org.resrun.service.pojo.SignPdfInfoVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
 
 
 /**
@@ -21,13 +27,11 @@ public class SignVerifyService{
      * 获取pdf签名图片信息
      * @return 提取结果
      */
-    public VerifyResponse getImageFromPdf(byte[] bytes, String fileName) {
-        VerifyResponse response = new VerifyResponse();
+    public VerifyResponse verify(byte[] bytes, String fileName) {
         SignPdfInfoVo signPdfInfo = new SignPdfInfoVo();
 
         try {
-
-           /* signPdfInfo = VerifySign.getSignFromPdf(bytes);
+            signPdfInfo = VerifySign.getSignFromPdf(bytes);
             signPdfInfo.setPdfName(fileName);
             signPdfInfo.setPdfSize(String.format("%.2f",bytes.length/1024.0));
             switch (signPdfInfo.getPdfSingResult()) {
@@ -39,12 +43,7 @@ public class SignVerifyService{
                     return new VerifyResponse(org.resrun.enums.SignStatus.SIGN_STATUS_FIDDLE.getMsg(), signPdfInfo);
                 default:
                     return new VerifyResponse(org.resrun.enums.SignStatus.SIGN_STATUS_RIGHT.getMsg(), signPdfInfo);
-            }*/
-
-            // TODO
-            throw new RuntimeException();
-
-
+            }
         }catch (Exception e){
             signPdfInfo.setPdfName(fileName);
             signPdfInfo.setPdfSize(String.valueOf(bytes.length/1024));
@@ -52,6 +51,6 @@ public class SignVerifyService{
             signPdfInfo.setPdfSingResult(org.resrun.enums.SignStatus.SIGN_STATUS_NOSIGNATURE.getCode());
             return new VerifyResponse(org.resrun.enums.SignStatus.SIGN_STATUS_NOSIGNATURE.getMsg(),signPdfInfo);
         }
-    }
 
+    }
 }

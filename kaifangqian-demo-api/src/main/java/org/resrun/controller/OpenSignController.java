@@ -298,9 +298,8 @@ public class OpenSignController {
 
         String verifyFile = request.getVerifyFile();
         byte[] decode = Base64.decode(verifyFile);
-
-        VerifyResponse imageFromPdf = signVerifyService.getImageFromPdf(decode, request.getFileName());
-        return Result.OK(imageFromPdf) ;
+        VerifyResponse verify = signVerifyService.verify(decode, request.getFileName());
+        return Result.OK(verify) ;
     }
 
 
