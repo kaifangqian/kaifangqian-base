@@ -535,20 +535,6 @@ public class APIController {
         return true ;
     }
 
-
-//    public static void main(String[] args) {
-//
-//
-//        try {
-//            byte[] pfxByte = IOUtils.toByteArray(new FileInputStream(new File("/Users/gongfenglai/Desktop/test/cert/0112-01.pfx")));
-//            String encode = Base64.encode(pfxByte);
-//            System.out.println(encode);
-//
-//        } catch (Exception e){
-//            e.printStackTrace();
-//        }
-//    }
-
     public static String header(byte[] file){
         StringBuilder header = new StringBuilder();
         for (int i = 0; i < Math.min(file.length, 8); i++) {
@@ -556,70 +542,4 @@ public class APIController {
         }
         return header.toString() ;
     }
-
-
-//    /**
-//     * @Description #关键字签署
-//     * @Param [docByte, sealByte, certificateInfo, keywords]
-//     * @return byte[]
-//     **/
-//    public byte[] signKeyword(byte[] docByte,byte[] sealByte,CertificateInfo certificateInfo,String keywords){
-//        byte[] outPdf = null ;
-//        //签署所需基础数据
-//        AssinaturaModel assinatura = new AssinaturaModel();
-//        assinatura.setLocation("location");
-//        assinatura.setReason("防伪造防篡改数字校验");
-//        //文件
-//        assinatura.setPdf(docByte);
-//        //签章
-//        assinatura.setSignatureImage(sealByte);
-//        //证书
-//        assinatura.setCertInfo(certificateInfo);
-//        //关键字
-//        assinatura.setSignatureKey(keywords);
-//        try {
-//            AssinaturaPDF assinaturaPDF = new AssinaturaPDF(assinatura);
-//            outPdf = assinaturaPDF.assina();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return outPdf ;
-//    }
-//
-//    /**
-//     * @Description #位置签署
-//     * @Param [docByte, sealByte, certificateInfo, signLocation]
-//     * @return byte[]
-//     **/
-//    public byte[] signPosition(byte[] docByte,byte[] sealByte,CertificateInfo certificateInfo,SignLocation signLocation){
-//        byte[] outPdf = null ;
-//        //签署所需基础数据
-//        AssinaturaModel assinatura = new AssinaturaModel();
-//        assinatura.setLocation("location");
-//        assinatura.setReason("防伪造防篡改数字校验");
-//        //文件
-//        assinatura.setPdf(docByte);
-//        //签章
-//        assinatura.setSignatureImage(sealByte);
-//        //证书
-//        assinatura.setCertInfo(certificateInfo);
-//        //签署位置
-//        AssinaturaPosition position = new AssinaturaPosition();
-//        position.setPage(signLocation.getPage());
-//        position.setOffsetX(signLocation.getOffsetX().floatValue() + "");
-//        position.setOffsetY(signLocation.getOffsetY().floatValue() + "");
-//        position.setSignHeight(signLocation.getSignHeight().floatValue() + "");
-//        position.setSignWidth(signLocation.getSignWidth().floatValue() + "");
-//        position.setPageHeight(signLocation.getPageHeight().floatValue() + "");
-//        position.setPageWidth(signLocation.getPageWidth().floatValue() + "");
-//        assinatura.setSignatureKey(UUID.randomUUID().toString());
-//        try {
-//            AssinaturaPDF assinaturaPDF = new AssinaturaPDF(assinatura);
-//            outPdf = assinaturaPDF.assina();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return outPdf ;
-//    }
-
 }
