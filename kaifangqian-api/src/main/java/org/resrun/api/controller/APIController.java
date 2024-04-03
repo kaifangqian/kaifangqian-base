@@ -305,14 +305,6 @@ public class APIController {
             if(request.getKeywords().contains(" ")){
                 return Result.error(APIResultEnum.PARAM_FORMAT,request.getUniqueCode(),"keywords",ParamFormatErrorEnum.HAVE_BLANK_ERROR.getName());
             }
-            PDDocument document = null;
-            try {
-                document = Loader.loadPDF(docFileByte);
-                PDPage page = document.getPage(1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
 
         }
 
