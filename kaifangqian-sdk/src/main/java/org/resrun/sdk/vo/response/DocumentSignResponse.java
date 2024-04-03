@@ -13,13 +13,13 @@ public class DocumentSignResponse implements Serializable {
     private static final long serialVersionUID = 620669287901843970L;
 
     //签署后的文件
-    private String documentFile ;
+    private byte [] documentFile ;
 
-    public String getDocumentFile() {
+    public byte [] getDocumentFile() {
         return documentFile;
     }
 
-    public void setDocumentFile(String documentFile) {
+    public void setDocumentFile(byte [] documentFile) {
         this.documentFile = documentFile;
     }
 }

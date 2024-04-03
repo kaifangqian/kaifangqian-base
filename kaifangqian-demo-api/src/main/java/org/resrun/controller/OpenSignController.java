@@ -201,8 +201,8 @@ public class OpenSignController {
                 signRequest.setSignLocationList(signLocations);
                 org.resrun.sdk.vo.base.Result<DocumentSignResponse> signResponse = sdkService.documentSign(signRequest);
                 if(signResponse.getCode().equals(APIResultEnum.SUCCESS.getCode())){
-                    String [] file = signResponse.getData().getDocumentFile().split(",");
-                    operationByte = Base64.decode(file[1]);
+//                    String [] file = signResponse.getData().getDocumentFile().split(",");
+                    operationByte = signResponse.getData().getDocumentFile();
                 }else {
                     return Result.error("签署失败",null);
                 }
@@ -231,8 +231,9 @@ public class OpenSignController {
                 signRequest.setSignLocationList(signLocations);
                 org.resrun.sdk.vo.base.Result<DocumentSignResponse> signResponse = sdkService.documentSign(signRequest);
                 if(signResponse.getCode().equals(APIResultEnum.SUCCESS.getCode())){
-                    String [] file = signResponse.getData().getDocumentFile().split(",");
-                    operationByte = Base64.decode(file[1]);
+//                    String [] file = signResponse.getData().getDocumentFile().split(",");
+                    operationByte = signResponse.getData().getDocumentFile();
+
                 }else {
                     return Result.error("签署失败",null);
                 }
@@ -256,8 +257,8 @@ public class OpenSignController {
                 signRequest.setKeywords(request.getEntKeyword());
                 org.resrun.sdk.vo.base.Result<DocumentSignResponse> signResponse = sdkService.documentSign(signRequest);
                 if(signResponse.getCode().equals(APIResultEnum.SUCCESS.getCode())){
-                    String [] file = signResponse.getData().getDocumentFile().split(",");
-                    operationByte = Base64.decode(file[1]);
+//                    String [] file = signResponse.getData().getDocumentFile().split(",");
+                    operationByte = signResponse.getData().getDocumentFile();
                 }else {
                     return Result.error("签署失败",null);
                 }
@@ -272,8 +273,8 @@ public class OpenSignController {
                 signRequest.setKeywords(request.getPersonalKeyword());
                 org.resrun.sdk.vo.base.Result<DocumentSignResponse> signResponse = sdkService.documentSign(signRequest);
                 if(signResponse.getCode().equals(APIResultEnum.SUCCESS.getCode())){
-                    String [] file = signResponse.getData().getDocumentFile().split(",");
-                    operationByte = Base64.decode(file[1]);
+//                    String [] file = signResponse.getData().getDocumentFile().split(",");
+                    operationByte = signResponse.getData().getDocumentFile();
                 }else {
                     return Result.error("签署失败",null);
                 }

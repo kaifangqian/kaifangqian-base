@@ -1,16 +1,14 @@
 package org.resrun.sdk.service;
 
 import org.resrun.sdk.config.SDKClientConfig;
-import org.resrun.sdk.enums.APIResultEnum;
-import org.resrun.sdk.enums.BusinessErrorEnum;
-import org.resrun.sdk.enums.ParamFormatErrorEnum;
-import org.resrun.sdk.enums.SDKSignTypeEnum;
+import org.resrun.sdk.enums.*;
 import org.resrun.sdk.pdfbox.AssinaturaPDF;
 import org.resrun.sdk.pdfbox.vo.AssinaturaModel;
 import org.resrun.sdk.pdfbox.vo.AssinaturaPosition;
 import org.resrun.sdk.pdfbox.vo.CertificateInfo;
 import org.resrun.sdk.service.pojo.*;
 import org.resrun.sdk.utils.Base64;
+import org.resrun.sdk.utils.CutImage;
 import org.resrun.sdk.vo.base.Result;
 import org.resrun.sdk.vo.base.SignLocation;
 import org.resrun.sdk.vo.request.CertEventRequest;
@@ -53,6 +51,82 @@ public class SDKService {
 
     @Autowired
     private EntSealGenerateService entSealGenerateService;
+
+
+    public byte [] chopStampSign(byte [] docFile, byte [] pfx,String pfxPassword, byte [] entSealByte){
+        CertificateInfo certificateInfo = new CertificateInfo();
+        certificateInfo.setCert(pfx);
+        certificateInfo.setPassword(pfxPassword);
+        certificateInfo.setCertType(CertificateInfo.CertTypeEnum.PKCS12);
+
+        SourcePositionProperty sourcePositionProperty = new SourcePositionProperty();
+        sourcePositionProperty.setOffsetX(0.f);
+        sourcePositionProperty.setOffsetY(0.f);
+        sourcePositionProperty.setHeight(160.f);
+        sourcePositionProperty.setWidth(160.f);
+        sourcePositionProperty.setPageHeight(1131.f);
+        sourcePositionProperty.setPageWidth(800.f);
+
+        List<RealPositionProperty> realPositionProperties = calculatePositionService.calculateChopStampPositions(sourcePositionProperty, docFile, ControlPropertyTypePageConfigEnum.ALL, null,entSealByte);
+        if(realPositionProperties == null || realPositionProperties.size() == 0){
+            throw new RuntimeException("签署失败，签署位置计算失败");
+        }
+
+        byte [] newFileBytes = docFile;
+        List<byte[]> imageList = new CutImage().cutImage(entSealByte, realPositionProperties.size());
+        for(int i = 0 ; i < realPositionProperties.size() ; i++){
+            RealPositionProperty realPositionProperty = realPositionProperties.get(i);
+            byte[] cutImageByte = imageList.get(i);
+            newFileBytes = sign(newFileBytes, cutImageByte, certificateInfo, realPositionProperty);
+        }
+        return newFileBytes;
+    }
+
+    public byte[] sign(byte[] pdfFile, byte[] signByte, CertificateInfo certInfo, RealPositionProperty realPositionProperty){
+//        log.info("开始签署了");
+        //开始签署
+        byte [] outPdf = pdfFile ;
+        //签署所需基础数据
+        AssinaturaModel assinatura = new AssinaturaModel();
+        assinatura.setLocation("无");
+        assinatura.setReason("防伪造防篡改数字校验");
+        //文件
+        assinatura.setPdf(outPdf);
+        //签章
+        assinatura.setSignatureImage(signByte);
+        //证书
+        assinatura.setCertInfo(certInfo);
+        //签署位置
+        AssinaturaPosition position = new AssinaturaPosition();
+        position.setPage(realPositionProperty.getPageNum());
+        //横坐标
+        position.setOffsetX(realPositionProperty.getStartx() + "");
+        position.setSignWidth((realPositionProperty.getEndx() - realPositionProperty.getStartx()) + "");
+        //纵坐标，pdfbox是从下向上计算的
+        float signHeight = realPositionProperty.getStarty() - realPositionProperty.getEndy();
+        if(signHeight < 0){
+            signHeight = realPositionProperty.getEndy() - realPositionProperty.getStarty() ;
+        }
+        position.setSignHeight(signHeight + "");
+        position.setOffsetY((realPositionProperty.getRealPdfHeight() - realPositionProperty.getStarty() - signHeight) + "");
+
+
+        assinatura.setPosition(position);
+        assinatura.setSignatureKey(UUID.randomUUID().toString());
+        try {
+            AssinaturaPDF assinaturaPDF = new AssinaturaPDF(assinatura);
+            outPdf = assinaturaPDF.assina();
+        } catch (Exception e) {
+            throw new RuntimeException("签署失败");
+        }
+        if(outPdf == null){
+            throw new RuntimeException("签署失败");
+        }
+//        log.info("签署完成了");
+        return outPdf ;
+
+    }
+
 
     /**
      * 签章生成
@@ -380,15 +454,6 @@ public class SDKService {
             if(request.getKeywords().contains(" ")){
                 return Result.error(APIResultEnum.PARAM_FORMAT,request.getUniqueCode(),"keywords",ParamFormatErrorEnum.HAVE_BLANK_ERROR.getName());
             }
-            PDDocument document = null;
-            try {
-                document = Loader.loadPDF(docFileByte);
-                PDPage page = document.getPage(1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
         }
 
 
@@ -571,7 +636,7 @@ public class SDKService {
         }
         //返回
         DocumentSignResponse response = new DocumentSignResponse();
-        response.setDocumentFile("data:application/pdf;base64," + Base64.encode(outPdf));
+        response.setDocumentFile(outPdf);
 
         return Result.OK(response,request.getUniqueCode()) ;
 

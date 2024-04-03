@@ -68,6 +68,7 @@ public class VerifySign {
 
                     byte[] origPDF = pdSignature.getSignedContent(pdfByte);
                     byte[] sig = pdSignature.getContents(pdfByte);
+
                     //创建证书对象
                     CMSSignedData cmsSignedData = new CMSSignedData(new CMSProcessableByteArray(origPDF), sig);
                     //获取证书详细信息

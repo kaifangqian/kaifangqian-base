@@ -45,7 +45,6 @@
             <artifactId>fastjson</artifactId>
         </dependency>
 
-
     </dependencies>
 
     <artifactId>kaifangqian-sdk</artifactId>

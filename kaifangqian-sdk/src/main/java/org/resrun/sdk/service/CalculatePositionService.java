@@ -2,6 +2,7 @@ package org.resrun.sdk.service;
 
 import org.resrun.sdk.enums.APIResultEnum;
 import org.resrun.sdk.enums.BusinessErrorEnum;
+import org.resrun.sdk.enums.ControlPropertyTypePageConfigEnum;
 import org.resrun.sdk.exception.BusinessException;
 import org.resrun.sdk.service.pojo.RealPositionProperty;
 import org.resrun.sdk.service.pojo.SelectKeywords;
@@ -235,6 +236,132 @@ public class CalculatePositionService {
         return positions;
     }
 
+    public List<RealPositionProperty> calculateChopStampPositions(SourcePositionProperty sourcePositionProperty, byte[] pdfFileByte,ControlPropertyTypePageConfigEnum pageConfigEnum,String pageValue,byte[] sealByte){
+        List<RealPositionProperty> properties = new ArrayList<>();
+
+
+        try {
+            PDDocument document = Loader.loadPDF(pdfFileByte);
+            if(document == null){
+                throw new RuntimeException("pdf文件解析失败");
+            }
+            int numberOfPages = document.getNumberOfPages();
+            //解析页码
+            List<Integer> pageList = parsePage(pageConfigEnum, numberOfPages, pageValue);
+            if(pageList == null || pageList.size() == 0){
+                return properties ;
+            }else {
+                //获取签章数据
+//                BufferedImage read = ImageIO.read(new ByteArrayInputStream(sealByte));
+//                int width = read.getWidth();
+                //计算骑缝之后的签章宽度
+//                int chopStampWidth =  width / pageList.size() ;
+                Float width = sourcePositionProperty.getWidth();
+                Float pageWidth = sourcePositionProperty.getPageWidth();
+                //计算出页面上签章和页面的大小比例
+                float rateSourceImage = width / pageWidth;
+                for(Integer pageNumber : pageList){
+                    //将pdf文件读入PdfReader工具类
+                    PDPage page = document.getPage(pageNumber);
+                    if(page == null){
+                        throw new RuntimeException("pdf文件解析失败，无页码");
+                    }
+                    PDRectangle mediaBox = page.getMediaBox();
+                    if(mediaBox == null){
+                        throw new RuntimeException("pdf文件解析失败");
+                    }
+                    //获取真实pdf文件指定页的真实文档宽高
+                    float realPdfHeight = mediaBox.getHeight();
+                    float realPdfWidth = mediaBox.getWidth();
+
+                    //获取页面上文档的宽高
+                    float sourcePageWidth = sourcePositionProperty.getPageWidth();
+                    float sourcePageHeight = sourcePositionProperty.getPageHeight();
+                    //计算真实文档的宽高和页面文档的宽高的比率
+                    float rateHeight = realPdfHeight / sourcePageHeight;
+
+                    float rateWidth = realPdfWidth / sourcePageWidth;
+                    //按照比例，计算出真实文件中签章的大小，再根据页数计算出进行切分后的宽度
+                    float realImageWidth = (realPdfWidth * rateSourceImage) / pageList.size() ;
+                    //计算页面上的横纵坐标,由于页面上给出的是左上角的坐标，所以需要再转换计算一下
+                    //左下角
+                    float pageStartY = sourcePositionProperty.getOffsetY() + sourcePositionProperty.getHeight() ;
+                    //右上角
+                    float pageEndY = sourcePositionProperty.getOffsetY();
+                    //根据比率去计算真实文档上的坐标位置
+                    float startY = pageStartY * rateHeight;
+                    float endY = pageEndY * rateHeight ;
+                    float startX = realPdfWidth - realImageWidth;
+                    float endX = realPdfWidth ;
+                    //由于页面的纵坐标和pdf的纵坐标是相反的，所以真实的pdf的纵坐标在计算的时候需要再反转一下
+                    startY = realPdfHeight - startY ;
+                    endY = realPdfHeight - endY ;
+
+                    RealPositionProperty realPositionProperty = new RealPositionProperty();
+                    //封装返回数据
+                    //x开始坐标和结束坐标
+                    realPositionProperty.setStartx(startX);
+                    realPositionProperty.setEndx(endX);
+                    //y开始坐标和结束坐标
+                    realPositionProperty.setStarty(startY);
+                    realPositionProperty.setEndy(endY);
+                    //pdf文件真实宽高
+                    realPositionProperty.setRealPdfWidth(realPdfWidth);
+                    realPositionProperty.setRealPdfHeight(realPdfHeight);
+                    //页码
+                    realPositionProperty.setPageNum(pageNumber);
+
+//                    realPositionProperty.setControlType(sourcePositionProperty.getControlType());
+                    properties.add(realPositionProperty);
+                }
+            }
+
+
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return properties ;
+    }
+
+
+    public List<Integer> parsePage(ControlPropertyTypePageConfigEnum pageConfigEnum,int numberOfPages,String value){
+        List<Integer> pageNumberList = new ArrayList<>();
+        if(pageConfigEnum.getCode().equals(ControlPropertyTypePageConfigEnum.CUSTOM.getCode())){
+            String[] split = value.split(",");
+            if(split != null && split.length > 0){
+                for(String s : split){
+                    if(s.contains("-")){
+                        String[] splitInner = s.split("-");
+                        if(splitInner != null && splitInner.length > 0){
+                            int start = Integer.valueOf(splitInner[0]);
+                            int end = Integer.valueOf(splitInner[1]);
+                            for(int i = start ; i <= end ; i++){
+                                pageNumberList.add(i - 1);
+                            }
+                        }
+                    }else {
+                        pageNumberList.add(Integer.valueOf(s) - 1);
+                    }
+                }
+            }
+        }else{
+            for(int i = 0 ; i < numberOfPages ; i++){
+                if(pageConfigEnum.getCode().equals(ControlPropertyTypePageConfigEnum.ODD_NUMBER.getCode())){
+                    if(i % 2 == 0){
+                        pageNumberList.add(i);
+                    }
+                }else if(pageConfigEnum.getCode().equals(ControlPropertyTypePageConfigEnum.EVEN_NUMBER.getCode())){
+                    if(i % 2 != 0){
+                        pageNumberList.add(i);
+                    }
+                }else if(pageConfigEnum.getCode().equals(ControlPropertyTypePageConfigEnum.ALL.getCode())){
+                    pageNumberList.add(i);
+                }
+            }
+        }
+        return pageNumberList ;
+    }
 
 
 
