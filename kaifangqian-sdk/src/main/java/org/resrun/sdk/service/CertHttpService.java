@@ -177,7 +177,7 @@ public class CertHttpService {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(jks);
             inputKeyStore.load(inputStream, password.toCharArray());
 
-            KeyStore outputKeyStore = KeyStore.getInstance("PKCS12");
+            KeyStore outputKeyStore = KeyStore.getInstance("PKCS12","BC");
 
             outputKeyStore.load(null, password.toCharArray());
 
