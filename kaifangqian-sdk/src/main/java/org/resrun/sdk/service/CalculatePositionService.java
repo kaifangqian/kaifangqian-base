@@ -56,6 +56,10 @@ public class CalculatePositionService {
                 //获取真实pdf文件指定页的真实文档宽高
                 float realPdfHeight = mediaBox.getHeight();
                 float realPdfWidth = mediaBox.getWidth();
+                if(page.getRotation() == 90 || page.getRotation() == 270){
+                    realPdfWidth = page.getCropBox().getHeight();
+                    realPdfHeight = page.getCropBox().getWidth();
+                }
 
                 //获取页面上文档的宽高
                 float sourcePageWidth = sourcePositionProperty.getPageWidth();
@@ -129,6 +133,12 @@ public class CalculatePositionService {
             //获取真实pdf文件指定页的真实文档宽高
             float realPdfHeight = mediaBox.getHeight();
             float realPdfWidth = mediaBox.getWidth();
+
+            if(page.getRotation() == 90 || page.getRotation() == 270){
+                realPdfWidth = page.getCropBox().getHeight();
+                realPdfHeight = page.getCropBox().getWidth();
+            }
+
             //获取页面上文档的宽高
             float sourcePageWidth = sourcePositionProperty.getPageWidth();
             float sourcePageHeight = sourcePositionProperty.getPageHeight();
@@ -224,6 +234,12 @@ public class CalculatePositionService {
                     //获取真实pdf文件指定页的真实文档宽高
                     float realPdfHeight = mediaBox.getHeight();
                     float realPdfWidth = mediaBox.getWidth();
+
+                    if(page.getRotation() == 90 || page.getRotation() == 270){
+                        realPdfWidth = page.getCropBox().getHeight();
+                        realPdfHeight = page.getCropBox().getWidth();
+                    }
+
                     positionProperty.setRealPdfHeight(realPdfHeight);
                     positionProperty.setRealPdfWidth(realPdfWidth);
                     positions.add(positionProperty);
@@ -273,6 +289,10 @@ public class CalculatePositionService {
                     //获取真实pdf文件指定页的真实文档宽高
                     float realPdfHeight = mediaBox.getHeight();
                     float realPdfWidth = mediaBox.getWidth();
+                    if(page.getRotation() == 90 || page.getRotation() == 270){
+                        realPdfWidth = page.getCropBox().getHeight();
+                        realPdfHeight = page.getCropBox().getWidth();
+                    }
 
                     //获取页面上文档的宽高
                     float sourcePageWidth = sourcePositionProperty.getPageWidth();

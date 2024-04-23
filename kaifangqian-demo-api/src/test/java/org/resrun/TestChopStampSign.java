@@ -25,21 +25,19 @@ public class TestChopStampSign {
     @Test
     public void chopStampSign() throws IOException {
 
-        byte [] pdf = FileUtils.readFileToByteArray(new File("E://work//tem//pdfbox//123.pdf"));
-        byte [] pfx = FileUtils.readFileToByteArray(new File("E://work//tem//cert//tw-test01.pfx"));
-        byte [] png = FileUtils.readFileToByteArray(new File("E://work//tem//1.png"));
+//        byte [] pdf = FileUtils.readFileToByteArray(new File("E://work//tem//pdfbox//123.pdf"));
+//        byte [] pfx = FileUtils.readFileToByteArray(new File("E://work//tem//cert//tw-test01.pfx"));
+//        byte [] png = FileUtils.readFileToByteArray(new File("E://work//tem//1.png"));
 
         //byte [] signPDF = service.chopStampSign(pdf,pfx,"password",png);
-        CertEventRequest certEventRequest = new CertEventRequest();
-        certEventRequest.setCertPassword("123456");
-        certEventRequest.setCertSubject("张三@123456");
+//        CertEventRequest certEventRequest = new CertEventRequest();
+//        certEventRequest.setCertPassword("123456");
+//        certEventRequest.setCertSubject("张三@123456");
 //        certEventRequest.setCertSubject("北京资源律动科技有限公司@91110108MA01MNU448");
-        certEventRequest.setUniqueCode(UUID.randomUUID().toString());
-        Result<CertEventResponse> result =  service.certEvent(certEventRequest);
-
-        byte [] signPDF = service.chopStampSign(pdf, Base64.decode(result.getData().getPfx()),"123456",png);
-
-        FileUtils.writeByteArrayToFile(new File("E://work//tem//pdfbox//chop.pdf"),signPDF);
+//        certEventRequest.setUniqueCode(UUID.randomUUID().toString());
+//        Result<CertEventResponse> result =  service.certEvent(certEventRequest);
+//        byte [] signPDF = service.chopStampSign(pdf, Base64.decode(result.getData().getPfx()),"123456",png);
+//        FileUtils.writeByteArrayToFile(new File("E://work//tem//pdfbox//chop.pdf"),signPDF);
     }
 
 }

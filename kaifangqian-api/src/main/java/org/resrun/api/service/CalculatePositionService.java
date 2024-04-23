@@ -1,17 +1,15 @@
 package org.resrun.api.service;
 
-import org.apache.pdfbox.pdmodel.PDPageTree;
-import org.resrun.api.enums.APIResultEnum;
-import org.resrun.api.enums.BusinessErrorEnum;
-import org.resrun.api.exception.BusinessException;
-import org.resrun.api.service.pojo.SelectKeywords;
-import org.resrun.api.service.pojo.RealPositionProperty;
-import org.resrun.api.service.pojo.SourcePositionProperty;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.resrun.api.enums.APIResultEnum;
+import org.resrun.api.enums.BusinessErrorEnum;
+import org.resrun.api.exception.BusinessException;
+import org.resrun.api.service.pojo.RealPositionProperty;
+import org.resrun.api.service.pojo.SelectKeywords;
+import org.resrun.api.service.pojo.SourcePositionProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,7 +22,6 @@ import java.util.List;
  * @ClassName: CalculatePositionService
  * @author: FengLai_Gong
  */
-@Slf4j
 @Service
 public class CalculatePositionService {
 
@@ -58,6 +55,10 @@ public class CalculatePositionService {
                 //获取真实pdf文件指定页的真实文档宽高
                 float realPdfHeight = mediaBox.getHeight();
                 float realPdfWidth = mediaBox.getWidth();
+                if(page.getRotation() == 90 || page.getRotation() == 270){
+                    realPdfWidth = page.getCropBox().getHeight();
+                    realPdfHeight = page.getCropBox().getWidth();
+                }
 
                 //获取页面上文档的宽高
                 float sourcePageWidth = sourcePositionProperty.getPageWidth();
@@ -131,6 +132,12 @@ public class CalculatePositionService {
             //获取真实pdf文件指定页的真实文档宽高
             float realPdfHeight = mediaBox.getHeight();
             float realPdfWidth = mediaBox.getWidth();
+
+            if(page.getRotation() == 90 || page.getRotation() == 270){
+                realPdfWidth = page.getCropBox().getHeight();
+                realPdfHeight = page.getCropBox().getWidth();
+            }
+
             //获取页面上文档的宽高
             float sourcePageWidth = sourcePositionProperty.getPageWidth();
             float sourcePageHeight = sourcePositionProperty.getPageHeight();
@@ -226,6 +233,12 @@ public class CalculatePositionService {
                     //获取真实pdf文件指定页的真实文档宽高
                     float realPdfHeight = mediaBox.getHeight();
                     float realPdfWidth = mediaBox.getWidth();
+
+                    if(page.getRotation() == 90 || page.getRotation() == 270){
+                        realPdfWidth = page.getCropBox().getHeight();
+                        realPdfHeight = page.getCropBox().getWidth();
+                    }
+
                     positionProperty.setRealPdfHeight(realPdfHeight);
                     positionProperty.setRealPdfWidth(realPdfWidth);
                     positions.add(positionProperty);
@@ -237,8 +250,4 @@ public class CalculatePositionService {
         }
         return positions;
     }
-
-
-
-
 }

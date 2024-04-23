@@ -233,7 +233,13 @@ public class AssinaturaPDF extends SignatureBase {
                     int imgHeight = img.getHeight();
                     int imgWidth = img.getWidth();
                     cs.saveGraphicsState();
-                    cs.transform(Matrix.getScaleInstance(rect.getWidth()/imgWidth*1.0f,rect.getHeight()/imgHeight*1.0f));
+                    if(srcDoc.getPage(pageNum).getRotation() == 90 || srcDoc.getPage(pageNum).getRotation()== 270){
+                        cs.transform(Matrix.getScaleInstance(rect.getHeight()/imgWidth*1.0f,rect.getWidth()/imgHeight*1.0f));
+                    }else{
+                        cs.transform(Matrix.getScaleInstance(rect.getWidth()/imgWidth*1.0f,rect.getHeight()/imgHeight*1.0f));
+                    }
+
+
                     cs.drawImage(img, 0,0);
                     cs.restoreGraphicsState();
 
