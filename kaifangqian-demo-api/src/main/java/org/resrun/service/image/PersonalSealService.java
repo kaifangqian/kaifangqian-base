@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
  * @ClassName: PersonalSealService
  * @copyright 北京资源律动科技有限公司
  */
-@Service
 public class PersonalSealService {
 
 

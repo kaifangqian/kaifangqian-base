@@ -1,7 +1,9 @@
 package org.resrun.sdk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.resrun.sdk.config.SDKClientConfig;
 import org.resrun.sdk.enums.*;
+import org.resrun.sdk.exception.BusinessException;
 import org.resrun.sdk.pdfbox.AssinaturaPDF;
 import org.resrun.sdk.pdfbox.vo.AssinaturaModel;
 import org.resrun.sdk.pdfbox.vo.AssinaturaPosition;
@@ -53,6 +55,14 @@ public class SDKService {
     private EntSealGenerateService entSealGenerateService;
 
 
+    /**
+     * 骑缝签   默认方式
+     * @param docFile  待签署PDF
+     * @param pfx   证书文件
+     * @param pfxPassword  证书密码
+     * @param entSealByte  签章图片
+     * @return
+     */
     public byte [] chopStampSign(byte [] docFile, byte [] pfx,String pfxPassword, byte [] entSealByte){
         CertificateInfo certificateInfo = new CertificateInfo();
         certificateInfo.setCert(pfx);
@@ -81,6 +91,72 @@ public class SDKService {
         }
         return newFileBytes;
     }
+
+
+    /**
+     * 骑缝签  可指定需要骑缝签署的页码
+     * @param docFile
+     * @param pfx
+     * @param pfxPassword
+     * @param entSealByte
+     * @param type
+     *      ControlPropertyTypePageConfigEnum.ALL           全部页（默认）
+     *      ControlPropertyTypePageConfigEnum.ODD_NUMBER    奇数页
+     *      ControlPropertyTypePageConfigEnum.EVEN_NUMBER   偶数页
+     *      ControlPropertyTypePageConfigEnum.CUSTOM        指定页  需要与pageValue结合
+     *
+     * @param pageValue
+     *      如果是骑缝签署类型指定了 ControlPropertyTypePageConfigEnum.CUSTOM  则需要指定要骑缝签名的页码
+     *      页码通过逗号连接
+     *      例如： "1,2,3,4,5,6"
+     * @return
+     */
+    public byte [] chopStampSign(byte [] docFile, byte [] pfx,String pfxPassword, byte [] entSealByte,
+                                 ControlPropertyTypePageConfigEnum type,String pageValue,SourcePositionProperty sourcePositionProperty){
+        if(sourcePositionProperty == null || sourcePositionProperty.getOffsetY() == null){
+            throw new RuntimeException("签署位置信息SourcePositionProperty不能为空");
+        }
+        if(sourcePositionProperty.getOffsetY() == null){
+            throw new RuntimeException("sourcePositionProperty.offsetY不能为空");
+        }
+        //判断印章是否超出可见区域
+        if(sourcePositionProperty.getOffsetY().floatValue() > (sourcePositionProperty.getPageHeight().floatValue() - sourcePositionProperty.getHeight().floatValue()) && sourcePositionProperty.getOffsetY().floatValue()<0){
+            throw new RuntimeException("设置印章位置超出可见区域，请检查offsetY的范围");
+        }
+
+        //设置签署类型
+        if(type == null){
+            type = ControlPropertyTypePageConfigEnum.ALL;
+        }
+
+        //判断是否自定义页码签署     则pageValue必须传值
+        if(ControlPropertyTypePageConfigEnum.CUSTOM.equals(type)){
+            if(StringUtils.isEmpty(pageValue)){
+                throw new RuntimeException("未指定骑缝签章页码");
+            }
+        }
+
+        CertificateInfo certificateInfo = new CertificateInfo();
+        certificateInfo.setCert(pfx);
+        certificateInfo.setPassword(pfxPassword);
+        certificateInfo.setCertType(CertificateInfo.CertTypeEnum.PKCS12);
+
+
+        List<RealPositionProperty> realPositionProperties = calculatePositionService.calculateChopStampPositions(sourcePositionProperty, docFile,type, pageValue,entSealByte);
+        if(realPositionProperties == null || realPositionProperties.size() == 0){
+            throw new RuntimeException("签署失败，签署位置计算失败");
+        }
+
+        byte [] newFileBytes = docFile;
+        List<byte[]> imageList = new CutImage().cutImage(entSealByte, realPositionProperties.size());
+        for(int i = 0 ; i < realPositionProperties.size() ; i++){
+            RealPositionProperty realPositionProperty = realPositionProperties.get(i);
+            byte[] cutImageByte = imageList.get(i);
+            newFileBytes = sign(newFileBytes, cutImageByte, certificateInfo, realPositionProperty);
+        }
+        return newFileBytes;
+    }
+
 
     public byte[] sign(byte[] pdfFile, byte[] signByte, CertificateInfo certInfo, RealPositionProperty realPositionProperty){
 //        log.info("开始签署了");
