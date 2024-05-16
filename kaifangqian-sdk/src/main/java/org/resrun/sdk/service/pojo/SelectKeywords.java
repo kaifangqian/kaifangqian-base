@@ -54,7 +54,11 @@ public class SelectKeywords extends PDFTextStripper {
         try {
             in = new ByteArrayInputStream(pdfFile);
             document = Loader.loadPDF(pdfFile);//加载pdf文件
-            docHeight = document.getPage(0).getCropBox().getHeight();
+            if(document.getPage(0).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
+                docHeight = document.getPage(0).getCropBox().getWidth();
+            }else{
+                docHeight = document.getPage(0).getCropBox().getHeight();
+            }
             this.getText(document);
             List<float[]> allResu = getAllResult();
             return allResu;
@@ -94,6 +98,11 @@ public class SelectKeywords extends PDFTextStripper {
         try {
             in = new ByteArrayInputStream(pdfFile);
             document = Loader.loadPDF(pdfFile);//加载pdf文件
+            if(document.getPage(0).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
+                docHeight = document.getPage(0).getCropBox().getWidth();
+            }else{
+                docHeight = document.getPage(0).getCropBox().getHeight();
+            }
             this.getText(document);
             float[] resu = getResult();
             return resu;
