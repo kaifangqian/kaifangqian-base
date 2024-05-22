@@ -112,6 +112,9 @@ SDK能力同API接口，便于使用java语言开发的用户直接集成使用�
 （1）企业版体验地址：[https://home.kaifangqian.com/#/login](https://home.kaifangqian.com/#/login)
 
 （2）企业版产品手册：[https://www.yuque.com/huxin-ch41t/kaifangqian](https://www.yuque.com/huxin-ch41t/kaifangqian)
+
+ **如需试用企业付费版本，可联系客服索要安装包，可免费使用一个月！（截止到7月30日）** 
+
 ## 六、反馈交流
 （1）QQ技术交流群：482074553
 
