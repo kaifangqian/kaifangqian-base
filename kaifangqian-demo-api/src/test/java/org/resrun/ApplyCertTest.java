@@ -1,6 +1,7 @@
 package org.resrun;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.resrun.sdk.service.SDKService;
@@ -11,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.UUID;
 
 @RunWith(SpringRunner.class)
@@ -26,11 +29,15 @@ public class ApplyCertTest {
 
         CertEventRequest certEventRequest = new CertEventRequest();
         certEventRequest.setCertPassword("123456");
-        certEventRequest.setCertSubject("北京测试科技有限公司@123456789987654321");
+        certEventRequest.setCertSubject("王文庭@612401199503195175");
         certEventRequest.setUniqueCode(UUID.randomUUID().toString());
         Result<CertEventResponse> result =  service.certEvent(certEventRequest);
         System.out.println(result.getData().getPfx());
         System.out.println(JSONObject.toJSONString(result.getData()));
+
+        FileUtils.writeByteArrayToFile(new File("E:\\work\\tem\\cert\\612401199503195175.pfx"), Base64.getDecoder().decode(result.getData().getPfx()));
+
+
 
     }
 }

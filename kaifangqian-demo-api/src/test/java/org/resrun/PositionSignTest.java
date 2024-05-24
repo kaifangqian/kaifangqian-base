@@ -56,9 +56,10 @@ public class PositionSignTest {
         DocumentSignRequest request = new DocumentSignRequest();
         request.setDocumentFile(Base64.encode(pdf));
         request.setSignatureFile(Base64.encode(png));
-        request.setSignType(2);
+        request.setSignType(1);
         request.setPfx(result.getData().getPfx());
         request.setCertPassword(certEventRequest.getCertPassword());
+
         List<SignLocation> signLocationList = new ArrayList<>();
         SignLocation signLocation = new SignLocation();
         signLocation.setPage(1);
@@ -71,8 +72,41 @@ public class PositionSignTest {
         signLocationList.add(signLocation);
         request.setSignLocationList(signLocationList);
         request.setUniqueCode(UUID.randomUUID().toString());
-
+//
         Result<DocumentSignResponse>  signResult = service.documentSign(request);
         FileUtils.writeByteArrayToFile(new File("target/positionSign.pdf"),signResult.getData().getDocumentFile());
+    }
+
+
+    @Test
+    public void keywordSign() throws IOException {
+
+        Resource resourcePDF = resourceLoader.getResource("classpath:example.pdf");
+        Resource resourceSeal = resourceLoader.getResource("classpath:seal.png");
+        byte [] pdf = FileUtils.readFileToByteArray(resourcePDF.getFile());
+        byte [] png = FileUtils.readFileToByteArray(resourceSeal.getFile());
+
+
+        //申请证书
+        CertEventRequest certEventRequest = new CertEventRequest();
+        certEventRequest.setCertPassword("123456");
+        certEventRequest.setCertSubject("张三@123456");
+        certEventRequest.setUniqueCode(UUID.randomUUID().toString());
+        Result<CertEventResponse> result =  service.certEvent(certEventRequest);
+
+
+        DocumentSignRequest request = new DocumentSignRequest();
+        request.setDocumentFile(Base64.encode(pdf));
+        request.setSignatureFile(Base64.encode(png));
+        request.setSignType(1);
+        request.setPfx(result.getData().getPfx());
+        request.setCertPassword(certEventRequest.getCertPassword());
+
+        request.setKeywords("测试文档");
+
+        request.setUniqueCode(UUID.randomUUID().toString());
+//
+        Result<DocumentSignResponse>  signResult = service.documentSign(request);
+        FileUtils.writeByteArrayToFile(new File("target/keywordSign.pdf"),signResult.getData().getDocumentFile());
     }
 }
