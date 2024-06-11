@@ -15,3 +15,5 @@
 logs/
 
 /.idea/uiDesigner.xml
+/kaifangqian-demo-api/src/main/resources/application-apply.yml
+/kaifangqian-demo-api/src/test/java/org/resrun/ApplyLocalCertTest.java

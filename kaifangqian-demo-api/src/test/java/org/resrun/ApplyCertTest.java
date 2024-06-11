@@ -29,13 +29,13 @@ public class ApplyCertTest {
 
         CertEventRequest certEventRequest = new CertEventRequest();
         certEventRequest.setCertPassword("123456");
-        certEventRequest.setCertSubject("王文庭@612401199503195175");
+        certEventRequest.setCertSubject("张三@123456789987654321");
         certEventRequest.setUniqueCode(UUID.randomUUID().toString());
         Result<CertEventResponse> result =  service.certEvent(certEventRequest);
         System.out.println(result.getData().getPfx());
         System.out.println(JSONObject.toJSONString(result.getData()));
 
-        FileUtils.writeByteArrayToFile(new File("E:\\work\\tem\\cert\\612401199503195175.pfx"), Base64.getDecoder().decode(result.getData().getPfx()));
+        FileUtils.writeByteArrayToFile(new File("E:\\work\\tem\\cert\\123456789987654321.pfx"), Base64.getDecoder().decode(result.getData().getPfx()));
 
 
 
