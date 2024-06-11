@@ -29,7 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
-import javax.security.cert.X509Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -387,7 +388,11 @@ public class APIController {
                 keyAlias = (String)enumas.nextElement();
             }
             Certificate cert = ks.getCertificate(keyAlias);
-            X509Certificate instance = X509Certificate.getInstance(cert.getEncoded());
+
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(cert.getEncoded());
+            X509Certificate instance = (X509Certificate) cf.generateCertificate(inputStream);
+
             Date notAfter = instance.getNotAfter();
             //证书过期
             if(notAfter.before(new Date())){

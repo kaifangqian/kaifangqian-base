@@ -6,7 +6,6 @@ import org.resrun.api.exception.ResultException;
 import org.resrun.api.validation.SignTypeValid;
 import org.resrun.api.validation.ValidationSorts;
 import org.resrun.api.vo.base.APIRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -35,7 +34,6 @@ import java.util.Set;
  * @return
  * @throws
  */
-@Slf4j
 @Aspect
 @Order(value = 1)
 @Component

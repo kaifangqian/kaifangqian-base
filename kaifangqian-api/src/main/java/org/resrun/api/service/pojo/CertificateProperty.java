@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: CertificateProperty
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class CertificateProperty implements Serializable {
 
     private static final long serialVersionUID = -2073805779543816269L;
@@ -26,5 +20,27 @@ public class CertificateProperty implements Serializable {
     /** 证书密码 */
     private  String password;
 
+    public byte[] getCertFile() {
+        return certFile;
+    }
 
+    public void setCertFile(byte[] certFile) {
+        this.certFile = certFile;
+    }
+
+    public String getCertType() {
+        return certType;
+    }
+
+    public void setCertType(String certType) {
+        this.certType = certType;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

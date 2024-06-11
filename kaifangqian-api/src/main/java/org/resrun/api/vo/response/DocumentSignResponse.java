@@ -1,8 +1,5 @@
 package org.resrun.api.vo.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: DocumentSignResponse
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class DocumentSignResponse implements Serializable {
 
     private static final long serialVersionUID = 620669287901843970L;
@@ -22,4 +16,11 @@ public class DocumentSignResponse implements Serializable {
     //签署后的文件
     private String documentFile ;
 
+    public String getDocumentFile() {
+        return documentFile;
+    }
+
+    public void setDocumentFile(String documentFile) {
+        this.documentFile = documentFile;
+    }
 }

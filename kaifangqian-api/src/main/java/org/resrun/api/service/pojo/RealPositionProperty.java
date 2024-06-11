@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: PositionProperty
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class RealPositionProperty implements Serializable {
 
 
@@ -49,4 +43,91 @@ public class RealPositionProperty implements Serializable {
         private Integer fontSize ;
 
 
+        public float getStartx() {
+                return startx;
+        }
+
+        public void setStartx(float startx) {
+                this.startx = startx;
+        }
+
+        public float getStarty() {
+                return starty;
+        }
+
+        public void setStarty(float starty) {
+                this.starty = starty;
+        }
+
+        public float getEndx() {
+                return endx;
+        }
+
+        public void setEndx(float endx) {
+                this.endx = endx;
+        }
+
+        public float getEndy() {
+                return endy;
+        }
+
+        public void setEndy(float endy) {
+                this.endy = endy;
+        }
+
+        public int getPageNum() {
+                return pageNum;
+        }
+
+        public void setPageNum(int pageNum) {
+                this.pageNum = pageNum;
+        }
+
+        public float getRealPdfWidth() {
+                return realPdfWidth;
+        }
+
+        public void setRealPdfWidth(float realPdfWidth) {
+                this.realPdfWidth = realPdfWidth;
+        }
+
+        public float getRealPdfHeight() {
+                return realPdfHeight;
+        }
+
+        public void setRealPdfHeight(float realPdfHeight) {
+                this.realPdfHeight = realPdfHeight;
+        }
+
+        public String getValue() {
+                return value;
+        }
+
+        public void setValue(String value) {
+                this.value = value;
+        }
+
+        public String getAlign() {
+                return align;
+        }
+
+        public void setAlign(String align) {
+                this.align = align;
+        }
+
+        public String getFontFamily() {
+                return fontFamily;
+        }
+
+        public void setFontFamily(String fontFamily) {
+                this.fontFamily = fontFamily;
+        }
+
+        public Integer getFontSize() {
+                return fontSize;
+        }
+
+        public void setFontSize(Integer fontSize) {
+                this.fontSize = fontSize;
+        }
 }

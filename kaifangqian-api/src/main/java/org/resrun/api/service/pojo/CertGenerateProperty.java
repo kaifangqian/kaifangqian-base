@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,9 +10,6 @@ import java.util.Date;
  * @ClassName: CertGenerateProperty
  * @author: FengLai_Gong
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class CertGenerateProperty implements Serializable {
 
     private static final long serialVersionUID = 4186449536291972943L;
@@ -61,6 +55,139 @@ public class CertGenerateProperty implements Serializable {
     //将原始证书认证后最终生成的pfx文件
     private byte[] pfxFile ;
 
+    public String getCertDn() {
+        return certDn;
+    }
 
+    public void setCertDn(String certDn) {
+        this.certDn = certDn;
+    }
 
+    public String getKeyName() {
+        return keyName;
+    }
+
+    public void setKeyName(String keyName) {
+        this.keyName = keyName;
+    }
+
+    public Integer getKeySize() {
+        return keySize;
+    }
+
+    public void setKeySize(Integer keySize) {
+        this.keySize = keySize;
+    }
+
+    public String getCertAlgorithm() {
+        return certAlgorithm;
+    }
+
+    public void setCertAlgorithm(String certAlgorithm) {
+        this.certAlgorithm = certAlgorithm;
+    }
+
+    public String getKeyPairGeneratorAlgorithm() {
+        return KeyPairGeneratorAlgorithm;
+    }
+
+    public void setKeyPairGeneratorAlgorithm(String keyPairGeneratorAlgorithm) {
+        KeyPairGeneratorAlgorithm = keyPairGeneratorAlgorithm;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
+    public byte[] getRootCert() {
+        return rootCert;
+    }
+
+    public void setRootCert(byte[] rootCert) {
+        this.rootCert = rootCert;
+    }
+
+    public String getRootPassword() {
+        return rootPassword;
+    }
+
+    public void setRootPassword(String rootPassword) {
+        this.rootPassword = rootPassword;
+    }
+
+    public byte[] getP10() {
+        return p10;
+    }
+
+    public void setP10(byte[] p10) {
+        this.p10 = p10;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
+
+    public byte[] getKeystoreFile() {
+        return keystoreFile;
+    }
+
+    public void setKeystoreFile(byte[] keystoreFile) {
+        this.keystoreFile = keystoreFile;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public byte[] getCert() {
+        return cert;
+    }
+
+    public void setCert(byte[] cert) {
+        this.cert = cert;
+    }
+
+    public byte[] getP7bFile() {
+        return p7bFile;
+    }
+
+    public void setP7bFile(byte[] p7bFile) {
+        this.p7bFile = p7bFile;
+    }
+
+    public byte[] getJksFile() {
+        return jksFile;
+    }
+
+    public void setJksFile(byte[] jksFile) {
+        this.jksFile = jksFile;
+    }
+
+    public byte[] getPfxFile() {
+        return pfxFile;
+    }
+
+    public void setPfxFile(byte[] pfxFile) {
+        this.pfxFile = pfxFile;
+    }
 }

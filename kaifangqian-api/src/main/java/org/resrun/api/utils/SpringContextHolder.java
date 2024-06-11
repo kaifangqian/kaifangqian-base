@@ -2,7 +2,8 @@
 package org.resrun.api.utils;
 
 import cn.hutool.core.util.ObjectUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
@@ -17,9 +18,9 @@ import java.util.List;
  *
  * @author zhh
  */
-@Slf4j
 public class SpringContextHolder implements ApplicationContextAware, DisposableBean {
 
+    private static Logger log = LoggerFactory.getLogger(SpringContextHolder.class);
     private static ApplicationContext applicationContext = null;
     private static final List<CallBack> CALL_BACKS = new ArrayList<>();
     private static boolean addCallback = true;

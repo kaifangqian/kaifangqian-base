@@ -2,9 +2,6 @@ package org.resrun.controller.vo.base;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,9 +11,7 @@ import java.io.Serializable;
  * @ClassName: Result
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @ApiModel("统一返回对象")
 public class Result<T> implements Serializable {
 
@@ -53,4 +48,54 @@ public class Result<T> implements Serializable {
         return r;
     }
 
+    public Result(boolean success, String message, Integer code, T result, long timestamp) {
+        this.success = success;
+        this.message = message;
+        this.code = code;
+        this.result = result;
+        this.timestamp = timestamp;
+    }
+
+    public Result() {
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public T getResult() {
+        return result;
+    }
+
+    public void setResult(T result) {
+        this.result = result;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 }

@@ -1,9 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -13,10 +9,6 @@ import java.io.Serializable;
  * @ClassName: CertSubjectProperty
  * @author: FengLai_Gong
  */
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class CertSubjectProperty implements Serializable {
 
 
@@ -51,11 +43,83 @@ public class CertSubjectProperty implements Serializable {
     private Integer certType ;
 
 
+    public String getC() {
+        return c;
+    }
 
+    public void setC(String c) {
+        this.c = c;
+    }
 
+    public String getSt() {
+        return st;
+    }
 
+    public void setSt(String st) {
+        this.st = st;
+    }
 
+    public String getCn() {
+        return cn;
+    }
 
+    public void setCn(String cn) {
+        this.cn = cn;
+    }
 
+    public String getL() {
+        return l;
+    }
 
+    public void setL(String l) {
+        this.l = l;
+    }
+
+    public String getO() {
+        return o;
+    }
+
+    public void setO(String o) {
+        this.o = o;
+    }
+
+    public String getOu() {
+        return ou;
+    }
+
+    public void setOu(String ou) {
+        this.ou = ou;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getDc() {
+        return dc;
+    }
+
+    public void setDc(String dc) {
+        this.dc = dc;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public Integer getCertType() {
+        return certType;
+    }
+
+    public void setCertType(Integer certType) {
+        this.certType = certType;
+    }
 }

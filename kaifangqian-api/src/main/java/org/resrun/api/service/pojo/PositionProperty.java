@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: PositionProperty
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class PositionProperty implements Serializable {
 
 
@@ -33,4 +27,44 @@ public class PositionProperty implements Serializable {
         private  float endy;
 
         private  int pageNum;
+
+        public float getStartx() {
+                return startx;
+        }
+
+        public void setStartx(float startx) {
+                this.startx = startx;
+        }
+
+        public float getStarty() {
+                return starty;
+        }
+
+        public void setStarty(float starty) {
+                this.starty = starty;
+        }
+
+        public float getEndx() {
+                return endx;
+        }
+
+        public void setEndx(float endx) {
+                this.endx = endx;
+        }
+
+        public float getEndy() {
+                return endy;
+        }
+
+        public void setEndy(float endy) {
+                this.endy = endy;
+        }
+
+        public int getPageNum() {
+                return pageNum;
+        }
+
+        public void setPageNum(int pageNum) {
+                this.pageNum = pageNum;
+        }
 }

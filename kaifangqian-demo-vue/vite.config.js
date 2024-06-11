@@ -14,7 +14,7 @@ export default defineConfig({
 	server: {
 		host: '0.0.0.0',
 		port: 8080,
-		open: true, // vue项目启动时自动打开浏览器
+		open: false, // vue项目启动时自动打开浏览器
 		proxy: {
 			"/openSign": {
 				target: "http://127.0.0.1:8666",

@@ -1,9 +1,7 @@
 package org.resrun.service.pojo;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 
 import java.io.Serializable;
 
@@ -13,9 +11,6 @@ import java.io.Serializable;
  * @ClassName: ConvertImage
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ConvertImage implements Serializable {
 
 
@@ -27,4 +22,19 @@ public class ConvertImage implements Serializable {
     @ApiModelProperty("图片数据")
     private byte[] imageByte ;
 
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public byte[] getImageByte() {
+        return imageByte;
+    }
+
+    public void setImageByte(byte[] imageByte) {
+        this.imageByte = imageByte;
+    }
 }

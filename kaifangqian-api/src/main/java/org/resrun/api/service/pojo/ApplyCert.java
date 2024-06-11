@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: ApplyCert
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class ApplyCert implements Serializable {
 
     private static final long serialVersionUID = -2734385624897679135L;
@@ -27,4 +21,35 @@ public class ApplyCert implements Serializable {
 
     private ApplyCertData data ;
 
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getUniqueCode() {
+        return uniqueCode;
+    }
+
+    public void setUniqueCode(String uniqueCode) {
+        this.uniqueCode = uniqueCode;
+    }
+
+    public ApplyCertData getData() {
+        return data;
+    }
+
+    public void setData(ApplyCertData data) {
+        this.data = data;
+    }
 }

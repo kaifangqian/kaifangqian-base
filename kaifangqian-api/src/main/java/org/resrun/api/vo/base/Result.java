@@ -3,7 +3,6 @@ package org.resrun.api.vo.base;
 import org.resrun.api.enums.APIResultEnum;
 import org.resrun.api.enums.BusinessErrorEnum;
 import org.resrun.api.enums.ParamFormatErrorEnum;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -14,7 +13,6 @@ import java.text.MessageFormat;
  * @ClassName: Result
  * @author: FengLai_Gong
  */
-@Data
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = -3953054203092646590L;
@@ -85,5 +83,35 @@ public class Result<T> implements Serializable {
         return r;
     }
 
+    public String getMessage() {
+        return message;
+    }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public String getUniqueCode() {
+        return uniqueCode;
+    }
+
+    public void setUniqueCode(String uniqueCode) {
+        this.uniqueCode = uniqueCode;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
 }

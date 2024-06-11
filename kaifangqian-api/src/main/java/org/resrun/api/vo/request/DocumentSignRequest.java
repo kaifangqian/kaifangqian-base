@@ -4,9 +4,6 @@ import org.resrun.api.validation.SignTypeValid;
 import org.resrun.api.validation.ValidationSorts;
 import org.resrun.api.vo.base.APIRequest;
 import org.resrun.api.vo.base.SignLocation;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -23,9 +20,6 @@ import java.util.Map;
  * @ClassName: DocumentSignRequest
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class DocumentSignRequest extends APIRequest implements Serializable {
 
 
@@ -95,4 +89,83 @@ public class DocumentSignRequest extends APIRequest implements Serializable {
     }
 
 
+    public String getDocumentFile() {
+        return documentFile;
+    }
+
+    public void setDocumentFile(String documentFile) {
+        this.documentFile = documentFile;
+    }
+
+    public String getDocumentNetworkURL() {
+        return documentNetworkURL;
+    }
+
+    public void setDocumentNetworkURL(String documentNetworkURL) {
+        this.documentNetworkURL = documentNetworkURL;
+    }
+
+    public Integer getSignType() {
+        return signType;
+    }
+
+    public void setSignType(Integer signType) {
+        this.signType = signType;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
+    }
+
+    public List<SignLocation> getSignLocationList() {
+        return signLocationList;
+    }
+
+    public void setSignLocationList(List<SignLocation> signLocationList) {
+        this.signLocationList = signLocationList;
+    }
+
+    public String getSignatureFile() {
+        return signatureFile;
+    }
+
+    public void setSignatureFile(String signatureFile) {
+        this.signatureFile = signatureFile;
+    }
+
+    public String getSignatureNetworkURL() {
+        return signatureNetworkURL;
+    }
+
+    public void setSignatureNetworkURL(String signatureNetworkURL) {
+        this.signatureNetworkURL = signatureNetworkURL;
+    }
+
+    public String getPfx() {
+        return pfx;
+    }
+
+    public void setPfx(String pfx) {
+        this.pfx = pfx;
+    }
+
+    public String getPfxNetworkURL() {
+        return pfxNetworkURL;
+    }
+
+    public void setPfxNetworkURL(String pfxNetworkURL) {
+        this.pfxNetworkURL = pfxNetworkURL;
+    }
+
+    public String getCertPassword() {
+        return certPassword;
+    }
+
+    public void setCertPassword(String certPassword) {
+        this.certPassword = certPassword;
+    }
 }

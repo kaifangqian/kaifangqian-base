@@ -1,6 +1,5 @@
 package org.resrun.api.vo.request;
 
-import lombok.Data;
 import org.resrun.api.validation.ValidationSorts;
 import org.resrun.api.vo.base.APIRequest;
 
@@ -11,7 +10,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
 public class SignatureMakeRequest extends APIRequest implements Serializable {
 
     //环绕文字 6～20长度，建议传递真实章的环绕文字
@@ -32,5 +30,21 @@ public class SignatureMakeRequest extends APIRequest implements Serializable {
         map.put("middleText","middleText");
         map.put("topText","topText");
         return map;
+    }
+
+    public String getTopText() {
+        return topText;
+    }
+
+    public void setTopText(String topText) {
+        this.topText = topText;
+    }
+
+    public String getMiddleText() {
+        return middleText;
+    }
+
+    public void setMiddleText(String middleText) {
+        this.middleText = middleText;
     }
 }

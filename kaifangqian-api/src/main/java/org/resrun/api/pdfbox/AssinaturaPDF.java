@@ -1,6 +1,5 @@
 package org.resrun.api.pdfbox;
 
-import lombok.extern.slf4j.Slf4j;
 import org.resrun.api.pdfbox.vo.AssinaturaModel;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
@@ -22,6 +21,8 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.pdfbox.util.Matrix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -33,8 +34,9 @@ import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.List;
 
-@Slf4j
 public class AssinaturaPDF extends SignatureBase {
+
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private SignatureOptions signatureOptions;
 

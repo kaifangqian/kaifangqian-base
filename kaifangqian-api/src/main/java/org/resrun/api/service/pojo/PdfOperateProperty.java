@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: PdfOperateProperty
  * @author: FengLai_Gong
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class PdfOperateProperty implements Serializable {
 
     private static final long serialVersionUID = 136217989504135671L;
@@ -33,6 +27,51 @@ public class PdfOperateProperty implements Serializable {
     private Integer pageNum ;
 
 
+    public byte[] getPdfFile() {
+        return pdfFile;
+    }
 
+    public void setPdfFile(byte[] pdfFile) {
+        this.pdfFile = pdfFile;
+    }
 
+    public byte[] getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(byte[] imageFile) {
+        this.imageFile = imageFile;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Float getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(Float offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public Float getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(Float offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public Integer getPageNum() {
+        return pageNum;
+    }
+
+    public void setPageNum(Integer pageNum) {
+        this.pageNum = pageNum;
+    }
 }

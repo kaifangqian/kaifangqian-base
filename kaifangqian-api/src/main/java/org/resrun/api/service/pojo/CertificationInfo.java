@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: CertificateInfo
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class CertificationInfo implements Serializable {
 
 
@@ -41,5 +35,67 @@ public class CertificationInfo implements Serializable {
     private byte[] pfxFile ;
 
 
+    public String getCertDn() {
+        return certDn;
+    }
 
+    public void setCertDn(String certDn) {
+        this.certDn = certDn;
+    }
+
+    public String getKeyName() {
+        return keyName;
+    }
+
+    public void setKeyName(String keyName) {
+        this.keyName = keyName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public byte[] getP10() {
+        return p10;
+    }
+
+    public void setP10(byte[] p10) {
+        this.p10 = p10;
+    }
+
+    public byte[] getP7bFile() {
+        return p7bFile;
+    }
+
+    public void setP7bFile(byte[] p7bFile) {
+        this.p7bFile = p7bFile;
+    }
+
+    public byte[] getJksFile() {
+        return jksFile;
+    }
+
+    public void setJksFile(byte[] jksFile) {
+        this.jksFile = jksFile;
+    }
+
+    public byte[] getCertFile() {
+        return certFile;
+    }
+
+    public void setCertFile(byte[] certFile) {
+        this.certFile = certFile;
+    }
+
+    public byte[] getPfxFile() {
+        return pfxFile;
+    }
+
+    public void setPfxFile(byte[] pfxFile) {
+        this.pfxFile = pfxFile;
+    }
 }

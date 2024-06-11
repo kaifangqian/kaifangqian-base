@@ -2,9 +2,6 @@ package org.resrun.service.pojo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,9 +13,7 @@ import java.util.List;
  * @ClassName: SignPdfInfoVo
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 @ApiModel("数字签名信息返回对象")
 public class SignPdfInfoVo {
     /**
@@ -41,4 +36,35 @@ public class SignPdfInfoVo {
     @ApiModelProperty(value = "数字签名详细集合")
     private List<SignatureDetail> signatureDetails = new ArrayList<>();
 
+    public String getPdfName() {
+        return pdfName;
+    }
+
+    public void setPdfName(String pdfName) {
+        this.pdfName = pdfName;
+    }
+
+    public String getPdfSize() {
+        return pdfSize;
+    }
+
+    public void setPdfSize(String pdfSize) {
+        this.pdfSize = pdfSize;
+    }
+
+    public Integer getPdfSingResult() {
+        return pdfSingResult;
+    }
+
+    public void setPdfSingResult(Integer pdfSingResult) {
+        this.pdfSingResult = pdfSingResult;
+    }
+
+    public List<SignatureDetail> getSignatureDetails() {
+        return signatureDetails;
+    }
+
+    public void setSignatureDetails(List<SignatureDetail> signatureDetails) {
+        this.signatureDetails = signatureDetails;
+    }
 }

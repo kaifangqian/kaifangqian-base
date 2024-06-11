@@ -1,6 +1,5 @@
 package org.resrun.service.verify;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -22,6 +21,10 @@ import org.bouncycastle.util.Store;
 import org.resrun.enums.SignStatus;
 import org.resrun.service.pojo.SignPdfInfoVo;
 import org.resrun.service.pojo.SignatureDetail;
+import org.resrun.utils.IPUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Security;
 import java.util.List;
 import java.util.*;
@@ -34,8 +37,9 @@ import java.util.*;
  * CreateTime:  2023/8/22  10:53
  * @copyright 北京资源律动科技有限公司
  */
-@Slf4j
 public class VerifySign {
+
+    private static Logger log = LoggerFactory.getLogger(VerifySign.class);
 
     static {
         Security.addProvider(new BouncyCastleProvider());

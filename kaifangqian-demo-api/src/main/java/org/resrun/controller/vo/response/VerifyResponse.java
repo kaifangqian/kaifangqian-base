@@ -3,9 +3,6 @@ package org.resrun.controller.vo.response;
 import org.resrun.service.pojo.SignPdfInfoVo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -15,9 +12,7 @@ import java.io.Serializable;
  * @ClassName: VerifyRequest
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @ApiModel("文件验签-返回对象")
 public class VerifyResponse implements Serializable {
 
@@ -29,4 +24,27 @@ public class VerifyResponse implements Serializable {
     @ApiModelProperty("详细数据")
     private SignPdfInfoVo vo ;
 
+    public VerifyResponse(String msg, SignPdfInfoVo vo) {
+        this.msg = msg;
+        this.vo = vo;
+    }
+
+    public VerifyResponse() {
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public SignPdfInfoVo getVo() {
+        return vo;
+    }
+
+    public void setVo(SignPdfInfoVo vo) {
+        this.vo = vo;
+    }
 }

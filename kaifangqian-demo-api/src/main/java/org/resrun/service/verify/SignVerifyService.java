@@ -1,12 +1,8 @@
 package org.resrun.service.verify;
 
 
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.resrun.controller.vo.response.VerifyResponse;
 import org.resrun.service.pojo.SignPdfInfoVo;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,7 +15,6 @@ import java.io.IOException;
  * @ClassName: SignVerifyServiceImpl
  * @copyright 北京资源律动科技有限公司
  */
-@Slf4j
 @Service
 public class SignVerifyService{
 

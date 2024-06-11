@@ -2,9 +2,6 @@ package org.resrun.controller.vo.request;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,9 +11,6 @@ import java.io.Serializable;
  * @ClassName: ClipSealRequest
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @ApiModel("企业印章上传生成-请求对象")
 public class ClipSealRequest implements Serializable {
 
@@ -28,4 +22,27 @@ public class ClipSealRequest implements Serializable {
     @ApiModelProperty("色差范围0~255")
     private Integer colorRange ;
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Integer getColorRange() {
+        return colorRange;
+    }
+
+    public void setColorRange(Integer colorRange) {
+        this.colorRange = colorRange;
+    }
+
+    public ClipSealRequest(String image, Integer colorRange) {
+        this.image = image;
+        this.colorRange = colorRange;
+    }
+
+    public ClipSealRequest() {
+    }
 }

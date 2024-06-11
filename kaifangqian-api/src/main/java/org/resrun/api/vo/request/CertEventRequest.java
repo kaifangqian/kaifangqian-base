@@ -2,9 +2,6 @@ package org.resrun.api.vo.request;
 
 import org.resrun.api.validation.ValidationSorts;
 import org.resrun.api.vo.base.APIRequest;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -20,9 +17,6 @@ import java.util.Map;
  * @ClassName: CertEventRequest
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class CertEventRequest extends APIRequest implements Serializable {
 
     private static final long serialVersionUID = -5135668270081357110L;
@@ -52,4 +46,19 @@ public class CertEventRequest extends APIRequest implements Serializable {
         return map;
     }
 
+    public String getCertSubject() {
+        return certSubject;
+    }
+
+    public void setCertSubject(String certSubject) {
+        this.certSubject = certSubject;
+    }
+
+    public String getCertPassword() {
+        return certPassword;
+    }
+
+    public void setCertPassword(String certPassword) {
+        this.certPassword = certPassword;
+    }
 }

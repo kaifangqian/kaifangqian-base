@@ -8,11 +8,13 @@
 *.ipr
 
 
+
 ### Mac OS ###
 .DS_Store
 
 ### log file ###
 logs/
+*.log
 
 /.idea/uiDesigner.xml
 /kaifangqian-demo-api/src/main/resources/application-apply.yml

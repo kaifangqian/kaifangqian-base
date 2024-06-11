@@ -3,9 +3,10 @@ package org.resrun.api.utils;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.lionsoul.ip2region.xdb.Searcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,8 +19,10 @@ import java.net.UnknownHostException;
  * @description: ip工具类
  */
 
-@Slf4j
 public class IPUtil {
+
+    private static Logger log = LoggerFactory.getLogger(IPUtil.class);
+
     private static final String UNKNOWN = "unknown";
     private static boolean ipLocal = false;
     private static Searcher searcher;

@@ -1,11 +1,9 @@
 package org.resrun.service.pojo;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 
 import java.util.Date;
 
-@Data
 public class SignatureDetail {
 
         /**
@@ -106,4 +104,181 @@ public class SignatureDetail {
          * 文件路径
          */
         // public String filePath;
+
+
+        public String getSignName() {
+                return signName;
+        }
+
+        public void setSignName(String signName) {
+                this.signName = signName;
+        }
+
+        public Date getSignTime() {
+                return signTime;
+        }
+
+        public void setSignTime(Date signTime) {
+                this.signTime = signTime;
+        }
+
+        public Date getValidStartTime() {
+                return validStartTime;
+        }
+
+        public void setValidStartTime(Date validStartTime) {
+                this.validStartTime = validStartTime;
+        }
+
+        public Date getValidEndTime() {
+                return validEndTime;
+        }
+
+        public void setValidEndTime(Date validEndTime) {
+                this.validEndTime = validEndTime;
+        }
+
+        public String getCertName() {
+                return certName;
+        }
+
+        public void setCertName(String certName) {
+                this.certName = certName;
+        }
+
+        public String getSerialNumber() {
+                return serialNumber;
+        }
+
+        public void setSerialNumber(String serialNumber) {
+                this.serialNumber = serialNumber;
+        }
+
+        public String getPublicKey() {
+                return publicKey;
+        }
+
+        public void setPublicKey(String publicKey) {
+                this.publicKey = publicKey;
+        }
+
+        public String getPubKeyFormat() {
+                return pubKeyFormat;
+        }
+
+        public void setPubKeyFormat(String pubKeyFormat) {
+                this.pubKeyFormat = pubKeyFormat;
+        }
+
+        public String getSigAlgName() {
+                return sigAlgName;
+        }
+
+        public void setSigAlgName(String sigAlgName) {
+                this.sigAlgName = sigAlgName;
+        }
+
+        public String getUserDnName() {
+                return userDnName;
+        }
+
+        public void setUserDnName(String userDnName) {
+                this.userDnName = userDnName;
+        }
+
+        public boolean isValidate() {
+                return validate;
+        }
+
+        public void setValidate(boolean validate) {
+                this.validate = validate;
+        }
+
+        public String getImageContent() {
+                return imageContent;
+        }
+
+        public void setImageContent(String imageContent) {
+                this.imageContent = imageContent;
+        }
+
+        public String getImagePath() {
+                return imagePath;
+        }
+
+        public void setImagePath(String imagePath) {
+                this.imagePath = imagePath;
+        }
+
+        public String getReason() {
+                return reason;
+        }
+
+        public void setReason(String reason) {
+                this.reason = reason;
+        }
+
+        public String getLocation() {
+                return location;
+        }
+
+        public void setLocation(String location) {
+                this.location = location;
+        }
+
+        public int getPageNum() {
+                return pageNum;
+        }
+
+        public void setPageNum(int pageNum) {
+                this.pageNum = pageNum;
+        }
+
+        public String getSealBase64() {
+                return sealBase64;
+        }
+
+        public void setSealBase64(String sealBase64) {
+                this.sealBase64 = sealBase64;
+        }
+
+        public String getFileDigest() {
+                return fileDigest;
+        }
+
+        public void setFileDigest(String fileDigest) {
+                this.fileDigest = fileDigest;
+        }
+
+        public float getLlx() {
+                return llx;
+        }
+
+        public void setLlx(float llx) {
+                this.llx = llx;
+        }
+
+        public float getLly() {
+                return lly;
+        }
+
+        public void setLly(float lly) {
+                this.lly = lly;
+        }
+
+        public float getUrx() {
+                return urx;
+        }
+
+        public void setUrx(float urx) {
+                this.urx = urx;
+        }
+
+        public float getUry() {
+                return ury;
+        }
+
+        public void setUry(float ury) {
+                this.ury = ury;
+        }
 }

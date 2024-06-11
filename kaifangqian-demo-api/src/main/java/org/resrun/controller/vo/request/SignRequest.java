@@ -2,9 +2,6 @@ package org.resrun.controller.vo.request;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,9 +12,7 @@ import java.util.List;
  * @ClassName: SignRequest
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @ApiModel("签署-请求对象")
 public class SignRequest implements Serializable {
 
@@ -49,4 +44,75 @@ public class SignRequest implements Serializable {
     private String personalKeyword ;
 
 
+    public Integer getSignType() {
+        return signType;
+    }
+
+    public void setSignType(Integer signType) {
+        this.signType = signType;
+    }
+
+    public String getEntSeal() {
+        return entSeal;
+    }
+
+    public void setEntSeal(String entSeal) {
+        this.entSeal = entSeal;
+    }
+
+    public String getEntName() {
+        return entName;
+    }
+
+    public void setEntName(String entName) {
+        this.entName = entName;
+    }
+
+    public String getPersonalSeal() {
+        return personalSeal;
+    }
+
+    public void setPersonalSeal(String personalSeal) {
+        this.personalSeal = personalSeal;
+    }
+
+    public String getPersonalName() {
+        return personalName;
+    }
+
+    public void setPersonalName(String personalName) {
+        this.personalName = personalName;
+    }
+
+    public List<PositionRequest> getEntPositionList() {
+        return entPositionList;
+    }
+
+    public void setEntPositionList(List<PositionRequest> entPositionList) {
+        this.entPositionList = entPositionList;
+    }
+
+    public List<PositionRequest> getPersonalPositionList() {
+        return personalPositionList;
+    }
+
+    public void setPersonalPositionList(List<PositionRequest> personalPositionList) {
+        this.personalPositionList = personalPositionList;
+    }
+
+    public String getEntKeyword() {
+        return entKeyword;
+    }
+
+    public void setEntKeyword(String entKeyword) {
+        this.entKeyword = entKeyword;
+    }
+
+    public String getPersonalKeyword() {
+        return personalKeyword;
+    }
+
+    public void setPersonalKeyword(String personalKeyword) {
+        this.personalKeyword = personalKeyword;
+    }
 }

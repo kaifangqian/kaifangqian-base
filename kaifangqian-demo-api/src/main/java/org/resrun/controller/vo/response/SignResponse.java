@@ -2,9 +2,6 @@ package org.resrun.controller.vo.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,9 +11,7 @@ import java.io.Serializable;
  * @ClassName: SignResponse
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @ApiModel("文件签署-返回对象")
 public class SignResponse implements Serializable {
 
@@ -24,4 +19,12 @@ public class SignResponse implements Serializable {
 
     @ApiModelProperty("签署后文件")
     private String signFile ;
+
+    public String getSignFile() {
+        return signFile;
+    }
+
+    public void setSignFile(String signFile) {
+        this.signFile = signFile;
+    }
 }

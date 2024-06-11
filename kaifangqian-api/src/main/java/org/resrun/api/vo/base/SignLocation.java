@@ -1,8 +1,5 @@
 package org.resrun.api.vo.base;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: SignLocation
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class SignLocation implements Serializable {
 
     private static final long serialVersionUID = -3441618832286287804L;
@@ -41,4 +35,59 @@ public class SignLocation implements Serializable {
     //签章高度
     private Number signHeight ;
 
+    public Number getPageWidth() {
+        return pageWidth;
+    }
+
+    public void setPageWidth(Number pageWidth) {
+        this.pageWidth = pageWidth;
+    }
+
+    public Number getPageHeight() {
+        return pageHeight;
+    }
+
+    public void setPageHeight(Number pageHeight) {
+        this.pageHeight = pageHeight;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public Number getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(Number offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public Number getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(Number offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public Number getSignWidth() {
+        return signWidth;
+    }
+
+    public void setSignWidth(Number signWidth) {
+        this.signWidth = signWidth;
+    }
+
+    public Number getSignHeight() {
+        return signHeight;
+    }
+
+    public void setSignHeight(Number signHeight) {
+        this.signHeight = signHeight;
+    }
 }

@@ -1,9 +1,7 @@
 package org.resrun.service.pojo;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 
 import java.io.Serializable;
 
@@ -13,9 +11,7 @@ import java.io.Serializable;
  * @ClassName: SourcePositionProperty
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 public class SourcePositionProperty implements Serializable {
 
     private static final long serialVersionUID = 725976764583634367L;
@@ -40,5 +36,75 @@ public class SourcePositionProperty implements Serializable {
     @ApiModelProperty("当前文件页面高度")
     private Float realHeight ;
 
+    public Float getOffsetX() {
+        return offsetX;
+    }
 
+    public void setOffsetX(Float offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public Float getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(Float offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public Float getWidth() {
+        return width;
+    }
+
+    public void setWidth(Float width) {
+        this.width = width;
+    }
+
+    public Float getHeight() {
+        return height;
+    }
+
+    public void setHeight(Float height) {
+        this.height = height;
+    }
+
+    public Float getPageWidth() {
+        return pageWidth;
+    }
+
+    public void setPageWidth(Float pageWidth) {
+        this.pageWidth = pageWidth;
+    }
+
+    public Float getPageHeight() {
+        return pageHeight;
+    }
+
+    public void setPageHeight(Float pageHeight) {
+        this.pageHeight = pageHeight;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public Float getRealWidth() {
+        return realWidth;
+    }
+
+    public void setRealWidth(Float realWidth) {
+        this.realWidth = realWidth;
+    }
+
+    public Float getRealHeight() {
+        return realHeight;
+    }
+
+    public void setRealHeight(Float realHeight) {
+        this.realHeight = realHeight;
+    }
 }

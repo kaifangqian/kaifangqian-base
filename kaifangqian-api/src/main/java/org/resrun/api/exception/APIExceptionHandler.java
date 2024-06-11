@@ -2,7 +2,8 @@ package org.resrun.api.exception;
 
 import com.alibaba.fastjson.JSONObject;
 import org.resrun.api.vo.base.Result;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,9 +17,10 @@ import javax.servlet.http.HttpServletResponse;
  * @author: FengLai_Gong
  */
 @RestControllerAdvice
-@Slf4j
 public class APIExceptionHandler {
 
+    private Logger log = LoggerFactory.getLogger(this.getClass());
+    
     @ExceptionHandler(ResultException.class)
     public Result<?> handlePaasException(ResultException e, HttpServletRequest request,HttpServletResponse response) {
         Result result = Result.error(e.code,e.message,e.uniqueCode);

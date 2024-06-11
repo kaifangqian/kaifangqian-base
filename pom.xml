@@ -67,12 +67,6 @@
                 <artifactId>bcprov-ext-jdk15on</artifactId>
                 <version>1.70</version>
             </dependency>
-            <!-- lombok -->
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.18.24</version>
-            </dependency>
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-models</artifactId>
@@ -102,11 +96,11 @@
                 <version>4.4.13</version>
             </dependency>
             <!-- Lombok -->
-            <dependency>
+            <!--<dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.24</version>
-            </dependency>
+                <version>1.18.30</version>
+            </dependency>-->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>

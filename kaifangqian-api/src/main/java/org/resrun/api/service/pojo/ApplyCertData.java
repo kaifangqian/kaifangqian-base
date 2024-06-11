@@ -1,8 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +9,6 @@ import java.io.Serializable;
  * @ClassName: ApplyCertData
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class ApplyCertData implements Serializable {
 
     private static final long serialVersionUID = 3447485591197821614L;
@@ -35,5 +29,59 @@ public class ApplyCertData implements Serializable {
 
     private Integer certValidity ;
 
+    public String getP7b() {
+        return p7b;
+    }
 
+    public void setP7b(String p7b) {
+        this.p7b = p7b;
+    }
+
+    public String getCertSN() {
+        return certSN;
+    }
+
+    public void setCertSN(String certSN) {
+        this.certSN = certSN;
+    }
+
+    public String getCertNO() {
+        return certNO;
+    }
+
+    public void setCertNO(String certNO) {
+        this.certNO = certNO;
+    }
+
+    public String getCertSubject() {
+        return certSubject;
+    }
+
+    public void setCertSubject(String certSubject) {
+        this.certSubject = certSubject;
+    }
+
+    public String getCertValidityNotBefore() {
+        return certValidityNotBefore;
+    }
+
+    public void setCertValidityNotBefore(String certValidityNotBefore) {
+        this.certValidityNotBefore = certValidityNotBefore;
+    }
+
+    public String getCertValidityNotAfter() {
+        return certValidityNotAfter;
+    }
+
+    public void setCertValidityNotAfter(String certValidityNotAfter) {
+        this.certValidityNotAfter = certValidityNotAfter;
+    }
+
+    public Integer getCertValidity() {
+        return certValidity;
+    }
+
+    public void setCertValidity(Integer certValidity) {
+        this.certValidity = certValidity;
+    }
 }

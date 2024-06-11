@@ -1,9 +1,6 @@
 package org.resrun.api.vo.base;
 
 import org.resrun.api.validation.ValidationSorts;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -18,9 +15,6 @@ import java.util.Map;
  * @ClassName: APIRequest
  * @author: FengLai_Gong
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public abstract class APIRequest implements Serializable {
 
     private static final long serialVersionUID = -2266306977154288057L;
@@ -35,4 +29,11 @@ public abstract class APIRequest implements Serializable {
 
     public abstract Map<String, String> paramNameMap();
 
+    public String getUniqueCode() {
+        return uniqueCode;
+    }
+
+    public void setUniqueCode(String uniqueCode) {
+        this.uniqueCode = uniqueCode;
+    }
 }

@@ -1,9 +1,5 @@
 package org.resrun.api.vo.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 
 /**
@@ -12,9 +8,6 @@ import java.io.Serializable;
  * @ClassName: CertEventResponse
  * @author: FengLai_Gong
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class CertEventResponse implements Serializable {
 
 
@@ -41,4 +34,59 @@ public class CertEventResponse implements Serializable {
     //有效期天数
     private Integer certValidity ;
 
+    public String getCertSubject() {
+        return certSubject;
+    }
+
+    public void setCertSubject(String certSubject) {
+        this.certSubject = certSubject;
+    }
+
+    public String getCertSN() {
+        return certSN;
+    }
+
+    public void setCertSN(String certSN) {
+        this.certSN = certSN;
+    }
+
+    public String getPfx() {
+        return pfx;
+    }
+
+    public void setPfx(String pfx) {
+        this.pfx = pfx;
+    }
+
+    public String getCertPassword() {
+        return certPassword;
+    }
+
+    public void setCertPassword(String certPassword) {
+        this.certPassword = certPassword;
+    }
+
+    public String getCertValidityNotBefore() {
+        return certValidityNotBefore;
+    }
+
+    public void setCertValidityNotBefore(String certValidityNotBefore) {
+        this.certValidityNotBefore = certValidityNotBefore;
+    }
+
+    public String getCertValidityNotAfter() {
+        return certValidityNotAfter;
+    }
+
+    public void setCertValidityNotAfter(String certValidityNotAfter) {
+        this.certValidityNotAfter = certValidityNotAfter;
+    }
+
+    public Integer getCertValidity() {
+        return certValidity;
+    }
+
+    public void setCertValidity(Integer certValidity) {
+        this.certValidity = certValidity;
+    }
 }

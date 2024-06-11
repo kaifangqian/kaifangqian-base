@@ -1,7 +1,8 @@
 package org.resrun.api;
 
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -11,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @SpringBootApplication
-@Slf4j
 @RestController
 public class OpenSignApiApplication {
+
+    private static Logger log = LoggerFactory.getLogger(OpenSignApiApplication.class);
 
     public static void main(String[] args) {
 

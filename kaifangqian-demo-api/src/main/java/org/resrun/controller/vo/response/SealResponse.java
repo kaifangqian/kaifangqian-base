@@ -2,9 +2,6 @@ package org.resrun.controller.vo.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,9 +11,6 @@ import java.io.Serializable;
  * @ClassName: SealResponse
  * @copyright 北京资源律动科技有限公司
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @ApiModel("企业印章生成-返回对象")
 public class SealResponse implements Serializable {
 
@@ -25,5 +19,13 @@ public class SealResponse implements Serializable {
     @ApiModelProperty("企业签章base64")
     private String entSeal ;
 
+    
 
+    public String getEntSeal() {
+        return entSeal;
+    }
+
+    public void setEntSeal(String entSeal) {
+        this.entSeal = entSeal;
+    }
 }

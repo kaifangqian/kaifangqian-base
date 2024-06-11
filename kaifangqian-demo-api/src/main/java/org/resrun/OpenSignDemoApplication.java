@@ -1,7 +1,8 @@
 package org.resrun;
 
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -11,12 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.InetAddress;
 
-@Slf4j
 @RestController
 @SpringBootApplication
 public class OpenSignDemoApplication {
 
+    private static Logger log = LoggerFactory.getLogger(OpenSignDemoApplication.class);
+
     public static void main(String[] args) {
+
 
         ConfigurableApplicationContext application = SpringApplication.run(OpenSignDemoApplication.class, args);
         Environment env = application.getEnvironment();

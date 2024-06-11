@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
-import javax.security.cert.X509Certificate;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,6 +32,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -611,7 +612,11 @@ public class SDKService {
                 keyAlias = (String)enumas.nextElement();
             }
             Certificate cert = ks.getCertificate(keyAlias);
-            X509Certificate instance = X509Certificate.getInstance(cert.getEncoded());
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(cert.getEncoded());
+            X509Certificate instance = (X509Certificate) cf.generateCertificate(inputStream);
+
+//            X509Certificate instance = X509Certificate.getInstance(cert.getEncoded());
             Date notAfter = instance.getNotAfter();
             //证书过期
             if(notAfter.before(new Date())){

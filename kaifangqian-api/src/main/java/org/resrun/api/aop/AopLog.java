@@ -2,12 +2,13 @@ package org.resrun.api.aop;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.PropertyFilter;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.resrun.api.utils.IPUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
@@ -31,9 +32,11 @@ import java.util.Objects;
  */
 @Aspect
 @Component
-@Slf4j
 @Order(value = 0)
 public class AopLog {
+
+    private  Logger log = LoggerFactory.getLogger(this.getClass());
+
     /**
      * JSON输出过滤器
      */
