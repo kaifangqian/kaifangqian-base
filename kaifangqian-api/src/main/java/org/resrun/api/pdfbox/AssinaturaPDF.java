@@ -103,15 +103,15 @@ public class AssinaturaPDF extends SignatureBase {
             }
 
 
-            if (doc.getVersion() >= 1.5f && accessPermissions == 0)
-            {
-                try {
-                    SigUtils.setMDPPermission(doc, signature, 2);
-                }catch (IOException ie){
-                    log.error("source pdf set permission error");
-                    throw ie;
-                }
-            }
+//            if (doc.getVersion() >= 1.5f && accessPermissions == 0)
+//            {
+//                try {
+//                    SigUtils.setMDPPermission(doc, signature, 2);
+//                }catch (IOException ie){
+//                    log.error("source pdf set permission error");
+//                    throw ie;
+//                }
+//            }
 
             if (acroForm != null && acroForm.getNeedAppearances())
             {
@@ -138,9 +138,9 @@ public class AssinaturaPDF extends SignatureBase {
             // subfilter for basic and PAdES Part 2 signatures
             signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
 
-            signature.setName("Name");
-            signature.setLocation("Location");
-            signature.setReason("Reason");
+            signature.setName(assinatura.getName());
+            signature.setLocation(assinatura.getLocation());
+            signature.setReason(assinatura.getReason());
 
 //             the signing date, needed for valid signature
             signature.setSignDate(Calendar.getInstance());
