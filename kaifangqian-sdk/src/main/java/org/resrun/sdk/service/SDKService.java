@@ -636,16 +636,46 @@ public class SDKService {
         Integer signType = request.getSignType();
         List<RealPositionProperty> realPositionPropertyList = null ;
         if(signType.equals(SDKSignTypeEnum.KEYWORDS.getCode())){
-            //按照比例计算宽高
-            Integer width = 232 ;
-            int imageH = read.getHeight();
-            int imageW = read.getWidth();
-            BigDecimal imageHDecimal = new BigDecimal(imageH);
-            BigDecimal imageWDecimal = new BigDecimal(imageW);
-            BigDecimal widthDecimal = new BigDecimal(width);
-            BigDecimal divide = imageHDecimal.divide(imageWDecimal, 4, RoundingMode.DOWN);
-            BigDecimal multiply = divide.multiply(widthDecimal);
-            Integer height = multiply.intValue() ;
+            Integer width,height;
+            if(request.getKeywordSealWidth() != null){
+                //关键字签署签章固定宽度  高度根据图片宽高比自适应
+                width = request.getKeywordSealWidth();
+                int imageH = read.getHeight();
+                int imageW = read.getWidth();
+                BigDecimal imageHDecimal = new BigDecimal(imageH);
+                BigDecimal imageWDecimal = new BigDecimal(imageW);
+                BigDecimal widthDecimal = new BigDecimal(width);
+
+                BigDecimal divide = imageHDecimal.divide(imageWDecimal, 4, RoundingMode.DOWN);
+                BigDecimal multiply = divide.multiply(widthDecimal);
+                height = multiply.intValue() ;
+            }else if(request.getKeywordSealHeight() != null){
+                // 关键字签署签章固定高度  宽度根据图片宽高比自适应
+                height = request.getKeywordSealHeight();
+                int imageH = read.getHeight();
+                int imageW = read.getWidth();
+                BigDecimal imageHDecimal = new BigDecimal(imageH);
+                BigDecimal imageWDecimal = new BigDecimal(imageW);
+
+                BigDecimal heightDecimal = new BigDecimal(height);
+
+                BigDecimal divide = imageHDecimal.divide(imageWDecimal, 4, RoundingMode.DOWN);
+                BigDecimal multiply = heightDecimal.divide(divide,4, RoundingMode.DOWN);
+                width = multiply.intValue() ;
+            }else{
+                width = 232;
+                int imageH = read.getHeight();
+                int imageW = read.getWidth();
+                BigDecimal imageHDecimal = new BigDecimal(imageH);
+                BigDecimal imageWDecimal = new BigDecimal(imageW);
+                BigDecimal widthDecimal = new BigDecimal(width);
+                BigDecimal divide = imageHDecimal.divide(imageWDecimal, 4, RoundingMode.DOWN);
+                BigDecimal multiply = divide.multiply(widthDecimal);
+                height = multiply.intValue() ;
+            }
+
+
+
 
             realPositionPropertyList = calculatePositionService.getAllPositionByKeyWords(docFileByte, request.getKeywords(), width, height);
             if(realPositionPropertyList == null || realPositionPropertyList.size() == 0){

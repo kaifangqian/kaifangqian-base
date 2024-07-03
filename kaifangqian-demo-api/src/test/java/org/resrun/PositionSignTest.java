@@ -3,6 +3,7 @@ package org.resrun;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.resrun.sdk.enums.SDKSignTypeEnum;
 import org.resrun.sdk.service.SDKService;
 import org.resrun.sdk.vo.base.Result;
 import org.resrun.sdk.vo.base.SignLocation;
@@ -39,8 +40,8 @@ public class PositionSignTest {
     @Test
     public void positionSign() throws IOException {
 
-        Resource resourcePDF = resourceLoader.getResource("classpath:example.pdf");
-        Resource resourceSeal = resourceLoader.getResource("classpath:seal.png");
+        Resource resourcePDF = resourceLoader.getResource("classpath:21312311.pdf");
+        Resource resourceSeal = resourceLoader.getResource("classpath:shouxie.png");
         byte [] pdf = FileUtils.readFileToByteArray(resourcePDF.getFile());
         byte [] png = FileUtils.readFileToByteArray(resourceSeal.getFile());
 
@@ -63,15 +64,16 @@ public class PositionSignTest {
         List<SignLocation> signLocationList = new ArrayList<>();
         SignLocation signLocation = new SignLocation();
         signLocation.setPage(1);
-        signLocation.setSignHeight(120);
-        signLocation.setSignWidth(120);
-        signLocation.setOffsetX(100);
-        signLocation.setOffsetY(100);
+        signLocation.setSignHeight(80);
+        signLocation.setSignWidth(150);
+        signLocation.setOffsetX(0);
+        signLocation.setOffsetY(595);
         signLocation.setPageHeight(1131);
         signLocation.setPageWidth(800);
         signLocationList.add(signLocation);
         request.setSignLocationList(signLocationList);
         request.setUniqueCode(UUID.randomUUID().toString());
+        request.setSignType(SDKSignTypeEnum.POSITION.getCode());
 //
         Result<DocumentSignResponse>  signResult = service.documentSign(request);
         FileUtils.writeByteArrayToFile(new File("target/positionSign.pdf"),signResult.getData().getDocumentFile());
@@ -82,7 +84,7 @@ public class PositionSignTest {
     public void keywordSign() throws IOException {
 
         Resource resourcePDF = resourceLoader.getResource("classpath:example.pdf");
-        Resource resourceSeal = resourceLoader.getResource("classpath:seal.png");
+        Resource resourceSeal = resourceLoader.getResource("classpath:shouxie.png");
         byte [] pdf = FileUtils.readFileToByteArray(resourcePDF.getFile());
         byte [] png = FileUtils.readFileToByteArray(resourceSeal.getFile());
 
@@ -101,7 +103,8 @@ public class PositionSignTest {
         request.setSignType(1);
         request.setPfx(result.getData().getPfx());
         request.setCertPassword(certEventRequest.getCertPassword());
-
+//        request.setKeywordSealHeight(40);
+                request.setKeywordSealWidth(120);
         request.setKeywords("测试文档");
 
         request.setUniqueCode(UUID.randomUUID().toString());

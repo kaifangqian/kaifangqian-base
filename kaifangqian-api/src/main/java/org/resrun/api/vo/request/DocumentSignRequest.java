@@ -64,6 +64,18 @@ public class DocumentSignRequest extends APIRequest implements Serializable {
     //签名证书网络地址
     private String pfxNetworkURL ;
 
+    /**
+     * 关键字签署签章固定宽度  高度根据图片宽高比自适应
+     * keywordSealWidth、keywordSealHeight二选一即可，两者都传的话 按定宽计算  两者都不传的话按宽度232计算
+     */
+    private Integer keywordSealWidth;
+    /**
+     * 关键字签署签章固定高度  宽度根据图片宽高比自适应
+     * keywordSealWidth、keywordSealHeight二选一即可，两者都传的话 按定宽计算  两者都不传的话按宽度232计算
+     */
+    private Integer keywordSealHeight;
+
+
     //证书密码 长度32
     @NotNull(message = "param_missing",groups = ValidationSorts.SortC1.class)
     @NotBlank(message = "param_blank",groups = ValidationSorts.SortC2.class)
@@ -167,5 +179,21 @@ public class DocumentSignRequest extends APIRequest implements Serializable {
 
     public void setCertPassword(String certPassword) {
         this.certPassword = certPassword;
+    }
+
+    public Integer getKeywordSealWidth() {
+        return keywordSealWidth;
+    }
+
+    public void setKeywordSealWidth(Integer keywordSealWidth) {
+        this.keywordSealWidth = keywordSealWidth;
+    }
+
+    public Integer getKeywordSealHeight() {
+        return keywordSealHeight;
+    }
+
+    public void setKeywordSealHeight(Integer keywordSealHeight) {
+        this.keywordSealHeight = keywordSealHeight;
     }
 }
