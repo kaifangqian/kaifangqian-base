@@ -35,8 +35,7 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.*;
 
 public abstract class SignatureBase implements SignatureInterface
 {
@@ -76,9 +75,10 @@ public abstract class SignatureBase implements SignatureInterface
                 cert = certChain[0];
                 if (cert instanceof X509Certificate)
                 {
-                    // avoid expired certificate
-                    ((X509Certificate) cert).checkValidity();
-
+                    // 将当前时间往后推60s  防止签发时间大于当前时间
+                    Calendar calendar = new GregorianCalendar();
+                    calendar.add(Calendar.SECOND,60);
+                    ((X509Certificate) cert).checkValidity(calendar.getTime());
                     SigUtils.checkCertificateUsage((X509Certificate) cert);
                 }
             }

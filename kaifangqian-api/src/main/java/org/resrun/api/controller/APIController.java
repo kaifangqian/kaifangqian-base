@@ -513,6 +513,7 @@ public class APIController {
                 AssinaturaPDF assinaturaPDF = new AssinaturaPDF(assinatura);
                 outPdf = assinaturaPDF.assina();
             } catch (Exception e) {
+                e.printStackTrace();
                 return Result.error(APIResultEnum.BUSINESS_ERROR,request.getUniqueCode(), BusinessErrorEnum.SIGN_FAILED_ERROR.getName());
             }
         }

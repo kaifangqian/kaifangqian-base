@@ -7,6 +7,7 @@ import org.resrun.sdk.service.pojo.ApplyCert;
 import org.resrun.sdk.service.pojo.ApplyCertData;
 import org.resrun.sdk.service.pojo.CertificationInfo;
 import org.resrun.sdk.utils.Base64;
+import org.resrun.sdk.utils.CertificateSort;
 import org.resrun.sdk.utils.HttpUtils;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
@@ -151,8 +152,9 @@ public class CertHttpService {
 
             InputStream caFis = new ByteArrayInputStream(info.getP7bFile());
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            List<Certificate> chains = (List<Certificate>) cf.generateCertificates(caFis);// 获取ca颁发的证书
-            Collections.reverse(chains);
+            List<X509Certificate> chains = (List<X509Certificate>) cf.generateCertificates(caFis);// 获取ca颁发的证书
+//            Collections.reverse(chains);
+            chains = CertificateSort.sort(chains);
 
 
             KeyStore outputKeyStore = KeyStore.getInstance("JKS");
