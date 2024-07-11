@@ -11,6 +11,7 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cms.CMSProcessableByteArray;
 import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.cms.SignerInformation;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.*;
 
@@ -100,7 +102,15 @@ public class VerifySign {
                         signatureDetail.setCertName(subject);
                         //是否被篡改
                         try {
-                            boolean bc = signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(cert));
+                            JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+                            X509Certificate x509Certificate = converter.getCertificate(cert);
+
+                            JcaSimpleSignerInfoVerifierBuilder verifierBuilder =
+                                    new JcaSimpleSignerInfoVerifierBuilder();
+
+                            boolean bc = signer.verify(verifierBuilder.build(x509Certificate.getPublicKey()));
+                            //如果时间戳服务发生异常下方的验签就会出现异常  verifier not valid at signingTime
+                            //boolean bc = signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(cert));
                             signatureDetail.setValidate(bc);
                             if(bc){
                                 pdfSignInfo.setPdfSingResult(SignStatus.SIGN_STATUS_RIGHT.getCode());
