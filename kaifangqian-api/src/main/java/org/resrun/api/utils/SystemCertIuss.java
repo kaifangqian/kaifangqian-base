@@ -97,7 +97,7 @@ public class SystemCertIuss {
             gen.addCertificates(jcaCertStore);
 
             CMSSignedData signedData = gen.generate(msg);
-            SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMDDHHmmss");
+            SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMddHHmmss");
 
             applyCert.setCertNO(serial);
             applyCert.setCertSubject(issuer.toString());
