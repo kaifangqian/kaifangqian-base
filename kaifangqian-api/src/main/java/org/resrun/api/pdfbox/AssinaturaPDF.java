@@ -99,7 +99,7 @@ public class AssinaturaPDF extends SignatureBase {
 
             if (rect == null)
             {
-                rect = createSignatureRectangle(doc, humanRect);
+                rect = createSignatureRectangle(doc,assinatura.getPosition().getPage(),humanRect);
             }
 
 
@@ -264,7 +264,7 @@ public class AssinaturaPDF extends SignatureBase {
         }
     }
 
-    private PDRectangle createSignatureRectangle(PDDocument doc, Rectangle2D humanRect)
+    private PDRectangle createSignatureRectangle(PDDocument doc,int pageIndex, Rectangle2D humanRect)
     {
         float x = (float) humanRect.getX();
         float y = (float) humanRect.getY();
