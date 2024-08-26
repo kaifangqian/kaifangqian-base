@@ -38,10 +38,10 @@ public class SelectKeywords extends PDFTextStripper {
 
     public static void main(String[] args) throws Exception {
         //selectKeyword
-//        File file = new File("E:\\work\\tem\\pdfbox\\123456.pdf");
-//        byte [] pdf = FileUtils.readFileToByteArray(file);
+        File file = new File("E:\\work\\tem\\pdfbox\\123456.pdf");
+        byte [] pdf = FileUtils.readFileToByteArray(file);
 //        float [] resus = new SelectKeywords().selectKeyword(IOUtils.toByteArray(file), "948ad938bab14f4e8a2d843f6dd81d57");//66   571
-//        new SelectKeywords().selectAllKeyword(pdf,"123456");
+        new SelectKeywords().selectAllKeyword(pdf,"123456");
 //        System.out.println(resus[0]+"--"+resus[1]+"---"+resus[2]);
     }
     /**
@@ -75,13 +75,13 @@ public class SelectKeywords extends PDFTextStripper {
     }
 
     private float getDocHeight(int index){
-        if(index>=document.getPages().getCount()){
+        if(index > document.getPages().getCount()){
             throw new RuntimeException("页码不能大于PDF总页码");
         }
-        if(document.getPage(index).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
-            return document.getPage(index).getCropBox().getWidth();
+        if(document.getPage(index-1).getRotation() ==  90 || document.getPage(index-1).getRotation() == 270){
+            return document.getPage(index-1).getCropBox().getWidth();
         }else{
-            return document.getPage(index).getCropBox().getHeight();
+            return document.getPage(index-1).getCropBox().getHeight();
         }
     }
     private List<float[]> getAllResult(){

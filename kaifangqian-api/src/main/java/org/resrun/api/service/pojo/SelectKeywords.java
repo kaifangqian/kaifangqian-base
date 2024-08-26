@@ -73,13 +73,13 @@ public class SelectKeywords extends PDFTextStripper {
     }
 
     private float getDocHeight(int index){
-        if(index>=document.getPages().getCount()){
+        if(index > document.getPages().getCount()){
             throw new RuntimeException("页码不能大于PDF总页码");
         }
-        if(document.getPage(index).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
-            return document.getPage(index).getCropBox().getWidth();
+        if(document.getPage(index-1).getRotation() ==  90 || document.getPage(index-1).getRotation() == 270){
+            return document.getPage(index-1).getCropBox().getWidth();
         }else{
-            return document.getPage(index).getCropBox().getHeight();
+            return document.getPage(index-1).getCropBox().getHeight();
         }
     }
     private List<float[]> getAllResult(){
