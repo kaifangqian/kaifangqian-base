@@ -8,7 +8,7 @@
 cd kaifangqian-demo-vue
 
 # 安装依赖
-npm install -registry=https://registry.npm.taobao.org
+npm install -registry=https://registry.npmmirror.com/
 
 # 启动前需要将后端服务启动,并修改vite.config.js中的代理地址,否则无法体验签署功能
 # 启动后浏览器访问 http://128.0.0.1:8080
