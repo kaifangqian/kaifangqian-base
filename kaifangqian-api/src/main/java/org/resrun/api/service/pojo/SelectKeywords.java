@@ -1,6 +1,5 @@
 package org.resrun.api.service.pojo;
 
-import org.resrun.api.utils.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.Loader;
@@ -27,16 +26,21 @@ public class SelectKeywords extends PDFTextStripper {
 
     private Log logger = LogFactory.getLog(SelectKeywords.class);
 
-    private float docHeight;
+//    private float docHeight;
+
+    PDDocument document = null;
+
     public SelectKeywords() throws IOException {
         super.setSortByPosition(true);
     }
 
     public static void main(String[] args) throws Exception {
         //selectKeyword
-        File file = new File("e:/test/948ad938bab14f4e8a2d843f6dd81d57.pdf");
-        float [] resus = new SelectKeywords().selectKeyword(IOUtils.toByteArray(file), "948ad938bab14f4e8a2d843f6dd81d57");//66   571
-        System.out.println(resus[0]+"--"+resus[1]+"---"+resus[2]);
+//        File file = new File("E:\\work\\tem\\pdfbox\\123456.pdf");
+//        byte [] pdf = FileUtils.readFileToByteArray(file);
+//        float [] resus = new SelectKeywords().selectKeyword(IOUtils.toByteArray(file), "948ad938bab14f4e8a2d843f6dd81d57");//66   571
+//        new SelectKeywords().selectAllKeyword(pdf,"123456");
+//        System.out.println(resus[0]+"--"+resus[1]+"---"+resus[2]);
     }
     /**
      * 查出PDF里所有的关键字
@@ -49,16 +53,10 @@ public class SelectKeywords extends PDFTextStripper {
     public List<float[]> selectAllKeyword(byte [] pdfFile, String KEY_WORD) {
         keyWorkPair.set(new KeyWorkPair(KEY_WORD.split(",")));
         ByteArrayInputStream in = null;
-        PDDocument document = null;
+
         try {
             in = new ByteArrayInputStream(pdfFile);
             document = Loader.loadPDF(pdfFile);//加载pdf文件
-            if(document.getPage(0).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
-                docHeight = document.getPage(0).getCropBox().getWidth();
-            }else{
-                docHeight = document.getPage(0).getCropBox().getHeight();
-            }
-
             this.getText(document);
             List<float[]> allResu = getAllResult();
             return allResu;
@@ -72,6 +70,17 @@ public class SelectKeywords extends PDFTextStripper {
             }
         }
         return null;
+    }
+
+    private float getDocHeight(int index){
+        if(index>=document.getPages().getCount()){
+            throw new RuntimeException("页码不能大于PDF总页码");
+        }
+        if(document.getPage(index).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
+            return document.getPage(index).getCropBox().getWidth();
+        }else{
+            return document.getPage(index).getCropBox().getHeight();
+        }
     }
     private List<float[]> getAllResult(){
         KeyWorkPair pair = keyWorkPair.get();
@@ -98,11 +107,6 @@ public class SelectKeywords extends PDFTextStripper {
         try {
             in = new ByteArrayInputStream(pdfFile);
             document = Loader.loadPDF(pdfFile);//加载pdf文件
-            if(document.getPage(0).getRotation() ==  90 || document.getPage(0).getRotation() == 270){
-                docHeight = document.getPage(0).getCropBox().getWidth();
-            }else{
-                docHeight = document.getPage(0).getCropBox().getHeight();
-            }
             this.getText(document);
             float[] resu = getResult();
             return resu;
@@ -195,7 +199,7 @@ public class SelectKeywords extends PDFTextStripper {
                 if (sWord.contains(seekA[0])) {
                     resu[2] = getCurrentPageNo();// (595,842)
                     resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
-                    resu[1] = docHeight - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                    resu[1] = getDocHeight(getCurrentPageNo()) - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
                     logger.info("PDF关键字信息：[页数:" + resu[2] + "][X:" + resu[0] + "][Y:" + resu[1] + "]");
                     pair.setResu(resu);
                     pair.addResuList(resu);//把每一次找出的关键字放在一个集合里
