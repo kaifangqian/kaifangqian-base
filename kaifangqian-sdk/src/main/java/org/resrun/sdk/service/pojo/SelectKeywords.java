@@ -1,6 +1,7 @@
 package org.resrun.sdk.service.pojo;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.resrun.sdk.utils.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -84,6 +85,14 @@ public class SelectKeywords extends PDFTextStripper {
             return document.getPage(index-1).getCropBox().getHeight();
         }
     }
+
+    private PDPage getPage(int index){
+        if(index > document.getPages().getCount()){
+            throw new RuntimeException("页码不能大于PDF总页码");
+        }
+        return document.getPage(index-1);
+    }
+
     private List<float[]> getAllResult(){
         KeyWorkPair pair = keyWorkPair.get();
         if(pair!=null && pair.getResu()!=null){
@@ -200,8 +209,15 @@ public class SelectKeywords extends PDFTextStripper {
             if (!"".equals(sWord)) {
                 if (sWord.contains(seekA[0])) {
                     resu[2] = getCurrentPageNo();// (595,842)
-                    resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
-                    resu[1] = getDocHeight(getCurrentPageNo()) - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                    PDPage page = getPage(getCurrentPageNo());
+                    if(page.getRotation() == 90 || page.getRotation() == 270){
+                        resu[1] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        resu[0] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                    }else{
+                        resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        resu[1] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                    }
+
                     logger.info("PDF关键字信息：[页数:" + resu[2] + "][X:" + resu[0] + "][Y:" + resu[1] + "]");
                     pair.setResu(resu);
                     pair.addResuList(resu);//把每一次找出的关键字放在一个集合里

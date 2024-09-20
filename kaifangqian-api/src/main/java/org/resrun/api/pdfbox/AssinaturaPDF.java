@@ -1,6 +1,5 @@
 package org.resrun.api.pdfbox;
 
-import org.resrun.api.pdfbox.vo.AssinaturaModel;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
@@ -21,12 +20,14 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.pdfbox.util.Matrix;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.resrun.api.pdfbox.vo.AssinaturaModel;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -36,8 +37,7 @@ import java.util.List;
 
 public class AssinaturaPDF extends SignatureBase {
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-
+    //    Logger log = LoggerFactory.getLogger(getClass());
     private SignatureOptions signatureOptions;
 
     private AssinaturaModel assinatura;
@@ -76,8 +76,18 @@ public class AssinaturaPDF extends SignatureBase {
             PDRectangle rect = null;
 
             // TODO  签名域的位置  可能需要再计算
-            Rectangle2D humanRect = new Rectangle2D.Float(assinatura.getPosition().getParseX(), assinatura.getPosition().getParseY(),
-                    assinatura.getPosition().getSignWidthFloat(), assinatura.getPosition().getSignHeightFloat());
+            PDPage page = doc.getPage(assinatura.getPosition().getPage());
+            Rectangle2D humanRect = null;
+            if (page.getRotation() == 90 || page.getRotation() == 270){
+                humanRect = new Rectangle2D.Float(assinatura.getPosition().getParseX(), assinatura.getPosition().getParseY(),
+                        assinatura.getPosition().getSignHeightFloat(), assinatura.getPosition().getSignWidthFloat());
+            }else{
+                humanRect = new Rectangle2D.Float(assinatura.getPosition().getParseX(), assinatura.getPosition().getParseY(),
+                        assinatura.getPosition().getSignWidthFloat(), assinatura.getPosition().getSignHeightFloat());
+            }
+
+//            log.info("page={},x={},y={}",assinatura.getPosition().getPage(),assinatura.getPosition().getParseX(), assinatura.getPosition().getParseY());
+
 
 
             // sign a PDF with an existing empty signature, as created by the CreateEmptySignatureForm example.
@@ -99,18 +109,13 @@ public class AssinaturaPDF extends SignatureBase {
 
             if (rect == null)
             {
-                rect = createSignatureRectangle(doc,assinatura.getPosition().getPage(),humanRect);
+                rect = createSignatureRectangle(page, humanRect);
             }
 
 
 //            if (doc.getVersion() >= 1.5f && accessPermissions == 0)
 //            {
-//                try {
-//                    SigUtils.setMDPPermission(doc, signature, 2);
-//                }catch (IOException ie){
-//                    log.error("source pdf set permission error");
-//                    throw ie;
-//                }
+//                SigUtils.setMDPPermission(doc, signature, 2);
 //            }
 
             if (acroForm != null && acroForm.getNeedAppearances())
@@ -147,7 +152,7 @@ public class AssinaturaPDF extends SignatureBase {
 
 
             signatureOptions = new SignatureOptions();
-            signatureOptions.setVisualSignature(createVisualSignatureTemplate(doc, 0, rect, signature));
+            signatureOptions.setVisualSignature(createVisualSignatureTemplate(page, rect, signature));
             signatureOptions.setPage(assinatura.getPosition().getPage());
 //            signatureOptions.setPreferredSignatureSize(SignatureOptions.DEFAULT_SIGNATURE_SIZE * 2);
 
@@ -160,12 +165,12 @@ public class AssinaturaPDF extends SignatureBase {
 //            return null;
         }
     }
-    private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum,
+    private InputStream createVisualSignatureTemplate(PDPage srcPage,
                                                       PDRectangle rect, PDSignature signature) throws IOException
     {
         try (PDDocument doc = new PDDocument())
         {
-            PDPage page = new PDPage(srcDoc.getPage(pageNum).getMediaBox());
+            PDPage page = new PDPage(srcPage.getMediaBox());
             doc.addPage(page);
             PDAcroForm acroForm = new PDAcroForm(doc);
             doc.getDocumentCatalog().setAcroForm(acroForm);
@@ -188,7 +193,7 @@ public class AssinaturaPDF extends SignatureBase {
             PDRectangle bbox = new PDRectangle(rect.getWidth(), rect.getHeight());
             float height = bbox.getHeight();
             Matrix initialScale = null;
-            switch (srcDoc.getPage(pageNum).getRotation())
+            switch (srcPage.getRotation())
             {
                 case 90:
                     form.setMatrix(AffineTransform.getQuadrantRotateInstance(1));
@@ -239,7 +244,13 @@ public class AssinaturaPDF extends SignatureBase {
                     int imgHeight = img.getHeight();
                     int imgWidth = img.getWidth();
                     cs.saveGraphicsState();
-                    cs.transform(Matrix.getScaleInstance(rect.getWidth()/imgWidth*1.0f,rect.getHeight()/imgHeight*1.0f));
+                    if(srcPage.getRotation() == 90 || srcPage.getRotation()== 270){
+                        cs.transform(Matrix.getScaleInstance(rect.getHeight()/imgWidth*1.0f,rect.getWidth()/imgHeight*1.0f));
+                    }else{
+                        cs.transform(Matrix.getScaleInstance(rect.getWidth()/imgWidth*1.0f,rect.getHeight()/imgHeight*1.0f));
+                    }
+
+
                     cs.drawImage(img, 0,0);
                     cs.restoreGraphicsState();
 
@@ -264,13 +275,13 @@ public class AssinaturaPDF extends SignatureBase {
         }
     }
 
-    private PDRectangle createSignatureRectangle(PDDocument doc,int pageIndex, Rectangle2D humanRect)
+    private PDRectangle createSignatureRectangle(PDPage page, Rectangle2D humanRect)
     {
         float x = (float) humanRect.getX();
         float y = (float) humanRect.getY();
         float width = (float) humanRect.getWidth();
         float height = (float) humanRect.getHeight();
-        PDPage page = doc.getPage(0);
+//        PDPage page = doc.getPage(pageIndex);
         PDRectangle pageRect = page.getCropBox();
         PDRectangle rect = new PDRectangle();
         // signing should be at the same position regardless of page rotation.
@@ -332,16 +343,4 @@ public class AssinaturaPDF extends SignatureBase {
         }
         return signature;
     }
-
-
-
-
-
-
-
-
-
-
 }
-
-
