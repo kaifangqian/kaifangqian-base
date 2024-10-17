@@ -9,6 +9,8 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -27,7 +29,7 @@ public class SelectKeywords extends PDFTextStripper {
 
     private static ThreadLocal<KeyWorkPair> keyWorkPair = new ThreadLocal<KeyWorkPair>();
 
-    private Log logger = LogFactory.getLog(SelectKeywords.class);
+    private Logger logger = LoggerFactory.getLogger(SelectKeywords.class);
 
 //    private float docHeight;
 
@@ -210,15 +212,70 @@ public class SelectKeywords extends PDFTextStripper {
                 if (sWord.contains(seekA[0])) {
                     resu[2] = getCurrentPageNo();// (595,842)
                     PDPage page = getPage(getCurrentPageNo());
-                    if(page.getRotation() == 90 || page.getRotation() == 270){
-                        resu[1] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
-                        resu[0] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
-                    }else{
-                        resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
-                        resu[1] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
-                    }
+//                    float offset = itext.getFontSizeInPt() * pair.getSeekA()[0].length();
 
-                    logger.info("PDF关键字信息：[页数:" + resu[2] + "][X:" + resu[0] + "][Y:" + resu[1] + "]");
+                    if(page.getRotation() == 90){
+                        if(itext.getDir() == 0){
+                            resu[0] =  page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] =  page.getCropBox().getWidth()-(float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 90) {
+                            resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        }
+                        else if (itext.getDir() == 180) {
+                            resu[1] =  (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[0] =  (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 270) {
+                            resu[0] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] = (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        }
+                    } else if (page.getRotation() == 180) {
+                        if(itext.getDir() == 0){
+                            resu[0] = page.getCropBox().getWidth()- (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] =  (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 90) {
+                            resu[0] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] =  page.getCropBox().getHeight()- (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        }
+                        else if (itext.getDir() == 180) {
+                            resu[0] =  (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] =  page.getCropBox().getHeight()-  (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 270) {
+                            resu[0] =  (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] =  (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        }
+                    } else if(page.getRotation() == 270){
+                        if(itext.getDir() == 0){
+                            resu[0] = (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] = (float) (roundVal(Float.valueOf(itext.getXDirAdj()))  + 0.0F);
+                        } else if (itext.getDir() == 90) {
+                            resu[1] = (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[0] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 180) {
+                            resu[0] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        }else if (itext.getDir() == 270) {
+                            resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        }
+                    }else{
+                        if(itext.getDir() == 0){
+                            resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 90) {
+                            resu[0] = (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] =  (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        }
+                        else if (itext.getDir() == 180) {
+                            resu[0] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                            resu[1] =  (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                        } else if (itext.getDir() == 270) {
+                            resu[0] = page.getCropBox().getWidth() - (float) (roundVal(Float.valueOf(itext.getYDirAdj())) + 0.0F);
+                            resu[1] = page.getCropBox().getHeight() - (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
+                        }
+                    }
+                    logger.info("PDF关键字坐标：[页数:{}][W:{}][H:{}][X:{}][Y:{}",resu[2],page.getCropBox().getWidth(),page.getCropBox().getHeight(),itext.getXDirAdj(),itext.getYDirAdj());
+                    logger.info("PDF计算后坐标：[页数:{}][X:{}][Y:{}][旋转度数:{}][字体方向:{}]",resu[2],resu[0],resu[1],page.getRotation(),itext.getDir());
                     pair.setResu(resu);
                     pair.addResuList(resu);//把每一次找出的关键字放在一个集合里
                     keyWorkPair.set(pair);
