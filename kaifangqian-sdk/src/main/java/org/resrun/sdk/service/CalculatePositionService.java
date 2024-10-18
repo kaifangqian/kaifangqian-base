@@ -217,12 +217,6 @@ public class CalculatePositionService {
 
                 for (float[] result : results) {
                     RealPositionProperty positionProperty = new RealPositionProperty();
-
-                    positionProperty.setStartx(result[0]);
-                    positionProperty.setStarty(result[1]+height/4);
-                    positionProperty.setPageNum((int)result[2]);
-                    positionProperty.setEndx(result[0]+width/2);
-                    positionProperty.setEndy(result[1]-height/4);
                     PDPage page = document.getPage((int)result[2] - 1);
                     if(page == null){
                         throw new BusinessException(APIResultEnum.BUSINESS_ERROR, BusinessErrorEnum.SIGN_POSITION_CALCULATE_ERROR);
@@ -231,14 +225,27 @@ public class CalculatePositionService {
                     if(mediaBox == null){
                         throw new BusinessException(APIResultEnum.BUSINESS_ERROR, BusinessErrorEnum.SIGN_POSITION_CALCULATE_ERROR);
                     }
+
                     //获取真实pdf文件指定页的真实文档宽高
                     float realPdfHeight = mediaBox.getHeight();
                     float realPdfWidth = mediaBox.getWidth();
-
+                    int newWidth = width,newHeight = height;
                     if(page.getRotation() == 90 || page.getRotation() == 270){
                         realPdfWidth = page.getCropBox().getHeight();
                         realPdfHeight = page.getCropBox().getWidth();
+                        newWidth = height;
+                        newHeight = width;
                     }
+
+                    positionProperty.setStartx(result[0]);
+                    positionProperty.setStarty(result[1]+newHeight/4);
+                    positionProperty.setPageNum((int)result[2]);
+                    positionProperty.setEndx(result[0]+newWidth/2);
+                    positionProperty.setEndy(result[1]-newHeight/4);
+
+
+
+
 
                     positionProperty.setRealPdfHeight(realPdfHeight);
                     positionProperty.setRealPdfWidth(realPdfWidth);
