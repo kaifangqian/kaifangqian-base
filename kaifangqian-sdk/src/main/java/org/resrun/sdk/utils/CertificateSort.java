@@ -13,7 +13,9 @@ public class CertificateSort {
      * @return
      */
     public static List<X509Certificate> sort(List<X509Certificate> chains){
-
+        if(chains.size() == 1){
+            return chains;
+        }
 
         List<X509Certificate> sortChains = new ArrayList<>(chains.size());
 
