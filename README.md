@@ -1,4 +1,4 @@
-# 开放签电子合同系统
+# 开放签电子签章系统
 
 ## 项目简介
 开放签是一个电子签章平台，提供合同创建、签署、管理及验证等完整解决方案。系统支持个人与企业实名认证、电子印章管理、合同模板配置、签署流程控制等功能，适用于各类需要电子签约的业务场景。
@@ -61,16 +61,18 @@ kaifangqian-base/
 │   ├── opensign-tenant/        # 租户管理
 │   └── opensign-web/           # 签署主应用
 └── README.md                   # 项目说明文档
+                   
 ```
 
 
 # 功能截图
-![首页](doc/%E9%A6%96%E9%A1%B5image.png)
-![发起合同](doc/faqiimage.png)
-![合同签署](doc/qianshuimage.png)
-![移动端](doc/h5qianshuimage.png)
-![企业管理后台](doc/qiyeguanliimage.png)
-![运营管理后台](doc/yunyingguanliimage.png)
+![输入图片说明](doc/shouyeimage.png)
+![输入图片说明](doc/faqiimage.png)
+![输入图片说明](doc/qianshuimage.png)
+![输入图片说明](doc/hetongliebiaoimage.png)
+![输入图片说明](doc/heqianshuimage.png)
+![输入图片说明](doc/qiyeguanliimage.png)
+![输入图片说明](doc/yunyingguanliimage.png)
 # 系统部署
 ## 环境要求
 - **JDK**: 1.8+ (小于17)
@@ -82,7 +84,7 @@ kaifangqian-base/
 **推荐linux系统，服务器配置4核八G**
 
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
-- docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
+- docker部署：（下载仓库中deploy文件）https://docs.kaifangqian.com/docs/deploy/docker 
  
 **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
@@ -95,6 +97,7 @@ kaifangqian-base/
 ## 加入社群
 请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。  
 点击“star”的用户，优先审核加入官方社群。
+
 ![输入图片说明](doc/image.png)
 
 # 许可证
