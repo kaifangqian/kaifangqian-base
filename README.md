@@ -60,7 +60,8 @@ kaifangqian-base/
 │   ├── opensign-mobile/        # 移动端应用
 │   ├── opensign-tenant/        # 租户管理
 │   └── opensign-web/           # 签署主应用
-└── README.md                   # 项目说明文档
+└── README.md
+                   # 项目说明文档
 ```
 
 
@@ -82,7 +83,7 @@ kaifangqian-base/
 **推荐linux系统，服务器配置4核八G**
 
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
-- docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
+- docker部署：（下载仓库中deploy文件）https://docs.kaifangqian.com/docs/deploy/docker 
  
 **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
