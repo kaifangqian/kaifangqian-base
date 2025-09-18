@@ -44,7 +44,8 @@
 推荐linux系统，服务器配置4核八G
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
 - docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
- **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
+ 
+**部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
 # 相关地址
 - **产品门户网站**:www.kaifangqian.com
@@ -53,6 +54,8 @@
 - **接口文档**:https://docs.kaifangqian.com/docs/api/quick-start
 
 ## 加入社群
+请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。
+点击“star”的用户，优先审核加入官方社群。
 ![输入图片说明](doc/image.png)
 # 许可证
 本项目遵循AGPL 3.0协议。详见[LICENSE](LICENSE)文件。
