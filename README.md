@@ -70,7 +70,7 @@ kaifangqian-base/
 ![输入图片说明](doc/faqiimage.png)
 ![输入图片说明](doc/qianshuimage.png)
 ![输入图片说明](doc/hetongliebiaoimage.png)
-![移动端](doc/h5qianshuimage.png)
+![输入图片说明](doc/h5qianshuimage.png)
 ![输入图片说明](doc/qiyeguanliimage.png)
 ![输入图片说明](doc/yunyingguanliimage.png)
 # 系统部署
