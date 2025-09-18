@@ -39,7 +39,7 @@
 - **文件处理**:Apache PDFBox 实现 PDF 文档操作
 - **数据库**:MySQL / PostgreSQL（支持国产数据库适配）
 - **部署方式**:支持 Docker 容器化部署
-- **接口规范**:RESTful API + Swagger UI 文档
+- **接口规范**:RESTful API
 - **日志系统**:Logback + ELK 可视化日志分析
 - **权限控制**:RBAC 模型 + JWT 认证机制
 
@@ -65,7 +65,12 @@ kaifangqian-base/
 
 
 # 功能截图
-
+- ![输入图片说明](doc/%E9%A6%96%E9%A1%B5image.png)
+- ![输入图片说明](doc/faqiimage.png)
+- ![输入图片说明](doc/qianshuimage.png)
+- ![输入图片说明](doc/h5qianshuimage.png)
+- ![输入图片说明](doc/qiyeguanliimage.png)
+- ![输入图片说明](doc/yunyingguanliimage.png)
 # 系统部署
 ## 环境要求
 - **JDK**: 1.8+ (小于17)
@@ -74,7 +79,7 @@ kaifangqian-base/
 - **Redis**: 任意版本
 - **IDE**: IntelliJ IDEA (必须安装Lombok插件)
 
-推荐linux系统，服务器配置4核八G
+**推荐linux系统，服务器配置4核八G**
 
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
 - docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
@@ -83,12 +88,12 @@ kaifangqian-base/
 
 # 相关地址
 - **产品门户网站**:https://www.kaifangqian.com
-- **云服务体验地址**:https://home.kaifangqian.com
+- **线上体验地址**:https://home.kaifangqian.com
 - **产品参考文档**:https://docs.kaifangqian.com
 - **接口文档**:https://docs.kaifangqian.com/docs/api/quick-start
 
 ## 加入社群
-请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。
+请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。  
 点击“star”的用户，优先审核加入官方社群。
 ![输入图片说明](doc/image.png)
 
