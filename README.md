@@ -66,7 +66,7 @@ kaifangqian-base/
 
 
 # 功能截图
-![首页](doc/%E9%A6%96%E9%A1%B5image.png)
+![输入图片说明](doc/shouyeimage.png)
 ![发起合同](doc/faqiimage.png)
 ![合同签署](doc/qianshuimage.png)
 ![移动端](doc/h5qianshuimage.png)
