@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  mysql:
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/mysql:5.7.44
+    hostname: mysql
+    volumes:
+      - /home/data/mysql:/var/lib/mysql
+    deploy:
+      mode: replicated
+      replicas: 1
+      #resources:
+      #  limits:
+      #    cpus: '0.3'
+      #    memory: 1024M
+      #  reservations:
+      #    cpus: '0.2'
+      #    memory: 512M
+    networks:
+      swarm_main:
+        aliases:
+          - mysql
+    environment:
+      # 设置时不要留中括号,例如：- MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_PASSWORD=[please set mysql password]
+  redis:
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/redis:6.2.14
+    hostname: redis
+    # 设置时不要留中括号,例如：redis-server --appendonly yes --requirepass 123456
+    command: redis-server --appendonly yes --requirepass [please set redis password]
+    deploy:
+      mode: replicated
+      replicas: 1
+      #resources:
+      #  limits:
+      #    cpus: '0.2'
+      #    memory: 512M
+      #  reservations:
+      #    cpus: '0.1'
+      #    memory: 256M
+    networks:
+     swarm_main:
+       aliases:
+         - redis
+networks:
+ swarm_main: null
+

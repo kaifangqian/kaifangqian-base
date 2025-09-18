@@ -1,0 +1,107 @@
+version: "3.7"
+services:
+  job:
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/job:latest
+    hostname: opensign-job
+    deploy:
+      mode: replicated
+      replicas: 1
+      #resources:
+      #  limits:
+      #    cpus: '0.2'
+      #    memory: 1024M
+      #  reservations:
+      #    cpus: '0.1'
+      #    memory: 512M
+    networks:
+      swarm_main:
+        aliases:
+          - opensign-job
+    volumes:
+      - /etc/localtime:/etc/localtime
+    environment:
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+      - TZ=Asia/Shanghai
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=opensign
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=[根据实际情况修改]
+  api:
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/api:v3.0.2
+    hostname: opensign-api
+    deploy:
+      mode: replicated
+      replicas: 1
+    #  resources:
+    #    limits:
+    #      cpus: '0.2'
+    #      memory: 2048M
+    #    reservations:
+    #      cpus: '0.1'
+    #      memory: 1024M
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /home/data/storage:/app/storage
+    networks:
+      swarm_main:
+        aliases:
+          - opensign-api
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=opensign
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=[根据实际情况修改]
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=[根据实际情况修改]
+      - REDIS_DATABASE=0
+      - STORAGE_ACTIVE=local
+      - OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+      - OSS_ACCESSKEYID=xxx
+      - OSS_ACCESSKEYSECRET=xxx
+      - OSS_PUBLICENDPOINT=oss-cn-hangzhou.aliyuncs.com
+      - OSS_BUCKETNAME=resrun-paas
+      - JOB_SERVER=opensign-job:7990
+      - YD_APP_ID=your app id
+      - YD_APP_VK=your app vk
+  web:
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/nginx:v3.0.2
+    hostname: opensign-web
+    deploy:
+      mode: replicated
+      replicas: 1
+    #  resources:
+    #    limits:
+    #      cpus: '0.2'
+    #      memory: 1024M
+    #    reservations:
+    #      cpus: '0.1'
+    #      memory: 512M
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+      - API_SERVER_NAME=opensign-api
+      - DOMAIN_NAME=localhost
+      
+    volumes:
+      - /etc/localtime:/etc/localtime
+      #如果需要配置ssl证书，需要将证书放入/home/data/deploy/config/ssl目录中，并修改opensign-https.conf
+      #- /home/data/deploy/config/ssl:/etc/nginx/ssl
+      #- /home/data/deploy/config/opensign-https.conf:/etc/nginx/conf.d/opensign-https.conf
+    networks:
+      swarm_main:
+        aliases:
+          - opensign-web
+    ports:
+      - 80:8806
+      - 443:443
+networks:
+  swarm_main: null
+

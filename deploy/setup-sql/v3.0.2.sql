@@ -1,0 +1,7 @@
+use opensign;
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+INSERT INTO `sys_permission` (`id`, `app_id`, `name`, `menu_type`, `parent_id`, `sort_no`, `path`, `component`, `perms`, `icon`, `route_flag`, `hidden_flag`, `keep_alive_flag`, `internal_or_external`, `description`, `status`, `rule_flag`, `form_table_id`, `create_by`, `create_time`, `update_by`, `update_time`, `delete_flag`, `delete_by`, `delete_time`, `auth_visible`, `fast_icon`, `fast_icon_address`, `fast_flag`) VALUES ('850397f1-2ac9-40c2-a19f-8ddfe180523b', '70588803-52e4-433d-a61f-0a68e1febd72', '运营管理权限', 2, '', 0, NULL, NULL, 'system:manage', NULL, 0, 0, 0, 0, NULL, 1, 1, NULL, 'admin', '2025-09-02 14:40:41', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `sys_app_version_permission` (`id`, `app_info_id`, `app_version_id`, `permission_id`, `delete_flag`, `delete_by`, `delete_time`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('e83c31cd-250b-4d33-b24b-0cc9fb67cb17', '70588803-52e4-433d-a61f-0a68e1febd72', '2e1f31de-651b-49da-a89c-03f6b5daa9be', '850397f1-2ac9-40c2-a19f-8ddfe180523b', 0, NULL, NULL, NULL, '2025-09-04 14:17:42', NULL, NULL);
+INSERT INTO `sys_auth_group_permission` (`id`, `group_id`, `app_id`, `permission_id`, `permission_perms`, `permission_data_id`) VALUES ('c4b7c959-c3da-421e-a5d0-3c8f237dc588', '07b3e2cd-eb1b-4e07-8844-685478909734', '70588803-52e4-433d-a61f-0a68e1febd72', '850397f1-2ac9-40c2-a19f-8ddfe180523b', NULL, NULL);
+SET FOREIGN_KEY_CHECKS = 1;
