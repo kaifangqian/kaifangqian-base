@@ -20,7 +20,7 @@
 - **安全合规认证**:符合电子签名法律法规，结合国密算法加密、签名，确保签署流程可追溯、防篡改。通过公安部门实名认证锁定身份，权威 CA 机构颁发数字证书确保法律效力，全过程操作日志归档保全。
 
 
-#技术架构
+# 技术架构
 开放签采用现代化前后端分离架构，构建了一个安全、合规、可扩展的电子签平台。整体设计兼顾技术透明性与司法可信度，支持私有化部署、多租户服务和标准化 API 接入，满足企业级应用场景需求。
 架构设计遵循模块化、高内聚低耦合原则，便于二次开发、功能扩展及集成对接。
 - **前端框架**:Vue 3 + Vite
@@ -33,26 +33,26 @@
 - **日志系统**:Logback + ELK 可视化日志分析
 - **权限控制**:RBAC 模型 + JWT 认证机制
 
-##系统架构图
-![输入图片说明](doc/image.png)
-##代码结构
+## 系统架构图
+![输入图片说明](doc/image1.png)
+## 代码结构
 
 
-#功能截图
+# 功能截图
 
-#系统部署
+# 系统部署
 推荐linux系统，服务器配置4核八G
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
 - docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker
  **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
-#相关地址
+# 相关地址
 - **产品门户网站**:www.kaifangqian.com
 - **云服务体验地址**:home.kaifangqian.com
 - **产品参考文档**:docs.kaifangqian.com
 - **接口文档**:https://docs.kaifangqian.com/docs/api/quick-start
 
-##加入社群
+## 加入社群
 ![输入图片说明](doc/image.png)
 # 许可证
 本项目遵循AGPL 3.0协议。详见[LICENSE](LICENSE)文件。
