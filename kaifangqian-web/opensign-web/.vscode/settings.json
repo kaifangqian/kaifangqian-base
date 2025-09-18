@@ -1,0 +1,16 @@
+{
+    // 保存时eslint自动修复错误 新版本改为下面那个配置
+    // "eslint.autoFixOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    //保存自动格式化
+    "editor.formatOnSave": false,
+    "editor.tabSize": 4,
+    "i18n-ally.localesPaths": [
+        "src/locales",
+        "src/locales/lang",
+        "src/components/Cron/language",
+        "public/resource/tinymce/langs"
+    ],
+}

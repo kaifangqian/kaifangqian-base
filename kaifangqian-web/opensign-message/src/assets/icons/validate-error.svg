@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="198px" height="181px" viewBox="0 0 198 181" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组</title>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.294247582">
+        <g id="contract_modifyed_副本" transform="translate(1.482252, 2.960332)" fill-rule="nonzero">
+            <g id="印章2/同意-copy" transform="translate(97.450760, 87.789668) rotate(-30.000000) translate(-97.450760, -87.789668) translate(16.450760, 33.184263)">
+                <g id="Group-17-Copy-3" transform="translate(0.000000, 0.000000)">
+                    <ellipse id="Oval" stroke="#F25643" stroke-width="5.6" fill="#FFFFFF" cx="78.4975124" cy="54.6054054" rx="54.8716418" ry="54.6054054"></ellipse>
+                    <ellipse id="Oval" stroke="#F25643" stroke-width="3.2" fill="#FFFFFF" cx="78.4975124" cy="54.6054054" rx="45.6587065" ry="45.4405405"></ellipse>
+                    <rect id="Rectangle" fill="#FFFFFF" x="0" y="29.0918919" width="162" height="52"></rect>
+                    <polygon id="Rectangle" fill="#FFFFFF" points="35.8648651 29.0918919 121.734035 29.0918919 125.962725 70.7101879 121.734035 80.9162162 35.8648651 80.9162162 31.1120861 70.7101879"></polygon>
+                    <g id="审批拒绝" transform="translate(14.759690, 32.653335)" fill="#F25643" font-family="PingFangSC-Regular, PingFang SC" font-size="32" font-weight="normal">
+                        <text id="已被修改">
+                            <tspan x="3.55271368e-15" y="34">已被修改</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,55 @@
+/**
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+package com.kaifangqian.modules.system.service;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kaifangqian.modules.system.entity.SysAuthGroupMember;
+import com.kaifangqian.modules.system.vo.SysAuthGroupMemberList;
+import com.kaifangqian.modules.system.vo.SysAuthGroupMemberList2;
+import com.kaifangqian.modules.system.vo.SysAuthGroupMemberVO;
+import com.kaifangqian.modules.system.vo.UserAuthGroupVO;
+import com.kaifangqian.common.constant.enums.AuthType;
+import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
+
+/**
+ * @author zhenghuihan
+ * @description 权限组-成员表
+ * @createTime 2022/9/2 18:11
+ */
+public interface ISysAuthGroupMemberService extends IService<SysAuthGroupMember> {
+
+    void saveExt(SysAuthGroupMemberList memberList);
+
+    void saveExt2(SysAuthGroupMemberList2 memberList);
+
+    void removeExt(List<String> ids);
+
+    IPage<SysAuthGroupMemberVO> pageList(Page<SysAuthGroupMemberVO> page, SysAuthGroupMember query);
+
+    IPage<SysAuthGroupMemberVO> listByAuthId(Page<SysAuthGroupMemberVO> page, SysAuthGroupMember query);
+
+    void deleteByTenantIdAndTypeAndAuthIds(String tenantId, AuthType type, List<String> authIds);
+
+    List<UserAuthGroupVO> getLoginUserGroups();
+}

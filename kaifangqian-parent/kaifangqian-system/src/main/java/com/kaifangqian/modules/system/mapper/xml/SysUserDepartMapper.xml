@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysUserDepartMapper">
+
+    <!-- 查询指定部门下的用户（弹框）-->
+    <select id="queryUserByDepId" resultType="com.kaifangqian.modules.system.vo.SysDepartUserVO">
+        SELECT DISTINCT su.id,
+                        su.username,
+                        su.realname,
+                        su.phone,
+                        tu.nick_name,
+                        tu.id as tenant_user_id,
+                        sd.org_code
+        FROM sys_user_depart ud
+                 LEFT JOIN sys_tenant_user tu ON ud.user_id = tu.user_id
+            AND tu.tenant_id = #{tenantId}
+            AND tu.delete_flag = 0
+            AND tu.status > -2
+                 LEFT JOIN sys_user su ON tu.user_id = su.id
+            AND su.delete_flag = 0
+                 LEFT JOIN sys_depart sd on ud.depart_id = sd.id
+        WHERE ud.depart_id = #{depId, jdbcType=VARCHAR}
+          AND ud.tenant_id = #{tenantId}
+        and su.id is not null
+    </select>
+
+    <!-- 查询指定部门下的用户（列表）-->
+    <select id="getUserListByDepartId" resultType="com.kaifangqian.modules.system.vo.SysDepartUserVO">
+        SELECT tem.id,
+               tem.username,
+               tem.realname,
+               tem.manage_flag,
+               tem.phone,
+               tem.email,
+               tem.`status`,
+               tem.add_type,
+               GROUP_CONCAT(tem.role_name SEPARATOR ',') AS role_names,
+               tem.avatar_base64,
+               tem.nick_name
+        FROM (SELECT tu.id,
+                     any_value(su.username) as username,
+                     any_value(su.realname) as realname,
+                     any_value(ud.manage_flag) as manage_flag,
+                     any_value(su.phone) as phone,
+                     tu.email,
+                     tu.`status`,
+                     tu.add_type,
+                     sr.role_name,
+                     any_value(su.avatar_base64) as avatar_base64,
+                     tu.nick_name
+              FROM sys_user_depart ud
+                       INNER JOIN sys_user su ON ud.user_id = su.id
+                  AND su.delete_flag = 0
+                       LEFT JOIN sys_user_role ur ON su.id = ur.user_id
+                  and ur.tenant_id = #{tenantId}
+                       LEFT JOIN sys_role sr ON ur.role_id = sr.id
+                  AND sr.delete_flag = 0
+                  and sr.tenant_id = #{tenantId}
+                       left join sys_tenant_user tu on ud.user_id = tu.user_id
+                  and tu.tenant_id = #{tenantId}
+                  and tu.delete_flag = 0
+              WHERE ud.depart_id = #{depId, jdbcType=VARCHAR}
+                and ud.tenant_id = #{tenantId}
+                and tu.status > -2
+              GROUP BY tu.id,
+                       sr.id) tem
+        GROUP BY tem.id
+        ORDER BY tem.manage_flag DESC
+    </select>
+
+    <!-- 查询指定部门下的用户角色信息-->
+    <select id="getUserRolesByDepartId" resultType="com.kaifangqian.modules.system.vo.SysDepartRoleVO">
+        SELECT sr.id,
+               sr.role_name,
+               count(*) AS user_count
+        FROM sys_user_depart ud
+                 INNER JOIN sys_user_role ur ON ud.user_id = ur.user_id
+            AND ur.tenant_id = #{tenantId, jdbcType=VARCHAR}
+                 INNER JOIN sys_role sr ON ur.role_id = sr.id
+            AND sr.delete_flag = 0
+            AND sr.tenant_id = #{tenantId, jdbcType=VARCHAR}
+        WHERE ud.depart_id = #{depId, jdbcType=VARCHAR}
+          AND ud.tenant_id = #{tenantId, jdbcType=VARCHAR}
+        GROUP BY sr.id
+    </select>
+
+    <!-- 查询用户所属部门-->
+    <select id="getDepartsByUserId" resultType="com.kaifangqian.modules.system.entity.SysDepart">
+        SELECT sd.*
+        FROM sys_user_depart ud
+                 INNER JOIN sys_depart sd ON ud.depart_id = sd.id
+        WHERE ud.user_id = #{userId, jdbcType=VARCHAR}
+        GROUP BY sd.id
+    </select>
+
+
+    <select id="getUserDepartByUserIdAndDepartId" resultType="com.kaifangqian.modules.system.entity.SysUserDepart">
+        SELECT ud.*
+        FROM sys_user_depart ud
+                 INNER JOIN sys_depart sd ON ud.depart_id = sd.id
+            AND sd.delete_flag = 0
+            AND sd.tenant_id = #{tenantId, jdbcType=VARCHAR}
+        WHERE ud.user_id = #{userId, jdbcType=VARCHAR}
+          AND ud.depart_id = #{departId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="getTenantUsersByDeptIds" resultType="com.kaifangqian.common.vo.TenantUserInfo">
+        SELECT
+        ud.user_id,
+        ud.tenant_id,
+        ud.depart_id,
+        tu.id AS tenant_user_id
+        FROM
+        sys_user_depart ud
+        LEFT JOIN sys_tenant_user tu ON ud.tenant_id = tu.tenant_id
+        AND ud.user_id = tu.user_id
+        WHERE
+        ud.depart_id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

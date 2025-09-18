@@ -1,0 +1,31 @@
+{
+    "sign_app_info": {
+        "url": "https://home.kaifangqian.com",
+        "appCode": "opensign_0001",
+        "appId": "490489ab-d8b4-414c-ad77-d856962c286f"
+    },
+    "tenant_app_info": {
+        "url": "https://tenant.kaifangqian.com",
+        "appCode": "app_00005",
+        "appId": "13131313"
+    },
+    "auth_app_info": {
+        "url": "http://auth.kaifangqian.com",
+        "appCode": "opensign_0001",
+        "appId": "490489ab-d8b4-414c-ad77-d856962c286f"
+    },
+    "message_app_info": {
+        "url": "http://message.kaifangqian.com",
+        "appCode": "opensign_0001",
+        "appId": "490489ab-d8b4-414c-ad77-d856962c286f"
+    },
+    "websocket_info": {
+        "url": "https://home.kaifangqian.com"
+    },
+    "scan_code_service": {
+        "url": "https://home.kaifangqian.com/handwriting"
+    },
+    "mobile_app_info": {
+        "url": "https://h5.kaifangqian.com"
+    }
+}

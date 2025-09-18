@@ -1,0 +1,26 @@
+{
+  "sign_app_info":{
+      "url":"http://localhost:8806",
+      "appCode":"opensign_0001",
+      "appId":"490489ab-d8b4-414c-ad77-d856962c286f"
+  },
+  "tenant_app_info":{
+    "url":"http://tenant.kaifangqian.com",
+    "appCode":"app_00005",
+    "appId":"13131313"
+  },
+  "business_app_info":{
+    "url":"http://business.kaifangqian.com",
+    "appCode":"paas_manage_001",
+    "appId":"70588803-52e4-433d-a61f-0a68e1febd72",
+    "homePath":"/#/usermanage/personal"
+  },
+  "message_app_info":{
+    "url":"http://localhost:8907",
+    "appCode":"opensign_0001",
+    "appId":"490489ab-d8b4-414c-ad77-d856962c286f"
+  },
+  "websocket_info": {
+    "url":"http://192.168.0.201:8899"
+  }
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysTenantAppVersionMapper">
+
+    <!-- 获取租户APPs -->
+    <select id="getTenantsApps" resultType="com.kaifangqian.modules.system.vo.SysTenantAppVersionVO">
+        SELECT
+        ta.tenant_id,
+        ai.id,
+        ai.app_name
+        FROM
+        sys_tenant_app_version ta
+        LEFT JOIN sys_app_info ai ON ta.app_id = ai.id
+        AND ai.delete_flag = 0
+        WHERE
+        ta.delete_flag = 0
+        AND ta.tenant_id IN
+        <foreach collection="tenantIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="pageExt" resultType="com.kaifangqian.modules.system.vo.SysTenantAppVersionVO">
+        SELECT ta.id,
+               ta.tenant_id,
+               ai.id as app_id,
+               ai.app_name,
+               ai.app_icon,
+               ai.app_icon_address,
+               ai.app_desc,
+               ta.STATUS,
+               ta.useful,
+               ai.default_flag
+        FROM sys_tenant_app_version ta
+                 LEFT JOIN sys_app_info ai ON ta.app_id = ai.id
+        WHERE ta.delete_flag = 0
+          AND ai.delete_flag = 0
+          AND ta.tenant_id = #{req.tenantId}
+    </select>
+
+</mapper>

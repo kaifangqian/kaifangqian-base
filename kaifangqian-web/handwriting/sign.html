@@ -1,0 +1,383 @@
+<!--
+  @description 手写签名面板
+
+  Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+  注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+  必须公开修改后的完整源码（包括衍生作品），详见协议全文。
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手写签名</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none; /* 禁用默认的 touch 行为 */
+      border:1px dashed #999;
+      border-radius: 2px;
+      /* transform: rotate(90deg); */
+    }
+    #sign-block{
+        position: relative;
+    }
+
+    #controls {
+        position: absolute;
+        right: 4px;
+        top: 50px;
+        z-index: 2;
+        /* border: 1px dashed #999; */
+        width: 100%;
+        text-align: right;
+        padding: 5px 0px;
+        background-color: #fff;
+        box-sizing: border-box;
+        transform: rotate(-90deg);
+        transform-origin: 90% 0;
+        border-top: none;
+        /* background: */
+    }
+    #controls button{
+        padding:5px 10px;
+        font-size:18px;
+        border-radius: 4px; 
+        border: none;
+    }
+	#controls .primary {
+		background-color: #1677ff;
+		color: #fff;
+        margin-right: 40px;
+        width: 120px;
+	}
+	
+	#controls .primary.disabled {
+		background-color: rgba(0, 0, 0, 0.04);
+		color: rgba(0, 0, 0, 0.25);
+		cursor: not-allowed;
+        margin-right: 40px;
+        width: 120px;
+	}
+	
+    .clear-btn{
+        color: rgba(245, 31, 31, 0.836);
+        margin-right: 20px;
+        width: 120px;
+    }
+    #signatureText {
+        position: absolute;
+        top: 50%;
+        transform: rotate(-90deg) translate(15%, -50%);
+        font-size: 28px;
+        color: #999;
+        letter-spacing: 2em;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+    <div id="sign-block">
+        <canvas id="signatureCanvas"></canvas>
+        <div id="signatureText">请在此签名</div>
+    </div>
+    <div id="controls">
+        <button onclick="clearCanvas()" class="clear-btn">重写</button>
+        <button onclick="saveAsBase64()" id="saveBtn" class="primary disabled">完成</button>
+        <!-- <label for="penSize">笔画大小:</label>
+        <input type="range" id="penSize" min="1" max="20" value="4" step="2" onchange="changePenSize(event)"> -->
+    </div>
+  <script>
+
+    const canvas = document.getElementById('signatureCanvas');
+    const context = canvas.getContext('2d');
+    const penSizeInput = document.getElementById('penSize');
+    const signatureText = document.getElementById('signatureText');
+	var startDraw = false;
+	const saveBtn = document.getElementById('saveBtn');
+
+
+    // 设置 Canvas 宽高为屏幕宽高
+    canvas.width = window.innerWidth-50;
+    canvas.height = window.innerHeight-10;
+
+    // 配置画笔样式
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.strokeStyle = '#000000';
+    context.lineWidth = 8;
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let QRKey = "";
+    let userId = "";
+    let isSuccess = false;
+    let penSize = 8;
+    let lastTime;
+    let baseWidth = 8;
+
+    // 在变量声明部分添加新变量
+    let drawDistance = 0; // 记录绘制的总距离
+    const MIN_DRAW_DISTANCE = 200; // 最小绘制距离阈值，可根据需要调整
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+
+      // 计算移动距离
+      const dx = e.touches[0].clientX - lastX;
+      const dy = e.touches[0].clientY - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // 累计总绘制距离
+      drawDistance += distance;
+
+      // 根据距离调整线条宽度
+      context.lineWidth = Math.max(1, baseWidth - distance / 10);
+
+
+      context.fillText('', canvas.width / 2, canvas.height / 2);
+
+      context.beginPath();
+      context.moveTo(lastX, lastY);
+      context.lineTo(currentX, currentY);
+      context.stroke();
+
+       // 根据速度调整线条宽度
+      
+      lastX = currentX;
+      lastY = currentY;
+
+      // 隐藏提示文字
+      signatureText.style.display = 'none';
+
+      // 只有当绘制距离超过阈值时才启用保存按钮
+      if(!startDraw && drawDistance > MIN_DRAW_DISTANCE){
+        startDraw = true;
+        saveBtn.classList.remove("disabled");
+      }
+	   
+    }
+
+    function drawBackgroundText() {
+        const text = '请在此签名';
+        context.font = '34px Arial';
+        context.fillStyle = '#ccc';
+        context.textAlign = 'center';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+    }
+    function resizeCanvas() {
+        // canvas.width = window.innerWidth;
+        // canvas.height = window.innerHeight;
+        canvas.width = window.innerHeight;
+        canvas.height = window.innerWidth;
+        // drawBackgroundText();
+
+        // context.translate(canvas.width / 2, canvas.height / 2);
+        // context.rotate(Math.PI / 2);
+        // context.translate(-canvas.height / 2, -canvas.width / 2);
+    }
+    // 旋转画布
+    function rotateCanvas() {
+        // 清空画布
+        clearCanvas();
+
+        // 保存当前绘图状态
+        context.save();
+
+        // 旋转画布 90 度
+        context.translate(canvas.width, 0);
+        context.rotate(90 * Math.PI / 180);
+
+        // 绘制旋转后的内容
+
+        // 恢复到之前的绘图状态
+        context.restore();
+    }
+
+    function clearCanvas() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      signatureText.style.display = 'block';
+	  
+	  startDraw = false;
+	  saveBtn.classList.add("disabled");
+      // 重置绘制距离
+      drawDistance = 0;
+	  
+    }
+
+    function saveAsBase64() {
+	  if(!startDraw)return;
+         // 创建一个新的 Canvas
+      const newCanvas = document.createElement('canvas');
+      const newCtx = newCanvas.getContext('2d');
+
+      // 设置新 Canvas 的尺寸
+      newCanvas.width = canvas.height;  // 交换宽高
+      newCanvas.height = canvas.width;
+
+      // 绘制旋转回来的内容
+      newCtx.translate(newCanvas.width, 0);
+      newCtx.rotate(90 * Math.PI / 180);
+      newCtx.drawImage(canvas, 0, 0);
+
+      const base64Data = newCanvas.toDataURL();
+    //   这里可以将 base64 数据进行进一步处理，比如发送到服务器保存。
+      const xhr = new XMLHttpRequest();
+        const url = "/resrun-paas/sign/ru/sign/signature"
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            // 如果请求已完成，且响应状态为 200 OK
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // 处理响应数据
+                var responseData = JSON.parse(xhr.responseText);
+                console.log(responseData,'9909009')
+                if(responseData.code==200){
+                    isSuccess =  true;
+                    clearCanvas();
+                    window.open('/handwriting/success','_self')
+                }
+                if(responseData.code==500){
+                    alert('二维码已失效，请重新扫码签名')
+                }
+            }
+        };
+        const paramsData = {
+            signature:base64Data.split('base64,')[1],
+            key:QRKey
+        } 
+        xhr.send(JSON.stringify(paramsData));
+    }
+
+    function changePenSize(e) {
+    //   context.lineWidth = e.target.value;
+      baseWidth = e.target.value;
+
+    }
+    // 计算停留时间
+    function calculateLineWidth(currentTime) {
+      if (lastTime) {
+        const deltaTime = currentTime - lastTime;
+        
+        // 根据持续时间调整笔画粗细，可以根据具体需求调整
+        penSize = Math.min(Math.max(2, penSize - deltaTime * 0.002), 20);
+      }
+
+      lastTime = currentTime;
+      return penSize;
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      isDrawing = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+      // 重置绘制距离
+      drawDistance = 0;
+    });
+
+    canvas.addEventListener('touchmove', draw);
+
+    canvas.addEventListener('touchend', () => {
+      isDrawing = false;
+    });
+    // 检查是否横屏
+    function checkOrientation() {
+        if (window.innerWidth < window.innerHeight) {
+            // alert('请横屏使用');
+        }
+    }
+
+    
+    window.addEventListener('resize', () => {
+        checkOrientation();
+    });
+
+    function  getQueryString(name) {
+        var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return  decodeURI(r[2]);
+        }
+        return null;
+        }
+
+    function getUrlParams(){
+        QRKey = getQueryString('key')
+        userId = getQueryString('userId')
+        // alert(QRKey,'二维码key')
+     }
+     function checkKey(){
+        const xhr = new XMLHttpRequest();
+        const url = "/resrun-paas/sign/ru/sign/checkKey";
+        console.log(QRKey,'请求参数key')
+        const params = "key=" + QRKey
+        xhr.open('GET', url + '?' + params , true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+        xhr.onreadystatechange = function() {
+            try{
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                // 处理响应数据
+                    var responseData = JSON.parse(xhr.responseText);
+                    console.log(responseData);
+                }else{
+                    // alert(xhr.responseText)
+                }
+            }catch(err){
+                // alert(err)
+            }
+            // 如果请求已完成，且响应状态为 200 OK
+            
+        };
+        xhr.ontimeout = function () {
+            // 请求超时
+            console.error('Request timed out');
+            alert('Request timed out')
+        };
+        xhr.send();
+    }
+    // resizeCanvas();
+    rotateCanvas();
+    // checkOrientation();
+
+    // 强制自动横屏展示
+    window.addEventListener('orientationchange', () => {
+        rotateCanvas()
+    });
+
+
+
+    getUrlParams()
+
+
+    setTimeout(()=>{
+        checkKey()
+    },1000)
+  </script>
+</body>
+</html>

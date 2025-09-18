@@ -1,0 +1,22 @@
+server {
+	listen 8806;
+	server_name localhost; 
+	client_max_body_size 100M;
+	
+	location /resrun-paas/websocket {
+		proxy_pass http://$API_SERVER_NAME:8899;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
+	}
+	location /resrun-paas {
+		proxy_pass  http://$API_SERVER_NAME:8899/resrun-paas; # 转发规则
+		proxy_set_header Host $proxy_host; # 修改转发请求头，让8080端口>的应用可以受到真实的请求
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+	location / {
+		root /data/opensign-web;
+		index index.html index.htm;
+		try_files $uri $uri/ $uri.html /index.html;
+	}
+}

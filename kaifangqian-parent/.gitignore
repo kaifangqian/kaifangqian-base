@@ -1,0 +1,35 @@
+*.class
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.log
+*.*.logs
+*.log.*
+
+hs_err_pid*
+generator-mapper/*
+/logs/
+/*/target/
+target/
+
+*/\.settings/*
+#/*/\.classpath
+#*/\.project
+
+#/*/\.settings/*
+#*/*settings/*
+*/\.classpath
+/*/\.project
+**/PhysicalDataModel_1.pdb
+**/META-INF/*
+*/.externalToolBuilders/*

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true
+  },
+  // 表明这个单独拆分出来的配置文件只是负责编译 vite 的配置文件vite.config.ts
+  // 只有同时加入 "src/vite-env.d.ts" 才能使vite.config.ts中能使用src/vite-env.d.ts中的全局类型
+  "include": ["vite.config.ts", "src/vite-env.d.ts"]
+}

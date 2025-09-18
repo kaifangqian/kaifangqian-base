@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysAuthGroupMemberMapper">
+
+    <!-- 查询权限组下成员 -->
+    <select id="pageList" resultType="com.kaifangqian.modules.system.vo.SysAuthGroupMemberVO">
+        SELECT
+        any_value ( m.id ) as id,
+        any_value ( m.group_id ) as group_id,
+        any_value ( m.auth_type ) as auth_type,
+        m.auth_id,
+        IFNULL(
+        any_value ( u.realname ),
+        IFNULL( any_value ( r.role_name ), any_value ( d.depart_name ) )) AS NAME,
+        any_value ( d2.depart_name ) AS user_depart_name
+        FROM
+        sys_auth_group_member m
+        LEFT JOIN sys_role r ON m.auth_type = 'role'
+        AND m.auth_id = r.id
+        LEFT JOIN sys_depart d ON m.auth_type = 'dept'
+        AND m.auth_id = d.id
+        LEFT JOIN sys_depart d2 ON m.auth_type = 'user'
+        AND m.depart_id = d2.id
+        LEFT JOIN sys_user u ON m.auth_type = 'user'
+        AND m.auth_id = u.id
+        where m.tenant_id = #{query.tenantId, jdbcType=VARCHAR}
+        <if test="query.groupId!=null and query.groupId!=''">
+            and
+            m.group_id = #{query.groupId, jdbcType=VARCHAR}
+        </if>
+        GROUP BY m.auth_id
+    </select>
+
+
+    <!-- 根据权限id查询权限组列表 -->
+    <select id="listByAuthId" resultType="com.kaifangqian.modules.system.vo.SysAuthGroupMemberVO">
+        SELECT
+        m.id,
+        g2.group_name AS p_name,
+        g.group_name,
+        g.group_desc
+        FROM
+        sys_auth_group_member m
+        INNER JOIN sys_auth_group g ON m.group_id = g.id
+        LEFT JOIN sys_auth_group g2 ON g.parent_id = g2.id
+        WHERE
+        m.tenant_id = #{query.tenantId, jdbcType=VARCHAR}
+        <if test="query.authId!=null and query.authId!=''">
+            and m.auth_id = #{query.authId, jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="getLoginUserGroups" resultType="com.kaifangqian.modules.system.vo.UserAuthGroupVO">
+        SELECT
+        DISTINCT temp.*
+        FROM
+        (
+        (
+        SELECT
+        ag.id,
+        ag.group_name,
+        ag.group_desc,
+        ag.group_type,
+        'userDepart' AS type,
+        su.username AS name,
+        sd.depart_name AS depart_name
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group ag ON am.group_id = ag.id
+        INNER JOIN sys_user su ON am.auth_id = su.id
+        LEFT JOIN sys_depart sd ON am.depart_id = sd.id
+        WHERE
+        am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.depart_id = #{query.departId}
+        ) UNION
+        (
+        SELECT
+        ag.id,
+        ag.group_name,
+        ag.group_desc,
+        ag.group_type,
+        'userOnly' AS type,
+        su.username AS name,
+        NULL AS depart_name
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group ag ON am.group_id = ag.id
+        INNER JOIN sys_user su ON am.auth_id = su.id
+        WHERE
+        am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.tenant_id =#{query.tenantId}
+        AND am.depart_id IS NULL
+        ) UNION
+        <if test="query.roleIds !=null  and query.roleIds.size()>0">
+            (
+            SELECT
+            ag.id,
+            ag.group_name,
+            ag.group_desc,
+            ag.group_type,
+            'role' AS type,
+            sr.role_name AS name,
+            NULL AS depart_name
+            FROM
+            sys_auth_group_member am
+            LEFT JOIN sys_auth_group ag ON am.group_id = ag.id
+            LEFT JOIN sys_role sr ON am.auth_id = sr.id
+            WHERE
+            am.auth_type = 'role'
+            AND am.auth_id IN
+            <foreach collection="query.roleIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            ) UNION
+        </if>
+        (
+        SELECT
+        ag.id,
+        ag.group_name,
+        ag.group_desc,
+        ag.group_type,
+        'depart' AS type,
+        sd.depart_name AS name,
+        NULL AS depart_name
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group ag ON am.group_id = ag.id
+        LEFT JOIN sys_depart sd ON am.auth_id = sd.id
+        WHERE
+        am.auth_type = 'dept'
+        AND am.auth_id = #{query.departId}
+        )
+        ) AS temp
+        order by temp.group_type
+    </select>
+
+</mapper>

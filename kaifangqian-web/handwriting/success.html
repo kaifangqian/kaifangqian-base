@@ -1,0 +1,89 @@
+<!--
+  @description 手写签名成功页面
+
+  Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+  注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+  必须公开修改后的完整源码（包括衍生作品），详见协议全文。
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>签名成功</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    #sign-success-block{
+        margin-top:250px;
+        text-align: center;
+    }
+    #sign-success-block img{
+        width:300px;
+    }
+    #sign-success-block p{
+        font-size: 28px;
+        color: #999;
+    }
+  </style>
+</head>
+
+<body>
+
+    <div id="sign-success-block">
+        <div class="success-area">
+            <!-- <img  id="img-sign-success" src="./logo-sign.png"/> -->
+			<img  id="img-sign-success"/>
+            <p>签名成功</p>
+        </div>
+    </div>
+  <script>
+
+    function getLogo() {
+        const xhr = new XMLHttpRequest();
+        const url = "/resrun-paas/file/downloadFileBase64Type/website_other_logo"
+        xhr.open('get', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            // 如果请求已完成，且响应状态为 200 OK
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // 处理响应数据
+                var responseData = JSON.parse(xhr.responseText);
+                document.getElementById('img-sign-success').src = responseData.result.image
+            }
+        };
+        xhr.send();
+    }
+
+    function getTitle(){
+        const xhr = new XMLHttpRequest();
+        const url = "/resrun-paas/sys/websiteTitle"
+        xhr.open('get', url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function() {
+            // 如果请求已完成，且响应状态为 200 OK
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // 处理响应数据
+                var responseData = JSON.parse(xhr.responseText);
+                document.title = responseData.result
+            }
+        };
+        xhr.send();
+    }
+    getLogo()
+    getTitle()
+  </script>
+</body>
+</html>

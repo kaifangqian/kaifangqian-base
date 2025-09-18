@@ -1,0 +1,17 @@
+{
+    "sign_app_info":{
+        "url":"http://localhost:8806",
+        "appCode":"opensign_0001",
+        "appId":"490489ab-d8b4-414c-ad77-d856962c286f"
+},
+  "auth_app_info":{
+      "url":"http://localhost:8806",
+      "appCode":"opensign_0001",
+      "appId":"490489ab-d8b4-414c-ad77-d856962c286f"
+  },
+  "message_app_info":{
+    "url":"http://localhost:8907",
+    "appCode":"opensign_0001",
+    "appId":"490489ab-d8b4-414c-ad77-d856962c286f"
+  }
+}

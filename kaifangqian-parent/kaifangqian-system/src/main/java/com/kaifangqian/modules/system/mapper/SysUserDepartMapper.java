@@ -1,0 +1,48 @@
+/**
+ * Discription:用户部门Mapper
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+package com.kaifangqian.modules.system.mapper;
+
+import java.util.List;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kaifangqian.common.vo.TenantUserInfo;
+import com.kaifangqian.modules.system.entity.SysDepart;
+import com.kaifangqian.modules.system.vo.SysDepartRoleVO;
+import com.kaifangqian.modules.system.vo.SysDepartUserVO;
+import org.apache.ibatis.annotations.Param;
+import com.kaifangqian.modules.system.entity.SysUserDepart;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+public interface SysUserDepartMapper extends BaseMapper<SysUserDepart> {
+
+    IPage<SysDepartUserVO> queryUserByDepId(Page<SysDepartUserVO> page, @Param("depId") String depId, @Param("tenantId") String tenantId);
+
+    IPage<SysDepartUserVO> getUserListByDepartId(Page<SysDepartUserVO> page, @Param("depId") String depId, @Param("tenantId") String tenantId);
+
+    List<SysDepartRoleVO> getUserRolesByDepartId(@Param("depId") String depId, @Param("tenantId") String tenantId);
+
+    List<SysDepart> getDepartsByUserId(@Param("userId") String userId);
+
+    List<SysUserDepart> getUserDepartByUserIdAndDepartId(@Param("userId") String userId, @Param("tenantId") String tenantId, @Param("departId") String departId);
+
+    List<TenantUserInfo> getTenantUsersByDeptIds(@Param("departIds") List<String> departIds);
+}

@@ -1,0 +1,58 @@
+/**
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+package com.kaifangqian.modules.opensign.vo.request;
+
+// import io.swagger.annotations.ApiModel;
+// import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+
+/**
+ * @Description: EntSealGenerateUploadRequest
+ * @Package: com.kaifangqian.modules.opensign.vo.request
+ * @ClassName: EntSealGenerateUploadRequest
+ * @author: FengLai_Gong
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+// @ApiModel("印章生成-参数生成-请求对象")
+public class EntSealGenerateParamRequest implements Serializable {
+
+    private static final long serialVersionUID = 5592164666850753649L;
+
+
+    // @ApiModelProperty("企业印章形状类型，1圆形，2椭圆形")
+    private Integer entSealShapeType ;
+
+    // @ApiModelProperty("横排文字")
+    private String middleText ;
+
+//    // @ApiModelProperty("中心文字")
+//    private String center ;
+
+    // @ApiModelProperty("下弦文字")
+    private String bottomText ;
+
+}

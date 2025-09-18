@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysDepartMapper">
+
+    <!-- 根据部门Ids查询部门及以下部门 -->
+    <select id="queryDepartAllList" resultType="com.kaifangqian.modules.system.entity.SysDepart">
+        SELECT
+        sd2.*
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        WHERE
+        sd.delete_flag = 0
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        sd2.id
+    </select>
+
+    <!-- 根据部门Ids查询部门及以下部门(分页搜索) -->
+    <select id="queryDepartAllPage" resultType="com.kaifangqian.modules.system.model.SysDepartSearchModel">
+        SELECT
+        sd2.id,
+        sd2.parent_id,
+        sd2.depart_name,
+        sd2.org_code
+        FROM
+        sys_depart sd
+        INNER JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        and sd2.tenant_id = #{tenantId}
+        WHERE
+        sd.delete_flag = 0
+        and sd.tenant_id = #{tenantId}
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <if test="keyWord!=null and keyWord!=''">
+            and sd2.depart_name like concat(concat('%',#{keyWord}),'%')
+        </if>
+        GROUP BY
+        sd2.id
+    </select>
+
+    <!-- 根据部门Ids查询部门人数 -->
+    <select id="countDepartUsers" resultType="com.kaifangqian.modules.system.vo.SysDepartVO">
+        SELECT
+        tem.id,
+        count( tem.user_id ) AS user_count
+        FROM
+        (
+        SELECT
+        sd.id,
+        su.id AS user_id
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        AND sd2.tenant_id = #{tenantId}
+        LEFT JOIN sys_user_depart ud ON sd2.id = ud.depart_id
+        and ud.tenant_id = #{tenantId}
+        left join sys_tenant_user tu on tu.tenant_id = #{tenantId}
+        and tu.user_id = ud.user_id and tu.status>-2
+        LEFT JOIN sys_user su ON tu.user_id = su.id
+        AND su.delete_flag = 0
+        WHERE
+        sd.delete_flag = 0
+        AND sd.tenant_id = #{tenantId}
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        sd.id,
+        su.id
+        ) tem
+        GROUP BY
+        tem.id
+    </select>
+
+    <!-- 根据部门Ids查询部门主管 -->
+    <select id="queryManagesListByDepartIds" resultType="com.kaifangqian.modules.system.vo.SysDepartVO">
+        SELECT
+        sd.id,
+        GROUP_CONCAT( su.nick_name SEPARATOR ',' ) AS manage_names
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_user_depart ud2 ON sd.id = ud2.depart_id
+        AND ud2.manage_flag = 1
+        LEFT JOIN sys_tenant_user su ON ud2.user_id = su.user_id and ud2.tenant_id = su.tenant_id
+        AND su.delete_flag = 0
+        WHERE
+        sd.delete_flag = 0
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        sd.id
+    </select>
+
+    <select id="queryUserDeparts" parameterType="String" resultType="com.kaifangqian.modules.system.entity.SysDepart">
+        SELECT DISTINCT
+            sd.id,
+            sd.depart_name,
+            sd.org_code
+        FROM
+            sys_user_depart ud
+            INNER JOIN sys_depart sd ON sd.id = ud.depart_id
+            AND sd.delete_flag = 0
+            AND sd.tenant_id = #{tenantId}
+        WHERE
+            ud.user_id = #{userId}
+	</select>
+
+    <!-- 分层查询所有部门 -->
+    <select id="queryList" resultType="com.kaifangqian.modules.system.vo.SysDepartVO">
+        SELECT
+            tem.id,
+            tem.parent_id,
+            tem.depart_name,
+            count( tem.user_id ) AS user_count
+        FROM
+            (
+            SELECT
+                sd.id,
+                sd.depart_order,
+                sd.parent_id,
+                sd.depart_name,
+                su.id AS user_id
+            FROM
+                sys_depart sd
+                LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+                AND sd2.delete_flag = 0
+                AND sd2.tenant_id = #{tenantId}
+                LEFT JOIN sys_user_depart ud ON sd2.id = ud.depart_id
+                AND ud.tenant_id = #{tenantId}
+                left join sys_tenant_user tu on tu.tenant_id = #{tenantId}
+                    and tu.user_id = ud.user_id and tu.status>-2
+                LEFT JOIN sys_user su ON tu.user_id = su.id
+                AND su.delete_flag = 0
+            WHERE
+                sd.delete_flag = 0
+                AND sd.parent_id = #{departId}
+                AND sd.tenant_id = #{tenantId}
+            GROUP BY
+                sd.id,
+                su.id
+            ) tem
+        GROUP BY
+            tem.id
+        ORDER BY
+            tem.depart_order
+	</select>
+
+    <!-- 分层查询我的部门 -->
+    <select id="queryMyList" resultType="com.kaifangqian.modules.system.vo.SysDepartVO">
+        SELECT
+        tem.id,
+        tem.parent_id,
+        tem.depart_name,
+        count( tem.user_id ) AS user_count
+        FROM
+        (
+        SELECT
+        sd.id,
+        sd.depart_order,
+        sd.parent_id,
+        sd.depart_name,
+        su.id AS user_id
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        AND sd2.tenant_id = #{tenantId}
+        LEFT JOIN sys_user_depart ud ON sd2.id = ud.depart_id
+        AND ud.tenant_id = #{tenantId}
+        left join sys_tenant_user tu on tu.tenant_id = #{tenantId}
+        and tu.user_id = ud.user_id and tu.status>-2
+        LEFT JOIN sys_user su ON tu.user_id = su.id
+        AND su.delete_flag = 0
+        WHERE
+        sd.delete_flag = 0
+        AND sd.tenant_id = #{tenantId}
+        AND sd.org_code IN
+        <foreach collection="orgCodes" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        sd.id,
+        su.id
+        ) tem
+        GROUP BY
+        tem.id
+        ORDER BY
+        tem.depart_order
+    </select>
+
+    <!-- 根据username查询所拥有的部门 -->
+    <select id="queryDepartsByUsername" parameterType="String" resultType="com.kaifangqian.modules.system.entity.SysDepart">
+        SELECT DISTINCT
+            sd.*
+        FROM
+            sys_user su
+            LEFT JOIN sys_user_depart ud ON su.id = ud.user_id
+            AND ud.tenant_id = #{tenantId}
+            INNER JOIN sys_depart sd ON sd.id = ud.depart_id
+            AND sd.delete_flag = 0
+            AND sd.tenant_id = #{tenantId}
+        WHERE
+            su.username = #{username}
+    </select>
+
+</mapper>

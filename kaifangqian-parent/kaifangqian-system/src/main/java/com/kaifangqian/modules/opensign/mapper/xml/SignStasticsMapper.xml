@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.opensign.mapper.SignStasticsMapper">
+
+    <select id="getUseCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(S.ID)
+        FROM
+            sign_ent_seal S
+        WHERE
+            S.delete_flag = 0   AND S.seal_status = 3
+        AND S.sys_tenant_id = #{tenantId}
+    </select>
+
+    <select id="getStopCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(S.ID)
+        FROM
+            sign_ent_seal S
+        WHERE
+            S.delete_flag = 0   AND S.seal_status = 4
+        AND S.sys_tenant_id = #{tenantId}
+    </select>
+
+    <select id="getCollectCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(S.ID)
+        FROM
+            sign_ent_seal S
+        WHERE
+            S.delete_flag = 0   AND S.seal_status = 5
+        AND S.sys_tenant_id = #{tenantId}
+    </select>
+
+
+    <select id="getDestructionCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(S.ID)
+        FROM
+            sign_ent_seal S
+        WHERE
+            S.delete_flag = 0   AND S.seal_status = 6
+        AND S.sys_tenant_id = #{tenantId}
+    </select>
+
+
+
+    <select id="getElectronicUseSealCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(D.ID)
+        FROM
+            sign_doc D
+        WHERE
+            D.delete_flag = 0  AND D.doc_status = 7 AND D.scene_type = 1
+        AND D.sys_tenant_id = #{tenantId}
+    </select>
+
+
+    <select id="getPhysicsUseSealCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(D.ID)
+        FROM
+            sign_doc D
+        WHERE
+            D.delete_flag = 0  AND D.doc_status = 7 AND D.scene_type = 2
+        AND D.sys_tenant_id = #{tenantId}
+    </select>
+
+
+    <select id="getInterfaceUseSealCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(R.ID)
+        FROM
+            sign_template_reference_log R
+        WHERE
+            R.sys_tenant_id = #{tenantId}
+    </select>
+
+
+
+    <select id="getUseSealDetailList" resultType="com.kaifangqian.modules.opensign.vo.base.UseSealDetailVo">
+        SELECT
+            sd.depart_name,
+            doc.business_type,
+            IFNULL(NULL, "平台使用") AS useSealWay,
+            doc.scene_type,
+            ses.seal_type,
+            COUNT(ses.id) AS useSealCount
+        FROM
+            sign_ent_seal ses
+        LEFT JOIN sys_depart sd ON ses.sys_dept_id=sd.id
+        LEFT JOIN sign_doc doc ON ses.id=doc.seal_id
+
+        WHERE
+            ses.delete_flag = 0
+        <if test="req.useSealDeptId!=null and req.useSealDeptId!=''">
+            AND ses.sys_dept_id = #{req.useSealDeptId}
+        </if>
+        <if test="req.businessType!=null and req.businessType!=''">
+            AND doc.business_type = #{req.businessType}
+        </if>
+        <if test="req.startTime!=null and req.startTime!='' and req.endTime!=null and req.endTime!=''">
+            AND doc.apply_time 	BETWEEN CAST(#{req.startTime} AS DATE)
+            AND CAST(#{req.endTime} AS DATE)
+        </if>
+            GROUP BY sd.depart_name,doc.business_type,doc.scene_type,ses.seal_type
+    </select>
+
+
+
+    <select id="getSealAuditList" resultType="com.kaifangqian.modules.opensign.vo.base.SealAuditVo">
+        SELECT
+            id,seal_id,seal_name,seal_type,create_time,seal_status,
+            SUM(CASE WHEN log_type = 3 THEN 1 ELSE 0 END) AS changeCount,
+            SUM(CASE WHEN log_type = 4 THEN 1 ELSE 0 END) AS stopCount,
+            SUM(CASE WHEN log_type = 5 THEN 1 ELSE 0 END) AS activateCount
+        FROM
+            sign_seal_operate_log
+        WHERE
+            delete_flag = 0
+        <if test="req.sealName!=null and req.sealName!=''">
+            AND seal_name LIKE concat(concat('%',#{req.sealName}),'%')
+        </if>
+        <if test="req.sealType!=null and req.sealType!=''">
+            AND seal_type = #{req.sealType}
+        </if>
+            GROUP BY seal_id
+    </select>
+
+</mapper>

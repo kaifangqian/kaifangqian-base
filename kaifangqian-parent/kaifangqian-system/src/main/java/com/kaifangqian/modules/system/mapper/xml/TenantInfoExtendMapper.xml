@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.TenantInfoExtendMapper">
+
+    <select id="pageExt" resultType="com.kaifangqian.modules.system.vo.TenantInfoDTO">
+        SELECT
+        ti.id,
+        ti.name as tenant_name,
+        ti.tenant_id,
+        ti.tenant_type,
+        ti.auth_status,
+        ti.create_time,
+        st.tenant_status
+        FROM
+        tenant_info_extend ti
+        LEFT JOIN sys_tenant_info st ON ti.tenant_id = st.id
+        WHERE
+        ti.delete_flag = 0
+        <if test="req.tenantName!=null and req.tenantName!=''">
+            AND ti.name LIKE concat(concat('%',#{req.tenantName}),'%')
+        </if>
+        <if test="req.tenantType!=null">
+            AND ti.tenant_type = #{req.tenantType}
+        </if>
+        <if test="req.authStatus!=null">
+            AND ti.auth_status = #{req.authStatus}
+        </if>
+        <if test="req.beginTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ti.create_time, '%Y-%m-%d') >=  DATE_FORMAT(#{req.beginTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.endTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ti.create_time, '%Y-%m-%d') <=  DATE_FORMAT(#{req.endTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        ORDER BY
+        create_time DESC
+    </select>
+
+    <select id="listMyTenant" resultType="com.kaifangqian.modules.system.vo.SysTenantInfoExtendVO">
+        SELECT ie.id,
+               ie.tenant_id,
+               ie.tenant_type,
+               ie.`name`,
+               ie.auth_status,
+               ti.tenant_status,
+               any_value(ud.depart_id) as depart_id
+        FROM sys_tenant_user tu
+                 LEFT JOIN sys_tenant_info ti ON tu.tenant_id = ti.id
+                 LEFT JOIN tenant_info_extend ie ON tu.tenant_id = ie.tenant_id
+                 LEFT JOIN sys_user_depart ud ON tu.tenant_id = ud.tenant_id
+            AND tu.user_id = ud.user_id
+        WHERE tu.delete_flag = 0
+          AND ti.delete_flag = 0
+          AND ie.delete_flag = 0
+          and ti.tenant_type = 1
+          and tu.status = 1
+          AND tu.user_id = #{userId}
+        GROUP BY ti.id,ie.id
+    </select>
+
+</mapper>

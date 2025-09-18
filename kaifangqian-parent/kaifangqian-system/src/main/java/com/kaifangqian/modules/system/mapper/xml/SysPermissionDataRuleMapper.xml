@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysPermissionDataRuleMapper">
+
+    <select id="queryUserPermissionDataRules" resultType="com.kaifangqian.modules.system.vo.UserPermissionDataRule">
+        SELECT
+        temp.*
+        FROM
+        (
+        (
+        SELECT
+        am.group_id,
+        ap.permission_data_id,
+        dr.condition_group,
+        dr.rule_column,
+        dr.rule_conditions,
+        dr.rule_value
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission_data_rule dr ON ap.permission_data_id = dr.data_id
+        WHERE
+        ap.permission_id = #{query.permissionId}
+        AND am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.depart_id = #{query.departId}
+        ) UNION
+        (
+        SELECT
+        am.group_id,
+        ap.permission_data_id,
+        dr.condition_group,
+        dr.rule_column,
+        dr.rule_conditions,
+        dr.rule_value
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission_data_rule dr ON ap.permission_data_id = dr.data_id
+        WHERE
+        ap.permission_id = #{query.permissionId}
+        AND am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.tenant_id =#{query.tenantId}
+        AND am.depart_id is null
+        ) UNION
+        <if test="query.roleIds !=null  and query.roleIds.size()>0">
+            (
+            SELECT
+            am.group_id,
+            ap.permission_data_id,
+            dr.condition_group,
+            dr.rule_column,
+            dr.rule_conditions,
+            dr.rule_value
+            FROM
+            sys_auth_group_member am
+            LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+            INNER JOIN sys_permission_data_rule dr ON ap.permission_data_id = dr.data_id
+            WHERE
+            ap.permission_id = #{query.permissionId}
+            AND am.auth_type = 'role'
+            AND am.auth_id IN
+            <foreach collection="query.roleIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            ) UNION
+        </if>
+        (
+        SELECT
+        am.group_id,
+        ap.permission_data_id,
+        dr.condition_group,
+        dr.rule_column,
+        dr.rule_conditions,
+        dr.rule_value
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission_data_rule dr ON ap.permission_data_id = dr.data_id
+        WHERE
+        ap.permission_id = #{query.permissionId}
+        AND am.auth_type = 'dept'
+        AND am.auth_id = #{query.departId}
+        )
+        ) AS temp
+    </select>
+
+</mapper>

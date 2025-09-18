@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysAnnouncementSendMapper">
+
+    <resultMap id="AnnouncementSendModel" type="com.kaifangqian.modules.system.model.AnnouncementSendModel">
+        <result column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="annt_id" property="anntId" jdbcType="VARCHAR"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="titile" property="titile" jdbcType="VARCHAR"/>
+        <result column="msg_content" property="msgContent" jdbcType="VARCHAR"/>
+        <result column="sender" property="sender" jdbcType="VARCHAR"/>
+        <result column="priority" property="priority" jdbcType="VARCHAR"/>
+        <result column="msg_category" property="msgCategory" jdbcType="VARCHAR"/>
+        <result column="send_time" property="sendTime" jdbcType="TIMESTAMP"/>
+        <result column="bus_id" property="busId" jdbcType="VARCHAR"/>
+        <result column="open_type" property="openType" jdbcType="VARCHAR"/>
+        <result column="open_page" property="openPage" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getMyAnnouncementSendList" resultType="com.kaifangqian.modules.system.model.AnnouncementSendModel">
+        SELECT
+        sas.id,
+        sas.annt_id,
+        sat.type_name,
+        sa.title,
+        sa.send_time AS send_time,
+        sa.priority AS priority,
+        sas.is_read,
+        sas.read_time,
+        sa.sender
+        FROM
+        sys_announcement_send sas
+        INNER JOIN sys_announcement sa ON sas.annt_id = sa.id AND sa.send_status = '2'
+        AND sa.delete_flag = '0'
+        <if test="sendReq.title !=null and sendReq.title != ''">
+            AND sa.title LIKE concat(concat('%',#{sendReq.title}),'%')
+        </if>
+        <if test="sendReq.announcementType!=null and sendReq.announcementType!=''">
+            AND sa.announcement_type = #{sendReq.announcementType}
+        </if>
+        <if test="sendReq.sender!=null and sendReq.sender!=''">
+            AND sa.sender = #{sendReq.sender}
+        </if>
+        LEFT JOIN sys_announcement_type sat ON sa.announcement_type = sat.id
+        WHERE
+        sas.user_id = #{sendReq.userId}
+        <if test="sendReq.isRead !=null">
+            AND sas.is_read = #{sendReq.isRead,jdbcType=INTEGER}
+        </if>
+        ORDER BY
+        sas.is_read,
+        sa.send_time DESC
+    </select>
+
+</mapper>

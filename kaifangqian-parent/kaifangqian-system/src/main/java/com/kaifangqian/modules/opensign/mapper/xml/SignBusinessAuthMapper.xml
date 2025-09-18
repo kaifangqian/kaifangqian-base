@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.opensign.mapper.SignBusinessAuthMapper">
+
+    <select id="getAuthIdentify" parameterType="com.kaifangqian.modules.opensign.service.auth.vo.BusinessAuthQueryVo"
+            resultType="java.lang.Integer">
+
+        select min(authList.business_type_role) from
+        (
+        (
+        select * from sign_business_auth where
+        auth_type = 1 and
+        auth_relation_id = #{vo.tenantUserId} and
+        delete_flag = 0
+        <if test="vo.businessRelationId != null">
+            and business_relation_id = #{vo.businessRelationId}
+        </if>
+        <if test="vo.businessType != null">
+            and business_type = #{vo.businessType}
+        </if>
+        <if test="vo.businessTypeRoleList != null">
+            and business_type_role in
+            <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                #{businessTypeRole}
+            </foreach>
+        </if>
+        )
+        union
+        (
+        select * from sign_business_auth where
+        auth_type = 2 and
+        auth_relation_id = #{vo.departId} and
+        delete_flag = 0
+        <if test="vo.businessRelationId != null">
+            and business_relation_id = #{vo.businessRelationId}
+        </if>
+        <if test="vo.businessType != null">
+            and business_type = #{vo.businessType}
+        </if>
+        <if test="vo.businessTypeRoleList != null">
+            and business_type_role in
+            <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                #{businessTypeRole}
+            </foreach>
+        </if>
+        )
+        <if test="vo.roleIds != null">
+            union
+            (
+            select * from sign_business_auth where
+            auth_type = 3 and
+            auth_relation_id in
+            <foreach collection="vo.roleIds" index="index" item="roleId" open="(" separator="," close=")">
+                #{roleId}
+            </foreach> and
+            delete_flag = 0
+            <if test="vo.businessRelationId != null">
+                and business_relation_id = #{vo.businessRelationId}
+            </if>
+            <if test="vo.businessType != null">
+                and business_type = #{vo.businessType}
+            </if>
+            <if test="vo.businessTypeRoleList != null">
+                and business_type_role in
+                <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                    #{businessTypeRole}
+                </foreach>
+            </if>
+            )
+        </if>
+        )
+        as authList
+
+    </select>
+
+
+    <select id="getAuthList" parameterType="com.kaifangqian.modules.opensign.service.auth.vo.BusinessAuthQueryVo"
+            resultType="com.kaifangqian.modules.opensign.entity.SignBusinessAuth">
+
+        select authList.* from
+        (
+          (
+            select * from sign_business_auth where
+            auth_type = 1 and
+            auth_relation_id = #{vo.tenantUserId} and
+            delete_flag = 0
+            <if test="vo.businessRelationId != null">
+                and business_relation_id = #{vo.businessRelationId}
+            </if>
+            <if test="vo.businessType != null">
+                and business_type = #{vo.businessType}
+            </if>
+            <if test="vo.businessTypeRoleList != null">
+                and business_type_role in
+                <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                    #{businessTypeRole}
+                </foreach>
+            </if>
+          )
+          union
+          (
+            select * from sign_business_auth where
+            auth_type = 2 and
+            auth_relation_id = #{vo.departId} and
+            delete_flag = 0
+            <if test="vo.businessRelationId != null">
+                and business_relation_id = #{vo.businessRelationId}
+            </if>
+            <if test="vo.businessType != null">
+                and business_type = #{vo.businessType}
+            </if>
+            <if test="vo.businessTypeRoleList != null">
+                and business_type_role in
+                <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                    #{businessTypeRole}
+                </foreach>
+            </if>
+          )
+          <if test="vo.roleIds != null">
+              union
+              (
+              select * from sign_business_auth where
+              auth_type = 3 and
+              auth_relation_id in
+              <foreach collection="vo.roleIds" index="index" item="roleId" open="(" separator="," close=")">
+                  #{roleId}
+              </foreach> and
+              delete_flag = 0
+              <if test="vo.businessRelationId != null">
+                  and business_relation_id = #{vo.businessRelationId}
+              </if>
+              <if test="vo.businessType != null">
+                  and business_type = #{vo.businessType}
+              </if>
+              <if test="vo.businessTypeRoleList != null">
+                  and business_type_role in
+                  <foreach collection="vo.businessTypeRoleList" index="index" item="businessTypeRole" open="(" separator="," close=")">
+                      #{businessTypeRole}
+                  </foreach>
+              </if>
+              )
+          </if>
+        )
+        as authList
+
+    </select>
+
+</mapper>

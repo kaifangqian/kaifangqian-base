@@ -1,0 +1,277 @@
+@prefix-cls: ~'@{namespace}-login';
+  @logo-prefix-cls: ~'@{namespace}-app-logo';
+  @countdown-prefix-cls: ~'@{namespace}-countdown-input';
+  @dark-bg: #293146;
+
+  html[data-theme='dark'] {
+    .@{prefix-cls} {
+      background-color: @dark-bg;
+
+      &::before {
+        background-image: url(/@/assets/svg/login-bg-dark.svg);
+      }
+
+      .ant-input,
+      .ant-input-password {
+        background-color: #232a3b;
+      }
+
+      .ant-btn:not(.ant-btn-link):not(.ant-btn-primary) {
+        border: 1px solid #4a5569;
+      }
+
+      &-form {
+        background: transparent !important;
+      }
+
+      .app-iconify {
+        color: #fff;
+      }
+    }
+
+    input.fix-auto-fill,
+    .fix-auto-fill input {
+      -webkit-text-fill-color: #c9d1d9 !important;
+      box-shadow: inherit !important;
+    }
+  }
+
+  .@{prefix-cls} {
+    min-height: 100%;
+    overflow: hidden;
+    background: #fff;
+    @media (max-width: @screen-xl) {
+      background-color: #293146;
+
+      .@{prefix-cls}-form {
+        background-color: #fff;
+      }
+    }
+    &-form{
+      box-shadow: 0 2px 9px 5px rgb(64 106 103 / 13%);
+      border: none !important;
+      width:430px;
+    }
+    &-header{
+      width: 100%;
+      height: 80px;
+      padding: 0 30px;
+      background-color: rgba(255,255,255,0);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 99;
+      position: absolute;
+      top:0;
+      .header-left{
+        display: flex;
+        align-items: center;
+        height: 100%;
+      }
+      .header-right{
+        a{
+          font-size: 14px;
+          font-weight: bold;
+          margin:0 5px;
+          color: #333;
+        }
+      }
+      .header-title{
+        color: #127fd2;
+        font-size: 20px;
+        font-weight: 600;
+        margin-left: 5px;
+      }
+    }
+     .login-footer{
+        position: absolute;
+        text-align: center;
+        bottom: 0px;
+        left: 50%;
+        transform: translate(-50%,-50%);
+      }
+    &-form{
+        background-color: #fff;
+        min-width: 422px;
+        border: 1px solid #ddd;
+    }
+
+    &::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin-left: -48%;
+      // background-image: url(/@/assets/svg/login-bg.svg);
+      background-position: 100%;
+      background-repeat: no-repeat;
+      background-size: auto 100%;
+      content: '';
+      @media (max-width: @screen-xl) {
+        display: none;
+      }
+    }
+
+    .@{logo-prefix-cls} {
+      position: absolute;
+      top: 12px;
+      height: 30px;
+
+      &__title {
+        font-size: 16px;
+        color: #fff;
+      }
+
+      img {
+        width: 32px;
+      }
+    }
+
+    .container {
+      max-width: 100%;
+      .@{logo-prefix-cls} {
+        display: flex;
+        width: 55%;
+        height: 80px;
+
+        &__title {
+          font-size: 24px;
+          color: #fff;
+        }
+
+        img {
+          width: 48px;
+        }
+      }
+      .login-bg-container{
+        width:60%;
+        height:100%;
+        background:url('../../../assets/images/login-bg.png');
+        background-size:100% 100%;
+        height:100vh;
+        position: relative;
+        .copyright-footer{
+            position: absolute;
+            bottom:15px;
+            left:50%;
+            color:#999;
+            transform: translate(-40%);
+            // width:100%;
+            span{
+              margin:0 5px;
+          }
+        }
+      }
+    }
+
+    &-sign-in-way {
+      .anticon {
+        font-size: 22px;
+        color: #888;
+        cursor: pointer;
+
+        &:hover {
+          color: @primary-color;
+        }
+      }
+    }
+
+    input:not([type='checkbox']) {
+      min-width: 100px;
+
+      @media (max-width: @screen-xl) {
+        min-width: 320px;
+      }
+
+      @media (max-width: @screen-lg) {
+        min-width: 260px;
+      }
+
+      @media (max-width: @screen-md) {
+        min-width: 240px;
+      }
+
+      @media (max-width: @screen-sm) {
+        min-width: 160px;
+      }
+    }
+
+    .@{countdown-prefix-cls} input {
+      min-width: unset;
+    }
+
+    .ant-divider-inner-text {
+      font-size: 12px;
+      color: @text-color-secondary;
+    }
+  }
+  .icon-eye{
+    cursor:pointer;
+  }
+  .login-title{
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+
+  }
+  .login-tab-header{
+    .ant-tabs-nav{
+      // width: 190px;
+      margin: 0 auto 25px;
+    }
+    
+  }
+  .login-tab-header{
+    .ant-tabs-content{
+      width:85% !important;
+      margin:0 auto;
+    }
+  }
+  .resrun-login input:not([type='checkbox']){
+    min-width: 100px;
+  }
+
+  .tip-list{
+    margin-left:0px;
+    .intro{
+      display: flex;
+      font-size: 12px;
+    }
+    span{
+      color: #999;
+      // font-weight: 600;
+    }
+
+.login-tip-message{
+  box-shadow: 0 2px 9px 5px rgba(64, 106, 103, 0.13);
+  width:430px;
+  height: 150px;
+  padding:20px 25px;
+  font-size:12px;
+  background: #fff;
+  position: absolute;
+  left: 0;
+  color: #000;
+  margin-top: 20px;
+  p{
+    margin-bottom:0;
+  }
+  .login-tip-area{
+    h1{
+      color:#f01d1d;
+      font-size: 16px;
+    }
+    h2{
+      font-size: 14px;
+      color: #000;
+    }
+   
+    
+    }
+    .account-info{
+      margin-left:20px;
+      color: #000;
+    }
+  }
+}

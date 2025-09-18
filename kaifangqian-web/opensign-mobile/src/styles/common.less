@@ -1,0 +1,109 @@
+/**
+ * @description 通用样式
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+        'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+#app {
+    height: 100%;
+    font-size: 28px;
+    color: @font-color;
+}
+
+.flex-c {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-jc {
+    display: flex;
+    justify-content: center;
+}
+
+.flex-ac {
+    display: flex;
+    align-items: center;
+}
+
+.link,
+a {
+    color: @blue;
+}
+
+.flex-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+:deep(.van-dropdown-item__option--active, .van-dropdown-item__option--active .van-dropdown-item__icon) {
+    color: #000;
+}
+
+
+.custom-link {
+    padding: 0 20px;
+    font-size: 25px;
+    color: #1989fa;
+}
+
+.cell-block-info {
+    background: #fff;
+    padding: 1px 10px;
+}
+
+.sms-code{
+    .vue-auth-box_ .auth-control_ .range-box .range-text{
+        font-size:28px;
+    
+    }
+    .vue-auth-box_ .auth-body_ .info-box_{
+        font-size:24px;
+        padding: 20px 0;
+        line-height: 2px;
+    }
+}
+.text-btn{
+    height: auto;
+    padding: 0 20px;
+    border: none;
+    color: #1989fa;
+}
+.sign-notice{
+    transform: rotate(90deg);
+}
+// .ghost{
+//     display:none;
+// }

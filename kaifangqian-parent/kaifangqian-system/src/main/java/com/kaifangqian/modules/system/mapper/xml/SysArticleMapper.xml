@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysArticleMapper">
+
+    <select id="pageExt" resultType="com.kaifangqian.modules.system.entity.SysArticle">
+        SELECT
+        sa.id,
+        sa.title,
+        t.type_name,
+        sa.STATUS,
+        sa.publish_time,
+        sa.author,
+        sa.update_time,
+        sa.create_time,
+        sa.up_flag,
+        sa.summary
+        FROM
+        sys_article sa
+        LEFT JOIN sys_article_type t ON sa.type_id = t.id
+        WHERE
+        1 = 1
+        <if test="sysArticle.title!=null and sysArticle.title!=''">
+            AND sa.title LIKE concat(concat('%',#{sysArticle.title}),'%')
+        </if>
+        <if test="sysArticle.status!=null">
+            AND sa.STATUS = #{sysArticle.status}
+        </if>
+        <if test="sysArticle.typeId!=null and sysArticle.typeId!=''">
+            AND sa.type_id = #{sysArticle.typeId}
+        </if>
+        ORDER BY
+        sa.up_flag DESC,
+        sa.update_time DESC
+    </select>
+
+    <select id="pageExt2" resultType="com.kaifangqian.modules.system.entity.SysArticle">
+        SELECT
+        sa.id,
+        sa.title,
+        t.type_name,
+        sa.STATUS,
+        sa.publish_time,
+        sa.author,
+        sa.update_time,
+        sa.create_time,
+        sa.up_flag,
+        sa.summary
+        FROM
+        sys_article sa
+        LEFT JOIN sys_article_type t ON sa.type_id = t.id
+        WHERE
+        1 = 1
+        <if test="sysArticle.title!=null and sysArticle.title!=''">
+            AND sa.title LIKE concat(concat('%',#{sysArticle.title}),'%')
+        </if>
+        <if test="sysArticle.status!=null">
+            AND sa.STATUS = #{sysArticle.status}
+        </if>
+        <if test="sysArticle.typeId!=null and sysArticle.typeId!=''">
+            AND sa.type_id = #{sysArticle.typeId}
+        </if>
+        ORDER BY
+        sa.up_flag DESC,
+        sa.update_time ASC
+    </select>
+
+</mapper>

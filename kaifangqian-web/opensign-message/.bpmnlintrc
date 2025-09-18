@@ -1,0 +1,6 @@
+{
+  "extends": "bpmnlint:recommended",
+  "rules": {
+    "label-required": "true"
+  }
+}

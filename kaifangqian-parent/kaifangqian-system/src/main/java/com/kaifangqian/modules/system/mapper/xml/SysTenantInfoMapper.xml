@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysTenantInfoMapper">
+
+    <select id="pageExt" resultType="com.kaifangqian.modules.system.vo.SysTenantInfoRes">
+        SELECT
+        ti.id,
+        ti.tenant_name,
+        ti.tenant_status,
+        ti.create_time,
+        ie.`name`,
+        ie.phone,
+        ie.email,
+        ie.organization_no,
+        ie.auth_status,
+        ie.corporation,
+        ie.sys_type,
+        tu.nick_name as apply_user_name
+        FROM
+        sys_tenant_info ti
+        LEFT JOIN tenant_info_extend ie ON ti.id = ie.tenant_id
+        LEFT JOIN sys_tenant_user tu on ie.apply_tenant_user = tu.id
+        WHERE
+        ti.delete_flag = 0
+        <if test="query.tenantType!=null">
+            AND ti.tenant_type = #{query.tenantType}
+        </if>
+        <if test="query.name!=null and query.name!=''">
+            AND ie.`name` LIKE concat(concat('%',#{query.name}),'%')
+        </if>
+        <if test="query.tenantStatus!=null">
+            AND ti.tenant_status = #{query.tenantStatus}
+        </if>
+        <if test="query.authStatus!=null">
+            AND ie.auth_status = #{query.authStatus}
+        </if>
+        <if test="query.sysType!=null and query.sysType!=''">
+            AND ie.sys_type = #{query.sysType}
+        </if>
+        <if test="query.beginTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ti.create_time, '%Y-%m-%d') >=  DATE_FORMAT(#{query.beginTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="query.endTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ti.create_time, '%Y-%m-%d') <=  DATE_FORMAT(#{query.endTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        order by ti.create_time desc
+    </select>
+
+    <select id="getTenantApps" resultType="com.kaifangqian.modules.system.vo.SysTenantAppVersionVO">
+        SELECT ta.id,
+               ta.app_id,
+               ai.app_icon,
+               ai.app_name,
+               ai.app_desc,
+               ai.default_flag,
+               ta.app_version_id,
+               av.version_name AS app_version_name,
+               ta.`status`
+        FROM sys_tenant_app_version ta
+                 INNER JOIN sys_app_info ai ON ta.app_id = ai.id
+            AND ai.delete_flag = 0
+                 INNER JOIN sys_app_version av ON ta.app_version_id = av.id
+            AND av.delete_flag = 0
+        WHERE ta.tenant_id = #{id}
+          AND ta.delete_flag = 0
+    </select>
+
+    <select id="getByUsernameAndTenantName" resultType="com.kaifangqian.modules.system.vo.TenantUser3rd">
+        SELECT ti.id,
+               ti.tenant_name,
+               ti.tenant_type,
+               tu.id as tenant_user_id,
+               su.id as user_id
+        FROM sys_user su
+                 LEFT JOIN sys_tenant_user tu ON su.id = tu.id
+                 LEFT JOIN sys_tenant_info ti ON tu.tenant_id = ti.id
+        WHERE su.delete_flag = 0
+          AND tu.delete_flag = 0
+          AND ti.delete_flag = 0
+          AND su.username = #{username}
+          AND ti.tenant_name = #{tenantName}
+    </select>
+
+
+    <select id="getPersonalByTenantUserId" resultType="com.kaifangqian.modules.system.entity.SysTenantInfo">
+        SELECT
+            ti.*
+        FROM
+            sys_tenant_info ti
+                LEFT JOIN sys_tenant_user tu ON ti.id = tu.tenant_id
+        WHERE
+            tu.delete_flag = 0
+          AND ti.tenant_type = 2
+          AND tu.id = #{tenantUserId}
+    </select>
+
+
+</mapper>

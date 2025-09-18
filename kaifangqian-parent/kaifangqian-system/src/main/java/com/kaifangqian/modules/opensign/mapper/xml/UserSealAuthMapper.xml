@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.opensign.mapper.UserSealAuthMapper">
+
+    <select id="pageExt" resultType="com.kaifangqian.modules.opensign.dto.UserSealAuthListVO">
+        SELECT u.id,
+               u.auth_time,
+               u.auth_status,
+               ti.tenant_name,
+               sr.NAME AS sign_re_name,
+               a.id    AS annex_id
+        FROM user_seal_auth u
+                 LEFT JOIN sys_tenant_info ti ON u.tenant_id = ti.id
+                 LEFT JOIN sign_re sr ON u.sign_re_id = sr.id
+                 LEFT JOIN annex_storage a ON u.seal_id = a.father_id
+            AND a.data_category = 'seal_file_person'
+        WHERE u.delete_flag = 0
+          AND u.tenant_user_id = #{req.tenantUserId}
+        ORDER BY u.create_time desc
+    </select>
+
+</mapper>

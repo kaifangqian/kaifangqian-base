@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.opensign.mapper.SignRuTaskMapper">
+
+    <sql id="common_sql_where">
+        <if test="req.subject != null and req.subject != ''">
+            AND ru.subject LIKE concat(concat('%',#{req.subject}),'%')
+        </if>
+        <if test="req.code != null and req.code != ''">
+            AND ru.code = #{req.code}
+        </if>
+        <if test="req.status != null">
+            AND ru.status = #{req.status}
+        </if>
+        <if test="req.beginCreateTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.create_time, '%Y-%m-%d') >=  DATE_FORMAT(#{req.beginCreateTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.endCreateTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.create_time, '%Y-%m-%d') <=  DATE_FORMAT(#{req.endCreateTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.beginStartTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.start_time, '%Y-%m-%d') >=  DATE_FORMAT(#{req.beginStartTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.endStartTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.start_time, '%Y-%m-%d') <=  DATE_FORMAT(#{req.endStartTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.beginFinishTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.finish_time, '%Y-%m-%d') >=  DATE_FORMAT(#{req.beginFinishTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+        <if test="req.endFinishTime != null">
+            <![CDATA[
+            AND DATE_FORMAT(ru.finish_time, '%Y-%m-%d') <=  DATE_FORMAT(#{req.endFinishTime}, '%Y-%m-%d')
+            ]]>
+        </if>
+    </sql>
+
+    <select id="listInbox" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT tem.*
+        FROM (SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_relation rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.relation_type = 2
+        <include refid="common_sql_where"/>
+        UNION ALL
+        SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND ru.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.task_type != "start_flow"
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY tem.create_time DESC
+    </select>
+
+    <select id="listSend" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru ru
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE ru.delete_flag = 0
+        AND ru.`status` > 4
+        AND ru.sys_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ORDER BY ru.create_time DESC
+    </select>
+
+    <select id="listCopyMe" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_relation rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.relation_type = 2
+        <include refid="common_sql_where"/>
+        ORDER BY ru.create_time DESC
+    </select>
+
+    <select id="listDraft" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru ru
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE ru.delete_flag = 0
+        AND ru.`status` = 1
+        AND ru.sys_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ORDER BY ru.create_time DESC
+    </select>
+
+    <select id="listRecycle" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru ru
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE ru.`status` = 4
+        AND ru.sys_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ORDER BY ru.create_time DESC
+    </select>
+
+    <select id="listCompanyAll" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        tem.*
+        FROM
+        (
+        <if test="req.signReIds != null and req.signReIds.size() > 0">
+            SELECT
+            ru.id AS sign_ru_id,
+            ru.`status`,
+            ru.`code`,
+            ru.`subject`,
+            ti.tenant_name AS from_tenant_name,
+            ru.create_time,
+            ru.expire_date
+            FROM
+            sign_ru ru
+            LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+            WHERE
+            ru.delete_flag = 0
+            AND ru.sign_re_id IN
+            <foreach collection="req.signReIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            AND ru.`status` > 4
+            <include refid="common_sql_where"/>
+            UNION ALL
+        </if>
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.`status` > 4
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        UNION ALL
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_relation rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.relation_type = 2
+        <include refid="common_sql_where"/>
+        UNION ALL
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru ru
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        ru.delete_flag = 0
+        AND 5 > ru.`status`
+        AND ru.sys_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="listPersonalAll" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT tem.*
+        FROM (SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        UNION ALL
+        SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_relation rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.relation_type = 2
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY tem.create_time DESC
+    </select>
+
+    <select id="listMyJob" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.task_status = 1
+        AND ru.`status` in (5,7)
+        <include refid="common_sql_where"/>
+        ORDER BY ru.create_time DESC
+    </select>
+
+    <select id="listMyJobSignUsers" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        rt.id as task_id,
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.task_status = 1
+        <if test="req.status != null">
+            AND ru.`status` = #{req.status}
+        </if>
+        GROUP BY
+        rt.id,
+        ru.id,
+        ti.tenant_name
+        ORDER BY
+        ru.create_time DESC
+    </select>
+
+
+    <!--签署人排序 -->
+    <select id="listMyJobSignUsers-tem" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT
+        tem.*,
+        GROUP_CONCAT( rs.signer_name SEPARATOR ',' )
+        FROM
+        (
+        SELECT DISTINCT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.task_status = 1
+        <if test="req.status != null">
+            AND ru.`status` = #{req.status}
+        </if>
+        ) tem
+        LEFT JOIN (
+        SELECT
+        s.id,
+        s.sign_ru_id,
+        s.signer_name
+        FROM
+        sign_ru_signer s
+        WHERE
+        s.delete_flag = 0
+        AND s.sign_flag = 1
+        ORDER BY
+        s.signer_order ASC
+        ) AS rs ON tem.sign_ru_id = rs.sign_ru_id
+        GROUP BY
+        tem.sign_ru_id
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="listCompanyOtherJob" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        tem.*
+        FROM
+        (
+        <if test="req.signReIds != null and req.signReIds.size() > 0">
+            SELECT
+            ru.id AS sign_ru_id,
+            ru.`status`,
+            ru.`code`,
+            ru.`subject`,
+            ti.tenant_name AS from_tenant_name,
+            ru.create_time,
+            ru.expire_date
+            FROM
+            sign_ru ru
+            LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+            WHERE
+            ru.delete_flag = 0
+            AND ru.sign_re_id IN
+            <foreach collection="req.signReIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            AND ru.`status` in (5,7)
+            <include refid="common_sql_where"/>
+            UNION ALL
+        </if>
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.delete_flag = 0
+        AND ru.`status` in (5,7)
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        LEFT JOIN sign_ru_task rt ON tem.sign_ru_id = rt.sign_ru_id
+        AND rt.delete_flag = 0
+        AND rt.task_status = 1
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        WHERE
+        rt.id IS NULL
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="listPersonalOtherJob" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT tem.*
+        FROM (SELECT ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE rt.delete_flag = 0
+        AND ru.delete_flag = 0
+        AND ru.`status` in (5, 7)
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        LEFT JOIN sign_ru_task rt ON tem.sign_ru_id = rt.sign_ru_id
+        AND rt.delete_flag = 0
+        AND rt.task_status = 1
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        WHERE rt.id IS NULL
+        ORDER BY tem.create_time DESC
+    </select>
+
+    <select id="listRunning" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        tem.*
+        FROM
+        (
+        <if test="req.signReIds != null and req.signReIds.size() > 0">
+            SELECT
+            ru.id AS sign_ru_id,
+            ru.`status`,
+            ru.`code`,
+            ru.`subject`,
+            ti.tenant_name AS from_tenant_name,
+            ru.create_time,
+            ru.expire_date
+            FROM
+            sign_ru ru
+            LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+            WHERE
+            ru.delete_flag = 0
+            AND ru.sign_re_id IN
+            <foreach collection="req.signReIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            AND ru.`status` IN ( 5, 7 )
+            <include refid="common_sql_where"/>
+            UNION ALL
+        </if>
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.delete_flag = 0
+        AND ru.`status` IN ( 5, 7 )
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="listFinish" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        tem.*
+        FROM
+        (
+        <if test="req.signReIds != null and req.signReIds.size() > 0">
+            SELECT
+            ru.id AS sign_ru_id,
+            ru.`status`,
+            ru.`code`,
+            ru.`subject`,
+            ti.tenant_name AS from_tenant_name,
+            ru.create_time,
+            ru.expire_date
+            FROM
+            sign_ru ru
+            LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+            WHERE
+            ru.delete_flag = 0
+            AND ru.sign_re_id IN
+            <foreach collection="req.signReIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            AND ru.`status` = 11
+            <include refid="common_sql_where"/>
+            UNION ALL
+        </if>
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.`status` = 11
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="listInvalid" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        tem.*
+        FROM
+        (
+        <if test="req.signReIds != null and req.signReIds.size() > 0">
+            SELECT
+            ru.id AS sign_ru_id,
+            ru.`status`,
+            ru.`code`,
+            ru.`subject`,
+            ti.tenant_name AS from_tenant_name,
+            ru.create_time,
+            ru.expire_date
+            FROM
+            sign_ru ru
+            LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+            WHERE
+            ru.delete_flag = 0
+            AND ru.sign_re_id IN
+            <foreach collection="req.signReIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            AND ru.`status` = 9
+            <include refid="common_sql_where"/>
+            UNION ALL
+        </if>
+        SELECT
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND ru.`status` = 9
+        AND ru.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        <include refid="common_sql_where"/>
+        ) tem
+        ORDER BY
+        tem.create_time DESC
+    </select>
+
+    <select id="getMyTenantJobs" resultType="com.kaifangqian.modules.system.vo.SysTenantInfoExtendVO">
+        SELECT rt.tenant_id,
+               count(*) AS my_job_count
+        FROM sign_ru_task rt
+        WHERE rt.delete_flag = 0
+          AND rt.user_id = #{userId}
+          AND rt.task_status = 1
+        GROUP BY rt.tenant_id
+    </select>
+</mapper>

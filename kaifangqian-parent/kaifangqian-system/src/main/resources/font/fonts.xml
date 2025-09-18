@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+    <fontFamily name="STSong">
+        <normal>font/simsun.ttf</normal>
+        <bold>font/simsun.ttf</bold>
+        <italic>font/simsun.ttf</italic>
+        <boldItalic>font/simsun.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+        <exportFonts>
+            <export key="net.sf.jasperreports.html">'宋体', Arial, Helvetica, sans-serif</export>
+            <export key="net.sf.jasperreports.xhtml">'宋体', Arial, Helvetica, sans-serif</export>
+        </exportFonts>
+    </fontFamily>
+    <fontFamily name="STHeiti">
+        <normal>font/STHeiti.ttf</normal>
+        <bold>font/STHeiti.ttf</bold>
+        <italic>font/STHeiti.ttf</italic>
+        <boldItalic>font/STHeiti.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+        <exportFonts>
+            <export key="net.sf.jasperreports.html">'黑体', Arial, Helvetica, sans-serif</export>
+            <export key="net.sf.jasperreports.xhtml">'黑体', Arial, Helvetica, sans-serif</export>
+        </exportFonts>
+    </fontFamily>
+</fontFamilies>

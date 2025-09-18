@@ -1,0 +1,47 @@
+/*
+ * @description 开放签
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源码（包括衍生作品），详见协议全文。
+ */
+
+import { defHttp } from '/@/utils/http/axios';
+
+export enum Api {
+  sign_generate = "/sign/person/seal/generate/param",
+  sign_save = "/sign/person/seal/save",
+  sign_list = "/sign/person/seal/list",
+  sign_default = "/sign/person/seal/isDefault",
+  sign_delete = "/sign/person/seal/delete",
+  sign_base64 = "/sign/person/seal/generate/upload",
+}
+
+
+
+export const signGenerate = (params) => defHttp.post({ url: Api.sign_generate ,params});
+export const signBase64 = (params) => defHttp.post({ url: Api.sign_base64 ,params});
+export const signSave = (params) => defHttp.post({ url: Api.sign_save ,params},{isTransformResponse:false});
+
+export const signList = (params) => defHttp.get({ url: Api.sign_list ,params});
+export const signDefault = (params) => defHttp.put({ url: Api.sign_default ,params},{isTransformResponse:false});
+export const signDelete = (params) => defHttp.delete({ url: Api.sign_delete ,params},{isTransformResponse:false});
+
+
+
+
+

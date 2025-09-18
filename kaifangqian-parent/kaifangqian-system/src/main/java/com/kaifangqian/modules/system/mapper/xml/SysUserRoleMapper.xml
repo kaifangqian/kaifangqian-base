@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysUserRoleMapper">
+
+    <!-- 根据用户名查询 -->
+    <select id="getUsersByRoleId" resultType="com.kaifangqian.modules.system.vo.SysRoleUserVO">
+        SELECT
+        tem.id,
+        tem.user_id,
+        tem.nick_name,
+        any_value(tem.realname) as realname,
+        any_value(tem.username) as username,
+        any_value(tem.work_no) as work_no,
+        tem.add_type,
+        tem.email,
+        any_value(tem.phone) as phone,
+        any_value(tem.`status`) as status,
+        any_value(tem.avatar_base64) as avatar_base64,
+        GROUP_CONCAT( tem.depart_name SEPARATOR ',' ) AS depart_names
+        FROM
+        (
+        SELECT
+        any_value(ur.id) as id,
+        any_value(tu.nick_name) as nick_name,
+        any_value(tu.id) AS user_id,
+        su.realname,
+        su.username,
+        su.work_no,
+        any_value(tu.email) as email,
+        any_value(tu.add_type) as add_type,
+        su.phone,
+        su.`status`,
+        sd.depart_name,
+        su.avatar_base64
+        FROM
+        sys_user_role ur
+        INNER JOIN (
+        SELECT DISTINCT
+        su.*
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        LEFT JOIN sys_user_depart ud ON sd2.id = ud.depart_id
+        INNER JOIN sys_user su ON ud.user_id = su.id
+        AND su.delete_flag = 0
+        WHERE
+        sd.delete_flag = 0
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ) su ON ur.user_id = su.id
+        AND su.delete_flag = 0
+        LEFT JOIN sys_user_depart ud ON su.id = ud.user_id
+        AND ud.tenant_id = #{tenantId}
+        INNER JOIN sys_depart sd ON ud.depart_id = sd.id
+        AND sd.delete_flag = 0
+        left join sys_tenant_user tu on tu.tenant_id = #{tenantId}
+        and ur.user_id = tu.user_id
+        and tu.delete_flag = 0
+        WHERE
+        ur.role_id = #{roleId}
+        GROUP BY
+        sd.id,
+        su.id
+        ) tem
+        GROUP BY
+        tem.user_id
+    </select>
+
+    <!-- 根据用户Id查询 -->
+    <select id="getRoleIdsByUser" resultType="java.lang.String">
+        SELECT sr.id
+        FROM sys_role sr
+                 INNER JOIN sys_user_role ur ON sr.id = ur.role_id
+            AND ur.user_id = #{userId}
+            AND ur.tenant_id = #{tenantId}
+        WHERE sr.tenant_id = #{tenantId}
+          AND sr.delete_flag = 0
+    </select>
+
+    <!-- 根据用户Id查询 -->
+    <select id="getRolesByUserId" resultType="com.kaifangqian.modules.system.entity.SysRole">
+        SELECT sr.*
+        FROM sys_user_role ur
+                 INNER JOIN sys_role sr ON ur.role_id = sr.id
+        WHERE ur.user_id = #{userId, jdbcType=VARCHAR}
+        GROUP BY sr.id
+    </select>
+
+
+    <select id="getTenantUsersByRoleIds" resultType="com.kaifangqian.common.vo.TenantUserInfo">
+        SELECT
+        ur.user_id,
+        ur.tenant_id,
+        tu.id AS tenant_user_id
+        FROM
+        sys_user_role ur
+        LEFT JOIN sys_tenant_user tu ON ur.tenant_id = tu.tenant_id
+        AND ur.user_id = tu.user_id
+        WHERE
+        ur.role_id IN
+        <foreach collection="roleIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

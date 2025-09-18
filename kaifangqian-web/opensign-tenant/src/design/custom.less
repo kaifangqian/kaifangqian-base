@@ -1,0 +1,137 @@
+.resrun-table-top-header {
+    height: 71px;
+    background: #fff;
+    padding: 2px 15px;
+    border-bottom: 1px solid #f6f6f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .ant-divider {
+        color: #1890ff;
+    }
+}
+
+.app-info {
+    display: flex;
+    align-items: center;
+
+    .app-avatar {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        display: inline-block;
+        border-radius: 4px;
+        margin-right: 15px;
+        border-radius: 4px;
+
+        img {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+    }
+
+    .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .app-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+        margin-bottom: 5px;
+        margin-right: 10px;
+    }
+
+    .app-desc {
+        font-size: 12px;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 0px;
+    }
+
+}
+
+.app-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    margin-right: 10px;
+
+    img {
+        width: 100%;
+        height: 100%;
+        border-radius: 5px;
+    }
+}
+
+.contract-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 62px;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 0 20px;
+    position: fixed;
+    width: 100%;
+    background: #fff;
+    z-index: 999;
+    top: 0;
+
+    &-back {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    &-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+}
+
+.position-params-body {
+    display: flex;
+    justify-content: space-between;
+
+    .layout-side-title {
+        font-size: 18px;
+        font-weight: 550;
+    }
+}
+
+.control-pos {
+    cursor: pointer;
+}
+
+.businessline-tpl-modal {
+    .ant-pagination {
+        position: absolute;
+    }
+}
+
+// :deep(.control-dropdown .ant-dropdown-menu-item:hover, .control-dropdown .ant-dropdown-menu-submenu-title:hover){
+//   background-color:auto;
+// }
+.control-dropdown .ant-dropdown-menu-item:hover,
+.control-dropdown .ant-dropdown-menu-submenu-title:hover {
+    // background-color: rgba(250, 250, 250, 0) !important;
+}
+
+// :deep(.ant-dropdown-menu-item):hover{
+//   background:#EBF7FF;
+//   .batch-text{
+//     color:#127fd2;
+//   }
+// }
+
+.control-dropdown .ant-dropdown-menu-item:hover, .control-dropdown .ant-dropdown-menu-submenu-title:hover{
+  background:#EBF7FF;
+  color:#127fd2;
+  .batch-text{
+    color:#127fd2;
+  }
+}

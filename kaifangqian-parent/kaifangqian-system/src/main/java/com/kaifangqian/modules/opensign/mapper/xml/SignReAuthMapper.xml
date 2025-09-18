@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.opensign.mapper.SignReAuthMapper">
+
+    <select id="getMyViewSignRe" resultType="java.lang.String">
+        SELECT DISTINCT ra.sign_re_id
+        FROM sign_re_auth ra
+        WHERE ra.delete_flag = 0
+          AND ra.auth_type = 3
+          AND ra.user_id = #{tenantUserId}
+    </select>
+
+</mapper>

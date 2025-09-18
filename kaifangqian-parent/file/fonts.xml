@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+    <fontFamily name="STSong">
+        <normal>font/STSONG.TTF</normal>
+        <bold>font/STSONG.TTF</bold>
+        <italic>font/STSONG.TTF</italic>
+        <boldItalic>font/STSONG.TTF</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+        <exportFonts>
+            <export key="net.sf.jasperreports.html">'华文宋体', Arial, Helvetica, sans-serif</export>
+            <export key="net.sf.jasperreports.xhtml">'华文宋体', Arial, Helvetica, sans-serif</export>
+        </exportFonts>
+    </fontFamily>
+
+<!--    <fontFamily name="STHeiti">-->
+<!--        <normal>font/STHeiti.TTF</normal>-->
+<!--        <bold>font/STHeiti.TTF</bold>-->
+<!--        <italic>font/STHeiti.TTF</italic>-->
+<!--        <boldItalic>font/STHeiti.TTF</boldItalic>-->
+<!--        <pdfEncoding>Identity-H</pdfEncoding>-->
+<!--        <pdfEmbedded>true</pdfEmbedded>-->
+<!--        <exportFonts>-->
+<!--            <export key="net.sf.jasperreports.html">'黑体', Arial, Helvetica, sans-serif</export>-->
+<!--            <export key="net.sf.jasperreports.xhtml">'黑体', Arial, Helvetica, sans-serif</export>-->
+<!--        </exportFonts>-->
+<!--    </fontFamily>-->
+    <fontFamily name="STHeiti">
+        <normal>font/STHeiti.ttf</normal>
+        <bold>font/STHeiti.ttf</bold>
+        <italic>font/STHeiti.ttf</italic>
+        <boldItalic>font/STHeiti.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+        <exportFonts>
+            <export key="net.sf.jasperreports.html">'黑体', Arial, Helvetica, sans-serif</export>
+            <export key="net.sf.jasperreports.xhtml">'黑体', Arial, Helvetica, sans-serif</export>
+        </exportFonts>
+    </fontFamily>
+</fontFamilies>

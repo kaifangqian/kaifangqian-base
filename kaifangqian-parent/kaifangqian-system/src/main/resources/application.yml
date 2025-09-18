@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: resrun-paas
+  profiles:
+    active: prod
+  main:
+    allow-circular-references: true
+aj:
+  captcha:
+    water-mark: ''
+    cache-type: redis
+
+cors:
+  allowed:
+    origin-patterns: http://localhost:*,https://api.resrun.com:*

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysTenantUserMapper">
+
+    <!-- 根据部门Ids查询部门及以下用户列表 -->
+    <select id="getUserTenantByUserIdAndTenantId" resultType="com.kaifangqian.modules.system.entity.SysTenantUser">
+        SELECT tu.*
+        FROM sys_tenant_user tu
+                 INNER JOIN sys_tenant_info ti ON tu.tenant_id = ti.id
+            AND ti.tenant_status = 1
+            AND ti.delete_flag = 0
+        WHERE tu.`status` = 1
+          AND tu.delete_flag = 0
+          AND tu.tenant_id = #{tenantId}
+          AND tu.user_id = #{userId}
+    </select>
+
+    <!-- 根据用户id和应用id查询租户列表 -->
+    <select id="getTenantsByUserIdAndAppId" resultType="com.kaifangqian.modules.system.entity.SysTenantUser">
+        SELECT DISTINCT tem.*
+        FROM (SELECT su.*
+              FROM sys_tenant_user su
+                       LEFT JOIN sys_tenant_app_version av ON su.tenant_id = av.tenant_id
+                       LEFT JOIN sys_app_info ai ON av.app_id = ai.id
+                       LEFT JOIN sys_app_version sav ON av.app_version_id = sav.id
+              WHERE su.user_id = #{userId}
+                AND su.`status` IN (1, 2)
+                AND su.delete_flag = 0
+                AND av.app_id = #{appId}
+                AND ai.delete_flag = 0
+                AND ai.app_status = 1
+                AND sav.delete_flag = 0
+                AND sav.version_status = 1
+                AND av.useful = 1
+                AND av.delete_flag = 0
+              UNION ALL
+              SELECT su.*
+              FROM sys_tenant_user su
+                       LEFT JOIN sys_tenant_user_app ua ON su.tenant_id = ua.tenant_id
+                  AND su.user_id = ua.user_id
+                       LEFT JOIN sys_app_info ai ON ua.app_id = ai.id
+                       LEFT JOIN sys_app_version av ON ua.app_version_id = av.id
+              WHERE su.user_id = #{userId}
+                AND su.`status` IN (1, 2)
+                AND su.delete_flag = 0
+                AND ua.app_id = #{appId}
+                AND ai.delete_flag = 0
+                AND ai.app_status = 1
+                AND av.delete_flag = 0
+                AND av.version_status = 1
+                AND ua.delete_flag = 0) tem
+    </select>
+
+    <select id="getAllTenantUsers" resultType="com.kaifangqian.common.vo.TenantUserInfo">
+        SELECT tu.id AS tenant_user_id,
+               tu.tenant_id,
+               tu.user_id
+        FROM sys_tenant_user tu
+    </select>
+
+
+    <select id="getPersonalTenantUser" resultType="com.kaifangqian.modules.system.entity.SysTenantUser">
+        SELECT tu.*
+        FROM sys_tenant_user tu
+                 INNER JOIN sys_tenant_info ti ON tu.tenant_id = ti.id
+            AND ti.tenant_type = 2
+            AND ti.delete_flag = 0
+        WHERE tu.delete_flag = 0
+          AND tu.user_id = #{userId}
+    </select>
+</mapper>

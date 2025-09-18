@@ -1,0 +1,69 @@
+/**
+ * @description 获取签署文档操作记录接口实现类
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+package com.kaifangqian.modules.opensign.service.ru.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.kaifangqian.modules.opensign.entity.SignRuOperateRecord;
+import com.kaifangqian.modules.opensign.mapper.SignRuOperateRecordMapper;
+import com.kaifangqian.modules.opensign.service.ru.SignRuOperateRecordService;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * @Description: SignRuOperateRecordServiceImpl
+ * @Package: com.kaifangqian.modules.opensign.service.ru.impl
+ * @ClassName: SignRuOperateRecordServiceImpl
+ * @author: FengLai_Gong
+ */
+@Service
+public class SignRuOperateRecordServiceImpl extends ServiceImpl<SignRuOperateRecordMapper, SignRuOperateRecord> implements SignRuOperateRecordService {
+
+
+    @Override
+    public List<SignRuOperateRecord> listByRuId(String ruId) {
+
+        QueryWrapper<SignRuOperateRecord> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(SignRuOperateRecord::getSignRuId,ruId);
+
+        return this.baseMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<SignRuOperateRecord> listByOperateList(String ruId, List<String> operateTypeList) {
+        QueryWrapper<SignRuOperateRecord> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(SignRuOperateRecord::getSignRuId,ruId);
+        wrapper.lambda().in(SignRuOperateRecord::getOperateType,operateTypeList);
+        return this.baseMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<SignRuOperateRecord> listByActionList(String ruId, List<String> actionTypeList) {
+        QueryWrapper<SignRuOperateRecord> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(SignRuOperateRecord::getSignRuId,ruId);
+        wrapper.lambda().in(SignRuOperateRecord::getActionType,actionTypeList);
+        return this.baseMapper.selectList(wrapper);
+    }
+
+
+}

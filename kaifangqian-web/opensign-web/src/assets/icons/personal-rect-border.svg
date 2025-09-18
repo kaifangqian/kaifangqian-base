@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="150" height="50" viewbox="0 0 80 80 " fill-opacity="0.8" stroke-opacity="0.8" >
+	<rect x="0" y="0" width="150" height="50" style="fill: none;stroke: red;stroke-width: 4px;fill-opacity:0.2;stroke-opacity:0.8">
+	</rect>
+	<g font-family="宋体,SimSun" font-weight="bold" font-size="30">
+		<text transform="translate(25,33) scale(1,1)" fill="red">张三三</text>
+	</g>
+</svg>

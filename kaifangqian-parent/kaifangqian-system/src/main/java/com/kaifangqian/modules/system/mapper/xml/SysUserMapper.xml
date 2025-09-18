@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysUserMapper">
+
+    <!-- 根据部门Ids查询部门及以下用户列表 -->
+    <select id="queryDepartAllUsers" resultType="com.kaifangqian.modules.system.model.SysUserSearchModel">
+        SELECT DISTINCT
+        tu.id,
+        su.username,
+        su.realname
+        FROM
+        sys_depart sd
+        LEFT JOIN sys_depart sd2 ON sd2.org_code LIKE CONCAT( sd.org_code, '%' )
+        AND sd2.delete_flag = 0
+        and sd2.tenant_id = #{tenantId}
+        LEFT JOIN sys_user_depart ud ON sd2.id = ud.depart_id
+        and ud.tenant_id = #{tenantId}
+        LEFT JOIN sys_tenant_user tu on ud.user_id = tu.user_id
+        and tu.tenant_id = #{tenantId}
+        And tu.status > -2
+        INNER JOIN sys_user su ON ud.user_id = su.id
+        AND su.delete_flag = 0
+        <if test="keyWord!=null and keyWord!=''">
+            AND su.username like concat(concat('%',#{keyWord}),'%')
+        </if>
+        WHERE
+        sd.delete_flag = 0
+        and sd.tenant_id = #{tenantId}
+        AND sd.id IN
+        <foreach collection="departIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据用户名查询 -->
+    <select id="getUserByName" resultType="com.kaifangqian.modules.system.entity.SysUser">
+		select * from  sys_user  where username = #{username} and delete_flag = 0
+	</select>
+
+    <!-- 查询用户的所属部门名称信息 -->
+    <select id="getDepNamesByUserIds" resultType="com.kaifangqian.modules.system.vo.SysUserDepVo">
+        select d.depart_name,ud.user_id from sys_user_depart ud,sys_depart d where d.id = ud.depart_id and ud.user_id in
+        <foreach collection="userIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--  修改用户部门code -->
+    <update id="updateUserDepart">
+		UPDATE sys_user SET org_code = #{orgCode} ,update_time = NOW() where username = #{username}
+	</update>
+
+    <!-- 根据邮箱查询用户信息 -->
+    <select id="getUserByEmail" resultType="com.kaifangqian.modules.system.entity.SysUser">
+	select * from  sys_user  where email = #{email} and delete_flag = 0
+	</select>
+</mapper>

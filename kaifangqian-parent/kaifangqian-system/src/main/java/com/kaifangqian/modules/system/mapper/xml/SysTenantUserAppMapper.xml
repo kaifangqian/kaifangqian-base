@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysTenantUserAppMapper">
+
+    <select id="getAppIdsByUser" resultType="com.kaifangqian.modules.system.entity.SysTenantUserApp">
+        SELECT
+            tu.app_id
+        FROM
+            sys_tenant_user_app tu
+            INNER JOIN sys_tenant_app_version ta ON tu.tenant_id = ta.tenant_id
+            AND tu.app_id = ta.app_id
+            AND ta.useful = 0
+            INNER JOIN sys_app_version av ON ta.app_version_id = av.id
+            AND av.version_status = 1
+            INNER JOIN sys_app_info ai ON av.app_info_id = ai.id
+            AND ai.app_status = 1
+            AND ai.app_code = #{appCode, jdbcType=VARCHAR}
+        WHERE
+            tu.tenant_id = #{tenantId, jdbcType=VARCHAR}
+            AND tu.user_id = #{userId, jdbcType=VARCHAR}
+             UNION
+        SELECT
+            ta.app_id
+        FROM
+            sys_tenant_app_version ta
+            INNER JOIN sys_app_version av ON ta.app_version_id = av.id
+            AND av.version_status = 1
+            INNER JOIN sys_app_info ai ON av.app_info_id = ai.id
+            AND ai.app_status = 1
+            AND ai.app_code = #{appCode, jdbcType=VARCHAR}
+        WHERE
+            ta.tenant_id = #{tenantId, jdbcType=VARCHAR}
+            AND ta.useful = 1
+    </select>
+
+    <select id="queryUserApps" resultType="com.kaifangqian.modules.system.entity.SysAppInfo">
+       SELECT
+        tem.*
+    FROM
+        (
+        SELECT
+            ai.id,
+            ai.app_code,
+            ai.app_name,
+            ai.app_address,
+            ai.app_front,
+            ai.app_icon,
+            ai.app_icon_address,
+            ta.status as app_status,
+            ai.create_time
+        FROM
+            sys_tenant_user_app tu
+            INNER JOIN sys_tenant_app_version ta ON tu.tenant_id = ta.tenant_id
+            AND tu.app_id = ta.app_id
+            AND ta.useful = 0
+            INNER JOIN sys_app_version av ON ta.app_version_id = av.id
+            AND av.version_status = 1
+            INNER JOIN sys_app_info ai ON av.app_info_id = ai.id
+            AND ai.app_status = 1
+        WHERE
+            tu.tenant_id = #{tenantId, jdbcType=VARCHAR}
+            AND tu.user_id = #{userId, jdbcType=VARCHAR}
+            AND av.delete_flag = 0
+            AND ai.delete_flag = 0
+            UNION
+        SELECT
+            ai.id,
+            ai.app_code,
+            ai.app_name,
+            ai.app_address,
+            ai.app_front,
+            ai.app_icon,
+            ai.app_icon_address,
+            ta.status as app_status,
+            ai.create_time
+        FROM
+            sys_tenant_app_version ta
+            INNER JOIN sys_app_version av ON ta.app_version_id = av.id
+            AND av.version_status = 1
+            INNER JOIN sys_app_info ai ON av.app_info_id = ai.id
+            AND ai.app_status = 1
+        WHERE
+            ta.tenant_id = #{tenantId, jdbcType=VARCHAR}
+            AND ta.useful = 1
+            AND av.delete_flag = 0
+            AND ai.delete_flag = 0
+            ) tem
+        ORDER BY
+            tem.create_time
+    </select>
+
+</mapper>

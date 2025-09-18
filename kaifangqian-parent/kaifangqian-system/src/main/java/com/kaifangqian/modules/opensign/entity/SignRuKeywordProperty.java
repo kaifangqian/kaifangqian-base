@@ -1,0 +1,60 @@
+/**
+ * @description 业务线实例-关键字设置属性表
+ *
+ * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
+ * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
+ */
+package com.kaifangqian.modules.opensign.entity;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+// import io.swagger.annotations.ApiModel;
+// import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * @Description: SignRuKeywordProperty
+ * @Package: com.kaifangqian.modules.opensign.entity
+ * @ClassName: SignRuKeywordProperty
+ * @author: FengLai_Gong
+ */
+@Data
+@TableName("sign_ru_keyword_property")
+// @ApiModel("业务线实例-关键字设置属性表")
+public class SignRuKeywordProperty implements Serializable {
+
+    private static final long serialVersionUID = -3569491307989036232L;
+
+    // @ApiModelProperty("主键")
+    private String id ;
+
+    // @ApiModelProperty("业务线实例id")
+    private String ruId ;
+
+    // @ApiModelProperty("关键字id")
+    private String keywordId ;
+
+    // @ApiModelProperty("控件属性类型，包括关联文件，查询方式（全部，部分，正序，倒序，查询范围）")
+    private String propertyType ;
+
+    // @ApiModelProperty("控件属性值")
+    private String propertyValue ;
+
+
+}

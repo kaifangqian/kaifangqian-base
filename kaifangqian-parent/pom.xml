@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.kaifangqian</groupId>
+    <artifactId>kaifangqian-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.18</version>
+    </parent>
+
+    <properties>
+        <tomcat.version>9.0.109</tomcat.version>
+        <paas.version>1.0-SNAPSHOT</paas.version>
+        <resrun.tools.version>1.1-SNAPSHOT</resrun.tools.version>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <fastjson.version>2.0.58</fastjson.version>
+        <!-- 数据库驱动 -->
+        <postgresql.version>42.2.6</postgresql.version>
+        <ojdbc6.version>11.2.0.3</ojdbc6.version>
+        <sqljdbc4.version>4.0</sqljdbc4.version>
+        <mysql-connector-java.version>8.0.27</mysql-connector-java.version>
+        <!-- 动态数据源-->
+        <dynamic-datasource-spring-boot-starter.version>3.2.0</dynamic-datasource-spring-boot-starter.version>
+        <hutool.version>5.8.40</hutool.version>
+        <redisson.version>3.51.0</redisson.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <guava.version>33.4.8-jre</guava.version>
+        <mybatis-plus.version>3.5.8</mybatis-plus.version>
+        <druid.version>1.2.17</druid.version>
+        <aliyun-java-sdk-dysmsapi.version>2.1.0</aliyun-java-sdk-dysmsapi.version>
+        <aliyun.oss.version>3.11.2</aliyun.oss.version>
+        <shiro.version>1.13.0</shiro.version>
+        <java-jwt.version>3.19.4</java-jwt.version>
+        <shiro-redis.version>3.3.1</shiro-redis.version>
+
+        <h2.db.version>1.4.200</h2.db.version>
+        <hikaricp.version>3.4.2</hikaricp.version>
+        <lang3.version>3.18.0</lang3.version>
+        <powerjob.version>4.0.1</powerjob.version>
+        <h2.db.version>1.4.200</h2.db.version>
+        <bcpkix.version>1.81</bcpkix.version>
+    </properties>
+
+    <modules>
+        <module>kaifangqian-base</module>
+        <module>kaifangqian-system</module>
+        <module>kaifangqian-tools</module>
+    </modules>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public</id>
+            <name>aliyun nexus</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+    <build>
+        <plugins>
+            <!--指定JDK编译版本 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- 打包跳过测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <!-- 避免font文件的二进制文件格式压缩破坏 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>woff</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>woff2</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>eot</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>svg</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>xdb</nonFilteredFileExtension>
+                        <!-- 避免证书文件被压缩破坏 -->
+                        <nonFilteredFileExtension>pfx</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>jks</nonFilteredFileExtension>
+                        <!-- 模板-->
+                        <nonFilteredFileExtension>jasper</nonFilteredFileExtension>
+                        <!-- 字体-->
+                        <nonFilteredFileExtension>TTF</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>ttc</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <!-- 不打包资源文件（配置文件和依赖包分开） -->
+<!--                <excludes>-->
+<!--                    <exclude>*.yml</exclude>-->
+<!--                </excludes>-->
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                    <include>**/*.json</include>
+                    <include>**/*.ftl</include>
+                    <include>**/*.jks</include>
+                    <include>**/*.pfx</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
+</project>

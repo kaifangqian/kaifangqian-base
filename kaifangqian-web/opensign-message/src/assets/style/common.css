@@ -1,0 +1,17 @@
+.span-link{
+  color: blue;
+  cursor: pointer;
+  user-select: none;
+}
+
+.span-link[type=warning]{
+  color: #faad14;
+}
+.span-link[type=error]{
+  color: #ff4d4f;
+}
+.wh100{
+  width:100%;
+  height: 100%;
+}
+ 

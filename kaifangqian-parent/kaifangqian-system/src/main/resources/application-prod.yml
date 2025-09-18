@@ -1,0 +1,303 @@
+server:
+  # 项目启动端口号
+  port: 8899
+  tomcat:
+    # 上传文件限制 -1 无限制
+    max-swallow-size: -1
+  error:
+    #true：开启自定义异常处理
+    include-exception: true
+    # 是否包含异常的堆栈信息，默认是NEVER，其他ALWAYS，ON_TRACE_PARAM等。
+    include-stacktrace: ALWAYS
+    # 是否包含异常的返回信息，默认是NEVER，其他ALWAYS，ON_TRACE_PARAM等。
+    include-message: ALWAYS
+  servlet:
+    #路径前缀
+    context-path: /resrun-paas
+    #压缩配置
+  compression:
+    #是否开启压缩，默认为false.
+    enabled: true
+    #执行压缩的阈值，默认为2048
+    min-response-size: 1024
+    #指定要压缩的MIME type，多个以逗号分隔.
+    mime-types: application/javascript,application/json,application/xml,text/html,text/xml,text/plain,text/css,image/*
+
+#监控配置（springboot之Actuator）
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        #暴露部分端点，可以监控的端点
+#        include: metrics,httptrace
+
+spring:
+  servlet:
+    multipart:
+      #请求文件大小限制
+      max-file-size: 20MB
+      #请求体大小限制
+      max-request-size: 20MB
+  #json时间戳统一转换
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  aop:
+    #代理方式（手动创建时生效） 默认为false,表示使用JDK动态代理织入增强;当值为true时,表示使用CGLib动态代理织入增强。
+    proxy-target-class: true
+  mvc:
+    static-path-pattern: /**
+  datasource:
+    #druid配置
+    druid:
+      #druidweb端配置
+      stat-view-servlet:
+        enabled: false
+        loginUsername: admin
+        loginPassword: admin
+        allow:
+      web-stat-filter:
+        enabled: true
+    dynamic:
+      # 全局druid参数，绝大部分值和默认保持一致。(现已支持的参数如下,不清楚含义不要乱设置)
+      druid:
+        # 连接池的配置信息
+        # 初始化大小，最小，最大
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        # 配置获取连接等待超时的时间
+        maxWait: 60000
+        # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+        timeBetweenEvictionRunsMillis: 60000
+        # 配置一个连接在池中最小生存的时间，单位是毫秒
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        # 打开PSCache，并且指定每个连接上PSCache的大小
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+        filters: stat,wall,slf4j
+        # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      datasource:
+        master:
+          url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:opensign}?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+          username: ${MYSQL_USERNAME:root}
+          password: ${MYSQL_PASSWORD:123456}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+  # redis（lettuce）配置（保留两种redis工具：redisson（官方推荐）+lettuce）。redisson暂时用作分布式锁。lettuce做字符串操作等。
+  redis:
+    database: ${REDIS_DATABASE:0}
+    host: ${REDIS_HOST}
+    lettuce:
+      pool:
+        max-active: 8   #最大连接数据库连接数,设 -1 为没有限制
+        max-idle: 8     #最大等待连接中的数量,设 0 为没有限制
+        max-wait: -1ms  #最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+        min-idle: 0     #最小等待连接中的数量,设 0 为没有限制
+      shutdown-timeout: 100ms
+    password: ${REDIS_PASSWORD}
+    port: ${REDIS_PORT:6379}
+# IP 本地解析
+ip:
+  local-parsing: true
+
+# resrun-paas配置
+paas:
+  privateKey: MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCTLwpuY16yW3K0/2KGAujIvqIk6eJrvncOwIdHCc7SkF/hXWPeoAIb8L3A7DR29qsbifshX+4WE9bJmfY1CtnzAsjDuWwrvX7q+doo17LNKfHcjUZ24bdp2WwgTXgvE1wk5oP4OKzzk7iNCUzxs6J8tFAALkFZN/GRafWVda2g12xL4Yqk8TMMW5J5dTRwkzfOIlyA50TjqQl+y7sRLmQA1BppzXeC7A4sSeoPq4pAaLG8HtuoyaJQKr4pPrUZl20gL81ytdEq2LlH99uWVsoAR72f97ZginQbhlaxzYSDmcho/BSY0RLt+cU2pvtAVFKZPgUGYlcTVnCTpkKmsHrpAgMBAAECggEAFA6uCjsKdZ3WtOm0oHSXCnxIFmW1EF/FU8JS7RBeGf3Iwyp56KW/g9U71qWZxLh6uucDzRmIlYOgmpqbncDb0K0JdPq4zgEl4Zmo7DXwzNqxdg/ekWbTGt6hSImmHiwyO2kahOIcV5lC5h1lWe7T7tCXsl6bUzA3gEyDRhniTm+3/RCRdUXivV0iv+oe9Zje4c5NkoPGfBPDt0tr7DZpVRwumr0e+pRxMykXlMD/Pi1fb96XbpCyqjE/ZERhKU+Jj+NmSCxrPnAM2WQ1D0eWVAsLfCRXPvcZkSKHEveSjMjLdf6C8qIXDI2AkCeYl+cw7hdgVleqdeTVT/4qWSZmAQKBgQDMiUfVOuw2w+VMiSLCk3Oy6/FzkegiWR3bPx7FQN6v3QP6cx/9FQ1+w3PUQxB9tkArvgQca/3XpsIj8EbwbmDDtFDar1uMdEzLVdM1RrUofA8ZBx5nngZzO5zOtRl5fadRKmjhRsRPlVabFLbdAmvtHEhf1RcJJ1ZERaPz+5RlqQKBgQC4N4jPeXWqAne0AgL2akVBj4Sn5lR/N38PxujOCc1aFzbzl/qfKBaw5pPoK5UO6e+41gCgEzNZTEf3QHSsr4zqgW1u5C6Dzp24wth51sO5UYDrP7yh4JMQxsy3uj27J49z3jxDe6P50Yb0p6458iA13mi4QybguVBenYnZvPIzQQKBgGxLByBruSNp5t72ANR6k5iY+dcR2pFNE9TAf786kG0WnQOersIlwmZqf8pT08hrlWBTlAOkXdsvLL0we67TEiKsNt8CV3tvHDXQdCpSDJqpzKiYr013Srz6RBThp+I+WDdOOAeGm2vzis5DUmqD3LbG8b7jqPWswS0Wni8Q9co5AoGARNXzmFtxfVKouinaQ4vYTzQ6xKaLwnHRV+riyULeaiCslv+eVeSb/gRbFnFapJUDz9SfrTEfiem4Jor+ThzXEjXE16AKRZRqWUTtsTFwN4peGwnZCcAqFCXFD45XTNzufMR5TlogHtSNklQqBVsVcCuog9oL6AM3JfPGNAenlUECgYB0qVHljWM/9+rhhjopQNuRQy9Krrq1+UFVygvpyYMJhTgZyNj3j45dZ+1mHTU04DEYoX+QnpD3uJe4w3IXfy8043KOCg6loPi5xrqq50EkdJaujuR2MsZ4qRKRiUWj+i2v6A3Lsl+7SOqfE36rZ//dNBGrT76k6m8vRXVy2YnN5w==
+  pdf-encryption-enable: ${pdf-encryption-enable:false}
+  pdf-encryption-password: 123456
+  #监控配置agent port url
+  monitor:
+    databaseSchemaUpdate: false
+    monitorOpen: false
+    posturl:
+    step: 60
+    endpoint: open-sign
+    systemName: open-sign
+  dowloadPath: /opensign/file/code/
+  #日志配置
+  log:
+    paramIgnore: image,img,file,website_other_logo,website_white_logo
+    systemName: open-sign系统
+    dbType: mysql
+  #通知相关配置
+  notify:
+    sms:
+      template:
+        - name: inviteUser
+          templateId: mes_template_inviteUser
+        - name: captcha
+          templateId: mes_template_captcha
+        - name: writeTask
+          templateId: mes_template_writeTask
+        - name: signTaskIn
+          templateId: mes_template_signTaskIn
+        - name: signTaskOut
+          templateId: mes_template_signTaskOut
+        - name: copyBegin
+          templateId: mes_template_copyBegin
+        - name: copySign
+          templateId: mes_template_copySign
+        - name: entAuthFaild
+          templateId: mes_template_entAuthFaild
+        - name: entAuthSuccess
+          templateId: mes_template_entAuthSuccess
+    file:
+      mac:
+        path: /Users/kaifangqian/file/
+        avatar: /Users/kaifangqian/file/
+      linux:
+        path: /home/kaifangqian/file/
+        avatar: /home/kaifangqian/file/
+      windows:
+        path: C:\kaifangqian\file\
+        avatar: C:\kaifangqian\file\
+
+  # 对象存储配置
+  storage:
+    # 当前工作的对象存储模式local
+    active: ${STORAGE_ACTIVE:local}
+    # 本地对象存储配置信息
+    local:
+      storagePath: storage
+      address: http://localhost:8080/paas/storage/
+    # 阿里云对象存储配置信息
+    aliyun:
+      endpoint: ${OSS_ENDPOINT:oss-cn-hangzhou.aliyuncs.com}
+      accessKeyId: ${OSS_ACCESSKEYID}
+      accessKeySecret: ${OSS_ACCESSKEYSECRET}
+      bucketName: ${OSS_BUCKETNAME}
+      publicendpoint: ${OSS_PUBLICENDPOINT:oss-cn-hangzhou.aliyuncs.com}
+    minio:
+      access-key: ${MINIO_ACCESS}
+      secret-key: ${MINIO_SECRET}
+      endpoint: ${MINIO_ADDRESS}
+      bucket-name: ${MINIO_BUCKET_NAME:kaifangqian}
+  # redisson配置（保留两种redis工具：redisson（官方推荐）+lettuce）。redisson暂时用作分布式锁。lettuce做字符串操作等。
+  # 单机模式
+  redisson:
+    address: redis://${spring.redis.host}:${spring.redis.port}
+    password: ${spring.redis.password}
+  # 哨兵模式
+  #redisson:
+  #  master-name: mymaster
+  #  password: xxxx
+  #  sentinel-addresses: 10.47.91.83:26379,10.47.91.83:26380,10.47.91.83:26381
+
+  #shiro配置
+  shiro:
+    #过滤安全路径
+    excludeUrls: /category/**,/visual/**,/map/**
+
+# 线程池配置
+custom:
+  threadpool:
+    # 核心线程池大小
+    core-pool-size: 10
+    # 最大线程数
+    max-pool-size: 30
+    # 活跃时间
+    keep-alive-seconds: 60
+    # 队列容量
+    queue-capacity: 50
+
+#mybatis plus 设置
+mybatis-plus:
+  #多数据源里配置生效，该处不生效（MasterDataSourceConfig）
+  #mapper-locations: classpath*:com/resrun/modules/**/xml/*Mapper.xml,classpath:com/resrun/xml/*Mapper.xml
+  global-config:
+    # 关闭MP3.0自带的banner
+    banner: false
+    db-config:
+      #主键类型  0:"数据库ID自增",1:"该类型为未设置主键类型", 2:"用户输入ID",3:"全局唯一ID (数字类型唯一ID)", 4:"全局唯一ID UUID",5:"字符串全局唯一ID (idWorker 的字符串表示)";
+      id-type: ASSIGN_ID
+      # 默认数据库表下划线命名
+      table-underline: true
+  configuration:
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    # 返回类型为Map,显示null对应的字段
+    call-setters-on-nulls: true
+
+#Mybatis输出sql日志
+logging:
+  level:
+    com.kaifangqian.modules.system.mapper: info
+    com.kaifangqian.modules.opensign.mapper: info
+
+powerjob:
+  worker:
+    # akka 工作端口，可选，默认 27777
+    akka-port: 27998
+    # 接入应用名称，用于分组隔离，推荐填写 本 Java 项目名称
+    app-name: paas-sign-prod
+    # 调度服务器地址，IP:Port 或 域名，多值逗号分隔
+    server-address: ${JOB_SERVER:127.0.0.1:7990}
+    # 持久化方式，可选，默认 disk
+    store-strategy: disk
+    # 任务返回结果信息的最大长度，超过这个长度的信息会被截断，默认值 8192
+    max-result-length: 4096
+    # 单个任务追加的工作流上下文最大长度，超过这个长度的会被直接丢弃，默认值 8192
+    max-appended-wf-context-length: 4096
+    password: 123456
+    app-id: 6
+
+service:
+  # 弃用该配置
+  base-host: ''
+  token: ${TOKEN:iinHstP/OFm7N/W1vDaFVAZ8mmb5BtUI7YJrX4oJcZKYVl6zUijHPaGOE/7cAmQvqSBudRZSYRaVvsotD+Jdfm9DphMY/6A4JKXmSGwyJRP+qgQDA/dC1IRE+zurtfkkr8JX5xJtQxc8TutfD0Qvgt1QpBrH+TTQm8F4gridH3FdhphiO90963Cu9FtrWHgn+7tyi09DRZEJKzKr16/jxlZGlLCKBSa/he2etkQUIJSyCbt2OB8WBP2+3T5lljML0jq9y1ZzODXNU/xZY5BuaVJR9Hxqm9b7kYygEMCYUzXRpno5pMiMUtB732KFjyu8OAcTsF7X+lI9odZOl2RDzx7/Vy6eAyzGyYg5vF79leWhlP2q+EX7XBc4xC5+5c+tXIiRkf+JNqHMroFhVnvd923BYkzkDGHW9CsMzipSZRRpV5oZchhFqPwb2L0e+8zmm9idIv3xf8xHt3hGhSbrkWGebd9SzDLozES4LnQtv1sGp7WLqaOcsj8QAI7/TL6yZReCBbDnuPAchOcIRZTQohiDrn9eZyKRrZdmhhDn8Dgt1oYVhIsrQa5r5Ornxn61dGA679NgK/7vOUP5V3HfwxW3eSkYBWaH/sexEPdaHo+Oh4XGc9GtF8eni5V7+Vn82xkKosM4qDAWXvQL23w0C/SUlptsj6LB1JExb0FEkfqgtGbnc4lEF0eEx3uM+tCJPUSOTCklZV+jXzjmz/hVNhQ0yb0vw9DMzmP+S1oTP9Z/tn7izaai+QUZtmWWk7i4RUhsd1pCvVrCEsy+cWHRFdAj5ACEkKlSB2keIgKf8eBcqJpMAaSjX0l+R2fKrvLV8vsTr8hMDPnO+Fm/DGwvJxr3Kvu/Ch3gbFJ6i3GxSBK15Fi3p4GzjasN5B+Ho+gGvkVB8gGj69ZFLg0OQtfHn2n2WdpuO77JNlAGb2aav83Fajvh968N6pGhNWoNFIzDLjLJX7XmWvkqIL4j8tbC/P4OHsREuYlLRLhUOrkbp1Saj5eeIiJK0mhsDeWi7WbI}
+  yundun-base-host: ${YUNDUN_HOST:https://yundun.kaifangqian.com/yundun}
+  # 开放签云盾API_TOKEN
+  app-id: ${YD_APP_ID}
+  # 开放签私有化部署RSA密钥，用户证书签发等接口
+  yundun-service-private-key: ${YD_APP_VK}
+  # 开放签签名验签密钥，不可修改
+  yundun-service-public-key: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8ULHSOTktkSHb3wiBDAy12OD5T85VYidsQXtIGMmZP2Ay902fXpreTPJUsOpJy3UiZX3WD7OL3HEAuKd9nek1KtvvzijTPQya5lWSLuid/tfvrGXIXss6kZtSr47oMAiEZDDioMS1vXTh+aVh+wfaEVxGJHwrxu7itIf8VVULFwIDAQAB
+  manage:
+    cert-apply-url: ${service.base-host}/v2/cert/event
+    individual-cert-apply-url: ${service.base-host}/cert/individual
+    enterprise-cert-apply-url: ${service.base-host}/cert/enterprise
+    msg-url: ${service.base-host}/msg/send
+    phone-three-url: ${service.base-host}/auth/phone/three/element
+    enterprise-three-url: ${service.base-host}/auth/enterprise/three/element
+    yundun-auth-personal-url: ${service.yundun-base-host}/api/v1/auth/person/link
+    yundun-auth-personal-update-url: ${service.yundun-base-host}/api/v1/auth/person/update/link
+    yundun-auth-company-url: ${service.yundun-base-host}/api/v1/auth/company/link
+    yundun-auth-company-update-url: ${service.yundun-base-host}/api/v1/auth/company/update/link
+    yundun-auth-query-info-url: ${service.yundun-base-host}/api/v1/auth/order/info
+    yundun-auth-get-info-url: ${service.yundun-base-host}/api/v1/auth/info
+    yundun-silent-sign-url: ${service.yundun-base-host}/api/v1/sign/silent/sign
+    yundun-silent-get-info-url: ${service.yundun-base-host}/api/v1/sign/silent/service/info
+    yundun-silent-get-infos-url: ${service.yundun-base-host}/api/v1/sign/silent/service/list
+    yundun-silent-service-open-url: ${service.yundun-base-host}/api/v1/sign/silent/service/open
+    yundun-silent-service-close-url: ${service.yundun-base-host}/api/v1/sign/silent/service/close
+    yundun-fastsign-get-info-url: ${service.yundun-base-host}/api/v1/sign/willingnessFree/service/info
+    yundun-fastsign-get-infos-url: ${service.yundun-base-host}/api/v1/sign/willingnessFree/service/list
+    yundun-fastsign-service-open-url: ${service.yundun-base-host}/api/v1/sign/willingnessFree/service/open
+    yundun-fastsign-service-close-url: ${service.yundun-base-host}/api/v1/sign/willingnessFree/service/close
+    yundun-auth-sign-url: ${service.yundun-base-host}/api/v1/sign/verify/link
+    yundun-auth-sign-verify-url: ${service.yundun-base-host}/api/v1/sign/verify
+    yundun-auth-sign-info-url: ${service.yundun-base-host}/api/v1/sign/order/status
+    yundun-app-info-url: ${service.yundun-base-host}/api/v1/sign/app/info
+    yundun-send-sms-url: ${service.yundun-base-host}/api/v1/msg/send
+
+qcloud:
+  version: 1.0.0
+  manage:
+    access_token_url: https://miniprogram-kyc.tencentcloudapi.com/api/oauth2/access_token
+    api_ticket_url: https://miniprogram-kyc.tencentcloudapi.com/api/oauth2/api_ticket
+    get_adv_face_url: https://kyc.qcloud.com/api/server/getAdvFaceId
+    query_face_record_url: https://kyc.qcloud.com/api/v2/base/queryfacerecord
+    query_photo_info_url: https://kyc.qcloud.com/api/v2/base/queryphotoinfo
+
+office-convert:
+  enable: ${office-convert-enable:false}
+  host: ${office-convert-host:http://127.0.0.1:8080}
+  word-service: ${office-convert.host}/kaifangqian-file-convert/office/word/pdf
+  excel-service: ${office-convert.host}/kaifangqian-file-convert/office/excel/pdf

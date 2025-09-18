@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kaifangqian.modules.system.mapper.SysPermissionMapper">
+
+    <!-- 获取登录用户拥有的功能权限 -->
+    <select id="queryByUser" parameterType="Object" resultType="com.kaifangqian.modules.system.entity.SysPermission">
+        SELECT
+        DISTINCT
+        temp.*
+        FROM
+        ((
+        SELECT
+        sp.*
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission sp ON ap.permission_id = sp.id
+        AND sp.delete_flag = 0
+        AND sp.`status` = 1
+        <if test="query.appId!=null and query.appId!=''">
+            AND sp.app_id = #{query.appId}
+        </if>
+        INNER JOIN sys_app_version_permission vp ON sp.id = vp.permission_id
+        <if test="query.appVersionId!=null and query.appVersionId!=''">
+            AND vp.app_version_id = #{query.appVersionId}
+        </if>
+        WHERE
+        am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.depart_id = #{query.departId}
+        ) UNION
+        (
+        SELECT
+        sp.*
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission sp ON ap.permission_id = sp.id
+        AND sp.delete_flag = 0
+        AND sp.`status` = 1
+        <if test="query.appId!=null and query.appId!=''">
+            AND sp.app_id = #{query.appId}
+        </if>
+        INNER JOIN sys_app_version_permission vp ON sp.id = vp.permission_id
+        <if test="query.appVersionId!=null and query.appVersionId!=''">
+            AND vp.app_version_id = #{query.appVersionId}
+        </if>
+        WHERE
+        am.auth_type = 'user'
+        AND am.auth_id = #{query.userId}
+        AND am.tenant_id =#{query.tenantId}
+        AND am.depart_id is null
+        ) UNION
+        <if test="query.roleIds !=null  and query.roleIds.size()>0">
+            (
+            SELECT
+            sp.*
+            FROM
+            sys_auth_group_member am
+            LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+            INNER JOIN sys_permission sp ON ap.permission_id = sp.id
+            AND sp.delete_flag = 0
+            AND sp.`status` = 1
+            <if test="query.appId!=null and query.appId!=''">
+                AND sp.app_id = #{query.appId}
+            </if>
+            INNER JOIN sys_app_version_permission vp ON sp.id = vp.permission_id
+            <if test="query.appVersionId!=null and query.appVersionId!=''">
+                AND vp.app_version_id = #{query.appVersionId}
+            </if>
+            WHERE
+            am.auth_type = 'role'
+            AND am.auth_id IN
+            <foreach collection="query.roleIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            ) UNION
+        </if>
+        (
+        SELECT
+        sp.*
+        FROM
+        sys_auth_group_member am
+        LEFT JOIN sys_auth_group_permission ap ON am.group_id = ap.group_id
+        INNER JOIN sys_permission sp ON ap.permission_id = sp.id
+        AND sp.delete_flag = 0
+        AND sp.`status` = 1
+        <if test="query.appId!=null and query.appId!=''">
+            AND sp.app_id = #{query.appId}
+        </if>
+        INNER JOIN sys_app_version_permission vp ON sp.id = vp.permission_id
+        <if test="query.appVersionId!=null and query.appVersionId!=''">
+            AND vp.app_version_id = #{query.appVersionId}
+        </if>
+        WHERE
+        am.auth_type = 'dept'
+        AND am.auth_id = #{query.departId}
+        )
+        ) AS temp
+        where temp.id is not null
+        ORDER BY
+        temp.sort_no
+    </select>
+
+    <select id="listTenantAppAllMenu" parameterType="Object"
+            resultType="com.kaifangqian.modules.system.entity.SysPermission">
+        SELECT
+        DISTINCT
+        sp.*
+        FROM
+        sys_permission sp
+        INNER JOIN sys_app_version_permission vp ON sp.id = vp.permission_id
+        INNER JOIN sys_tenant_app_version tv ON vp.app_version_id = tv.app_version_id
+        <if test="appId!=null and appId!=''">
+            AND tv.app_id = #{appId}
+        </if>
+        AND tv.tenant_id = #{tenantId}
+        WHERE
+        sp.delete_flag = 0
+        <if test="parentId!=null and parentId!=''">
+            AND sp.parent_id = #{parentId}
+        </if>
+        <if test="types !=null  and types.size()>0">
+            AND sp.menu_type IN
+            <foreach collection="types" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>
