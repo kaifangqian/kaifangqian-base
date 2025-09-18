@@ -43,7 +43,7 @@
 # 系统部署
 推荐linux系统，服务器配置4核八G
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
-- docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker
+- docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
  **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
 # 相关地址
