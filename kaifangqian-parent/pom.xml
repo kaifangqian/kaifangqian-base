@@ -50,7 +50,7 @@
     </properties>
 
     <modules>
-        <module>kaifangqian-base</module>
+        <module>kaifangqian-core</module>
         <module>kaifangqian-system</module>
         <module>kaifangqian-tools</module>
     </modules>
