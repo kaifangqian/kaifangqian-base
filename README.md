@@ -15,100 +15,44 @@
 - **文件在线签发**:支持 Web、H5、API 多端签署各类文件（如电子合同、标书、货运单、证明、审批文件等），满足多种签署需求。
 - **企业印章管理**:支持印章全生命周期管理（新增、编辑、停用、销毁等），支持三权分立机制：管理权、使用权、审计权。
 - **企业组织及权限管理**:支持平台多租户、企业组织架构、成员、角色及权限管理。
-- 自定义签署文档模板**:提供在线模板功能，签署过程可使用模板完成多方填写和确认。
+- **业务线管理**:业务线是一种电子文件签署的业务流程，通过对业务线配置可构建电子合同、电子保单、招投标文件、电子成绩单、电子证明、金融凭证、会计凭证、电子处方等多种电子文件签署场景，具备灵活规范、操作合规、风险可控、效率提升等特点.
+- **自定义签署文档模板**:提供在线模板功能，签署过程可使用模板完成多方填写和确认。
 - **安全合规认证**:符合电子签名法律法规，结合国密算法加密、签名，确保签署流程可追溯、防篡改。通过公安部门实名认证锁定身份，权威 CA 机构颁发数字证书确保法律效力，全过程操作日志归档保全。
 
-## 模块说明
-- **API模块**：提供对外接口服务，支持合同创建、签署、查询等操作。
-- **认证模块**：集成云盾实名认证服务，支持个人与企业认证。
-- **签署服务模块**：处理合同签署流程、签署控件配置、签署意愿确认等。
-- **印章管理模块**：支持个人签名与企业印章的生成、授权、使用及审计。
-- **模板管理模块**：合同模板的创建、配置、授权及使用。
-- **文件处理模块**：支持PDF文件转换、加密、验签及下载。
-- **权限控制模块**：基于RBAC模型的数据权限控制，支持接口权限与数据权限分离。
-- **日志与审计模块**：记录用户操作、合同签署、印章使用等关键操作日志。
 
-## 使用说明
-### 合同签署流程
-1. **实名认证**：用户需完成个人或企业实名认证。
-2. **创建合同**：通过API或前端界面创建合同，配置签署方、签署控件、签署顺序等。
-3. **发起签署**：发起合同签署流程，系统生成签署任务。
-4. **签署意愿确认**：签署方通过短信、邮件或签约密码确认签署意愿。
-5. **签署操作**：签署方完成签署操作，系统记录签署信息。
-6. **合同归档**：签署完成后合同自动归档，支持下载与验签。
+#技术架构
+开放签采用现代化前后端分离架构，构建了一个安全、合规、可扩展的电子签平台。整体设计兼顾技术透明性与司法可信度，支持私有化部署、多租户服务和标准化 API 接入，满足企业级应用场景需求。
+架构设计遵循模块化、高内聚低耦合原则，便于二次开发、功能扩展及集成对接。
+- **前端框架**:Vue 3 + Vite
+- **后端语言**:Java（JDK 1.8+）
+- **后端框架**:Spring Boot + Spring Security + MyBatis Plus
+- **文件处理**:Apache PDFBox 实现 PDF 文档操作
+- **数据库**:MySQL / PostgreSQL（支持国产数据库适配）
+- **部署方式**:支持 Docker 容器化部署
+- **接口规范**:RESTful API + Swagger UI 文档
+- **日志系统**:Logback + ELK 可视化日志分析
+- **权限控制**:RBAC 模型 + JWT 认证机制
 
-### 接口调用示例
-#### 创建合同
-```java
-@PostMapping("/contract/draft")
-public ApiCommonRes<SignContract> contractDraft(@RequestBody ContractDraftRequest request)
-```
-请求参数：
-```json
-{
-  "subject": "服务协议",
-  "signerList": [
-    {
-      "signerType": "1",
-      "signerName": "张三",
-      "receiver": {
-        "name": "张三",
-        "contactType": "1",
-        "contact": "13800000000"
-      },
-      "positionParamList": [
-        {
-          "controlType": "sign",
-          "signPositionType": "keyword",
-          "keyword": "签署处",
-          "offsetX": "100",
-          "offsetY": "200"
-        }
-      ]
-    }
-  ]
-}
-```
-响应示例：
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "result": {
-    "contractId": "123456"
-  }
-}
-```
+##系统架构图
+![输入图片说明](doc/image.png)
+##代码结构
 
-## 安全与权限
-- **接口鉴权**：使用JWT Token进行接口鉴权，支持RSA/SM2签名验证。
-- **数据权限**：基于RBAC模型的数据权限控制，支持字段级与行级权限。
-- **签署密码**：签署操作需通过签约密码或意愿确认机制进行二次验证。
-- **审计日志**：所有关键操作均记录日志，便于追踪与审计。
 
-## 部署说明
-### Docker部署
-使用提供的Dockerfile进行容器化部署：
-```dockerfile
-FROM registry.cn-beijing.aliyuncs.com/kaifangqian/eclipse-temurin:8u462-b08-jre-noble
-COPY file/simsun.ttc /usr/share/fonts/chinese
-COPY file/simkai.ttf /usr/share/fonts/chinese
-COPY file/simhei.ttf /usr/share/fonts/chinese
-COPY file/simfang.ttf /usr/share/fonts/chinese
-ENV TZ=Asia/Shanghai
-COPY file /home/kaifangqian/file
-ENTRYPOINT ["sh", "-c", "exec java -jar -Dspring.profiles.active=prod -Dproject.name=kaifangqian kaifangqian.jar"]
-```
+#功能截图
 
-### 配置文件
-- `application.yml`：主配置文件，包含数据库、Redis、接口签名等配置。
-- `sign.properties`：签署相关配置，如签署模板路径、签署报告模板等。
-- `shiro.properties`：权限控制配置，包括接口权限、数据权限规则等。
+#系统部署
+推荐linux系统，服务器配置4核八G
+- 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
+- docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker
+ **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
-## 开发与扩展
-- **自定义签署控件**：通过`SignReDocControl`与`SignRuDocControl`扩展签署控件类型与属性。
-- **签署流程插件**：支持通过`SignCommandInterceptor`扩展签署流程拦截器。
-- **模板引擎**：支持JasperReports模板引擎，用于生成签署报告。
+#相关地址
+- **产品门户网站**:www.kaifangqian.com
+- **云服务体验地址**:home.kaifangqian.com
+- **产品参考文档**:docs.kaifangqian.com
+- **接口文档**:https://docs.kaifangqian.com/docs/api/quick-start
 
-## 许可证
-本项目遵循Apache 2.0协议。详见[LICENSE](LICENSE)文件。
+##加入社群
+![输入图片说明](doc/image.png)
+# 许可证
+本项目遵循AGPL 3.0协议。详见[LICENSE](LICENSE)文件。
