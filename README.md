@@ -19,6 +19,16 @@
 - **自定义签署文档模板**:提供在线模板功能，签署过程可使用模板完成多方填写和确认。
 - **安全合规认证**:符合电子签名法律法规，结合国密算法加密、签名，确保签署流程可追溯、防篡改。通过公安部门实名认证锁定身份，权威 CA 机构颁发数字证书确保法律效力，全过程操作日志归档保全。
 
+## 核心特性
+
+- **多种签署模式**：支持单方签署、顺序签署、并行签署、批量签署和自动签署
+- **完整的身份认证**：集成个人实名认证、企业认证和云盾认证
+- **安全的数字签名**：基于RSA/SM2算法的数字签名技术，支持PDF数字签名
+- **灵活的文档管理**：支持PDF文档处理、控件设置、签名位置计算
+- **多样化存储**：支持本地存储、阿里云OSS、MinIO等多种存储方案
+- **租户级隔离**：支持多租户架构，提供企业级的数据隔离
+- **完善的权限控制**：基于Shiro+JWT的安全框架，支持细粒度权限控制
+
 
 # 技术架构
 开放签采用现代化前后端分离架构，构建了一个安全、合规、可扩展的电子签平台。整体设计兼顾技术透明性与司法可信度，支持私有化部署、多租户服务和标准化 API 接入，满足企业级应用场景需求。
@@ -49,7 +59,7 @@ kaifangqian-base/
 │   ├── opensign-message/       # 消息服务
 │   ├── opensign-mobile/        # 移动端应用
 │   ├── opensign-tenant/        # 租户管理
-│   └── opensign-web/           # 主要Web应用
+│   └── opensign-web/           # 签署主应用
 └── README.md                   # 项目说明文档
 ```
 
@@ -57,21 +67,42 @@ kaifangqian-base/
 # 功能截图
 
 # 系统部署
+## 环境要求
+- **JDK**: 1.8+ (小于17)
+- **Maven**: 3.x
+- **MySQL**: 8.0.27+
+- **Redis**: 任意版本
+- **IDE**: IntelliJ IDEA (必须安装Lombok插件)
+
 推荐linux系统，服务器配置4核八G
+
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
 - docker部署：（镜像文件请找官网客服）https://docs.kaifangqian.com/docs/deploy/docker 
  
 **部署完成后，如需使用认证的CA数字证书签署，请联系客户获取云盾服务授权码。** 
 
 # 相关地址
-- **产品门户网站**:www.kaifangqian.com
-- **云服务体验地址**:home.kaifangqian.com
-- **产品参考文档**:docs.kaifangqian.com
+- **产品门户网站**:https://www.kaifangqian.com
+- **云服务体验地址**:https://home.kaifangqian.com
+- **产品参考文档**:https://docs.kaifangqian.com
 - **接口文档**:https://docs.kaifangqian.com/docs/api/quick-start
 
 ## 加入社群
 请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。
 点击“star”的用户，优先审核加入官方社群。
 ![输入图片说明](doc/image.png)
+
 # 许可证
-本项目遵循AGPL 3.0协议。详见[LICENSE](LICENSE)文件。
+本项目基于 [AGPLv3](https://www.gnu.org/licenses/agpl-3.0) 协议开源。
+
+**重要说明**: 根据AGPLv3协议，如果您通过网络提供服务（如Web应用），必须公开修改后的完整源代码（包括衍生作品）。
+
+# 🙏 致谢
+
+感谢以下开源项目为本项目提供支持：
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [MyBatis Plus](https://baomidou.com/)
+- [Apache PDFBox](https://pdfbox.apache.org/)
+- [Apache Shiro](https://shiro.apache.org/)
+- [Redisson](https://redisson.org/)
