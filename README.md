@@ -65,12 +65,12 @@ kaifangqian-base/
 
 
 # 功能截图
-- ![输入图片说明](doc/%E9%A6%96%E9%A1%B5image.png)
-- ![输入图片说明](doc/faqiimage.png)
-- ![输入图片说明](doc/qianshuimage.png)
-- ![输入图片说明](doc/h5qianshuimage.png)
-- ![输入图片说明](doc/qiyeguanliimage.png)
-- ![输入图片说明](doc/yunyingguanliimage.png)
+![首页](doc/%E9%A6%96%E9%A1%B5image.png)
+![发起合同](doc/faqiimage.png)
+![合同签署](doc/qianshuimage.png)
+![移动端](doc/h5qianshuimage.png)
+![企业管理后台](doc/qiyeguanliimage.png)
+![运营管理后台](doc/yunyingguanliimage.png)
 # 系统部署
 ## 环境要求
 - **JDK**: 1.8+ (小于17)
