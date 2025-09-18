@@ -1,8 +1,8 @@
 # 开放签电子签平台docker安装手册
 
-## 1、将deploy.zip上传至/home/data/目录下 进行解压
+## 1、将deploy文件夹上传至/home/data/目录下
 ```
-cd /home/data/ && unzip deploy.zip && cd deploy
+cd /home/data/deploy
 mkdir -p /home/data/mysql
 mkdir -p /home/data/storage
 ```
