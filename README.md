@@ -37,6 +37,22 @@
 ![输入图片说明](doc/image1.png)
 ## 代码结构
 
+```
+kaifangqian-base/
+├── kaifangqang-parent/         # 后端项目根目录
+│   ├── kaifangqian-core/       # 核心模块
+│   ├── kaifangqian-system/     # 系统模块
+│   ├── kaifangqian-tools/      # 工具模块
+│   └── sql/                    # 数据库脚本
+├── kaifangqian-web/            # 前端项目根目录
+│   ├── opensign-manage/        # 管理后台
+│   ├── opensign-message/       # 消息服务
+│   ├── opensign-mobile/        # 移动端应用
+│   ├── opensign-tenant/        # 租户管理
+│   └── opensign-web/           # 主要Web应用
+└── README.md                   # 项目说明文档
+```
+
 
 # 功能截图
 
