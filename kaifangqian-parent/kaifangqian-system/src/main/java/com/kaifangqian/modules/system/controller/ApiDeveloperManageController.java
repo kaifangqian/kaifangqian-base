@@ -63,7 +63,7 @@ public class ApiDeveloperManageController {
      */
     // @ApiOperation(value = "应用管理表-分页列表查询", notes = "应用管理表-分页列表查询")
     @GetMapping(value = "/list")
-    @RequiresPermissions(value = {"system:tenant"})
+    @RequiresPermissions(value = {"system:manage"})
     public Result<?> queryPageList(ApiDeveloperManage apiDeveloperManage, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         QueryWrapper<ApiDeveloperManage> queryWrapper = QueryGenerator.initQueryWrapper(apiDeveloperManage, req.getParameterMap());
         Page<ApiDeveloperManage> page = new Page<ApiDeveloperManage>(pageNo, pageSize);
@@ -91,7 +91,7 @@ public class ApiDeveloperManageController {
      */
     // @ApiOperation(value = "应用管理表-添加", notes = "应用管理表-添加")
     @PostMapping(value = "/add")
-    @RequiresPermissions(value = {"system:tenant"})
+    @RequiresPermissions(value = {"system:manage"})
     public Result<?> add(@RequestBody ApiDeveloperManage apiDeveloperManage) {
         apiDeveloperManageService.saveExt(apiDeveloperManage);
         return Result.OK("添加成功！");
@@ -105,7 +105,7 @@ public class ApiDeveloperManageController {
      */
     // @ApiOperation(value = " 应用-发布/停用", notes = " 应用-发布/停用")
     @PutMapping(value = "/updateStatus")
-    @RequiresPermissions(value = {"system:tenant"})
+    @RequiresPermissions(value = {"system:manage"})
     public Result<?> updateStatus(@RequestBody ApiDeveloperManage apiDeveloperManage) {
         apiDeveloperManageService.updateStatus(apiDeveloperManage);
         return Result.OK("发布/停用成功！");
@@ -119,7 +119,7 @@ public class ApiDeveloperManageController {
      */
     // @ApiOperation(value = "应用管理表-编辑", notes = "应用管理表-编辑")
     @PutMapping(value = "/edit")
-    @RequiresPermissions(value = {"system:tenant"})
+    @RequiresPermissions(value = {"system:manage"})
     public Result<?> edit(@RequestBody ApiDeveloperManage apiDeveloperManage) {
         apiDeveloperManageService.updateExt(apiDeveloperManage);
         return Result.OK("编辑成功!");
