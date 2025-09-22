@@ -1513,7 +1513,7 @@ public class RuBusinessService {
 //        }
         //操作记录
         SignRuOperateRecord operateRecord = null ;
-        if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode()){
+        if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode() || signRu.getCaSignType() == SignRuCaSignTypeEnum.SYSTEM_CA.getCode()){
             operateRecord = new SignRuOperateRecord();
             operateRecord.setSignRuId(signRu.getId());
             //operateRecord.setCertId(certificateProperty.getCertificateInfoId());
@@ -1794,7 +1794,7 @@ public class RuBusinessService {
         List<SignRuDocControl> docControlList = saveControlList(controlList, null, signRu.getId(),signTaskThreadlocalVO.getUserTaskId());
         //签署记录
         SignRuOperateRecord operateRecord = null ;
-        if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode()){
+        if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode() || signRu.getCaSignType() == SignRuCaSignTypeEnum.SYSTEM_CA.getCode()){
             operateRecord = new SignRuOperateRecord();
             operateRecord.setSignRuId(signRu.getId());
             //operateRecord.setCertId(certificateProperty.getCertificateInfoId());
