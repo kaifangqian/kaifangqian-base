@@ -41,6 +41,7 @@ import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.system.service.IApiDeveloperManageService;
 import com.kaifangqian.modules.system.service.ISysTenantInfoService;
 import com.kaifangqian.modules.system.service.ISysUserService;
+import com.kaifangqian.utils.MyStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -118,12 +119,18 @@ public class RuCallbackService {
             if(ruTask.getUserId() != null && !ruTask.getUserId().equals("system") && !ruTask.getUserId().equals("unknown")){
                 //不是自动签署
                 SysUser user = userService.getById(ruTask.getUserId());
+                SysTenantInfo tenantInfo = tenantInfoService.getPersonalByTenantUserId(user.getId());
                 if(user == null){
                     throw new PaasException("账号不存在");
                 }
                 //办理人
                 ContractUser signer = new ContractUser();
-                signer.setName(user.getUsername());
+                if (tenantInfo != null && MyStringUtils.isNotBlank(tenantInfo.getTenantName())){
+                    signer.setName(tenantInfo.getTenantName());
+                }else {
+                    signer.setName(user.getUsername());
+                }
+
                 signer.setContact(user.getPhone());
                 signer.setContactType("MOBILE");
                 callbackVo.setSigner(signer);

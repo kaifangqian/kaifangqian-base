@@ -547,7 +547,6 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
             iSysUserDepartService.updateById(userDepart);
         }
 
-
         currentUser.setDepartId(departId);
         //更新实名认证数据
         String authLogId = UUIDGenerator.generate();
@@ -555,38 +554,57 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
         //如果不存在则创建
         if(tenantInfoExtend == null){
             tenantInfoExtend = new TenantInfoExtend();
-        }
-        //填充数据或者更新数据
-        tenantInfoExtend.setName(register.getEnterpriseName());
-        tenantInfoExtend.setAuthStatus(TenantAuthStatus.STATUS0.getStatus());
-        tenantInfoExtend.setAuthType(TenantAuthType.CREATED.getType());
-        tenantInfoExtend.setTenantId(tenantId);
-        tenantInfoExtend.setTenantType(TenantType.GROUP.getType());
-        tenantInfoExtend.setOrganizationNo(register.getCreditCode());
-        tenantInfoExtend.setCorporation(register.getLegalPerson());
-        String corporationNo = register.getIdentity();
-        String phone = register.getMobile();
-        String organizationNo = register.getCreditCode();
-        try {
-            corporationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, corporationNo);
-            phone = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, phone);
-            organizationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, organizationNo);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        tenantInfoExtend.setCorporationNo(corporationNo);
-        tenantInfoExtend.setPhone(phone);
-        tenantInfoExtend.setOrganizationNo(organizationNo);
-        tenantInfoExtend.setAuthId(authLogId);
-        tenantInfoExtend.setApplyTenantUser(tenantUser.getId());
-
-        if(tenantInfoExtend.getTenantId() != null){
-            //如果已经存在则更新
-            updateById(tenantInfoExtend);
-        }else {
+            //填充数据或者更新数据
+            tenantInfoExtend.setName(register.getEnterpriseName());
+            tenantInfoExtend.setAuthStatus(TenantAuthStatus.STATUS0.getStatus());
+            tenantInfoExtend.setAuthType(TenantAuthType.CREATED.getType());
+            tenantInfoExtend.setTenantId(tenantId);
+            tenantInfoExtend.setTenantType(TenantType.GROUP.getType());
+            tenantInfoExtend.setOrganizationNo(register.getCreditCode());
+            tenantInfoExtend.setCorporation(register.getLegalPerson());
+            String corporationNo = register.getIdentity();
+            String phone = register.getMobile();
+            String organizationNo = register.getCreditCode();
+            try {
+                corporationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, corporationNo);
+                phone = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, phone);
+                organizationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, organizationNo);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            tenantInfoExtend.setCorporationNo(corporationNo);
+            tenantInfoExtend.setPhone(phone);
+            tenantInfoExtend.setOrganizationNo(organizationNo);
+            tenantInfoExtend.setAuthId(authLogId);
+            tenantInfoExtend.setApplyTenantUser(tenantUser.getId());
             //如果不存在则插入
             tenantInfoExtend.setId(UUIDGenerator.generate());
             save(tenantInfoExtend);
+        }else if(tenantInfoExtend != null && tenantInfoExtend.getAuthStatus() != null && tenantInfoExtend.getAuthStatus() == TenantAuthStatus.STATUS0.getStatus()){
+            tenantInfoExtend.setName(register.getEnterpriseName());
+            tenantInfoExtend.setAuthType(TenantAuthType.CREATED.getType());
+            tenantInfoExtend.setTenantId(tenantId);
+            tenantInfoExtend.setTenantType(TenantType.GROUP.getType());
+            tenantInfoExtend.setOrganizationNo(register.getCreditCode());
+            tenantInfoExtend.setCorporation(register.getLegalPerson());
+            String corporationNo = register.getIdentity();
+            String phone = register.getMobile();
+            String organizationNo = register.getCreditCode();
+            try {
+                corporationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, corporationNo);
+                phone = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, phone);
+                organizationNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, organizationNo);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            tenantInfoExtend.setCorporationNo(corporationNo);
+            tenantInfoExtend.setPhone(phone);
+            tenantInfoExtend.setOrganizationNo(organizationNo);
+            tenantInfoExtend.setAuthId(authLogId);
+            tenantInfoExtend.setApplyTenantUser(tenantUser.getId());
+            //如果不存在则插入
+            tenantInfoExtend.setId(UUIDGenerator.generate());
+            updateById(tenantInfoExtend);
         }
         //实名认证记录数据
 //        TenantAuthLog tenantAuthLog = new TenantAuthLog();
