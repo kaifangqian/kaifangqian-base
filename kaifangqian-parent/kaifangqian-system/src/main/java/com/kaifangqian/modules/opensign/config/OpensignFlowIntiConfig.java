@@ -133,7 +133,7 @@ public class OpensignFlowIntiConfig implements ApplicationListener<ApplicationRe
 //        }
 
         //数据不丢的接口回调
-//        apiCollBack();
+        apiCollBack();
     }
 
     public void apiCollBack() {
