@@ -670,7 +670,7 @@
                         const target = targets[v.page];
                         const offsetWidth = (maxWidth - target.width) / 2;
                         //填写控件位置
-                        v.widgetList = paramBuildWidgets(item.widgetList,target,offsetWidth);
+                        v.widgetList = paramBuildWidgets(v.widgetList,target,offsetWidth);
                         // v.position.top = currentPositionReverse(v.offsetY, v.page)
                           v.position =  {
                             left:  parseInt(v.offsetX) + offsetWidth,
@@ -1745,4 +1745,3 @@
 
 
   </style>
-  
