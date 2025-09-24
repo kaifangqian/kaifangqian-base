@@ -24,7 +24,6 @@ import 'virtual:windi-base.css';
 import 'virtual:windi-components.css';
 import '/@/design/index.less';
 import 'virtual:windi-utilities.css';
-// import "vue3-json-viewer/dist/index.css";
 import '/@/assets/style/common.css';
 // Register icon sprite
 import 'virtual:svg-icons-register';

@@ -58,22 +58,6 @@
                 >
                   <div class="tooltip-placeholder"></div>
                 </a-tooltip>
-              <!-- <a-tooltip 
-                :title="getControlChangeFlagTitle(controlChangeFlag)" 
-                overlayClassName="instant-tooltip"
-                :mouseEnterDelay="0"
-                :mouseLeaveDelay="0"
-              >
-                <Icon icon="ant-design:question-circle-outlined" class="info-icon" />
-              </a-tooltip> -->
-              <!-- <a-tooltip>
-                <template #title>
-                  <span v-if="controlChangeFlag=='necessary_and_add'">必须签署，可增加新的签署位置：签署时，发起人已经指定的签署位置不可修改，但允许签署人新增签署位置。</span>
-                  <span v-if="controlChangeFlag=='necessary_no_add'">必须签署，不可增加新的签署位置：签署时，发起人已经指定的签署位置不可修改，且不允许签署人新增签署位置。</span>
-                  <span v-if="controlChangeFlag=='not_necessary'">非必须签署：签署时，签署人可修改、删除发起人已经指定的签署位置，且允许签署人新增签署位置。</span>
-                </template>
-                <Icon icon="ant-design:question-circle-outlined" style="margin-left:10px;"/>
-              </a-tooltip> -->
               </div>
             </div>
             <div v-if="showSendSignControlTip" class="sign-control-tip-below">
@@ -102,7 +86,7 @@
             <DocContent :nowDocument="nowDocument" :showControl="true" :minTargetInfo="minTargetInfo" :docs="docs" @controlDelete="controlDelete"  :isSubmitControl="isSubmitControl" @controlFocus="controlFocus"
               @controlMousedown="controlMousedown" :spinning="spinning" :hasWriteControl="hasWriteControl"  @handleSetControl="handleSetControl" @refreshControlPosition="refreshControlPosition" @signDateFormat="signDateFormat">
             </DocContent>
-          <DocRight title="设置模板参数填写方" v-if="hasWriteControl">
+          <DocRight title="设置模板参数填写方" v-show="hasWriteControl">
             <SetParamsWriter  :controlList="controlList"   :documentList="documentList"   :signerList="signerList" :docId="docId" @scroll="handleScroll" @needInitiatorWrite="monitorWriter">
             </SetParamsWriter>
           </DocRight> 
@@ -670,7 +654,7 @@
                         const target = targets[v.page];
                         const offsetWidth = (maxWidth - target.width) / 2;
                         //填写控件位置
-                        v.widgetList = paramBuildWidgets(item.widgetList,target,offsetWidth);
+                        v.widgetList = paramBuildWidgets(v.widgetList,target,offsetWidth);
                         // v.position.top = currentPositionReverse(v.offsetY, v.page)
                           v.position =  {
                             left:  parseInt(v.offsetX) + offsetWidth,
@@ -1745,4 +1729,3 @@
 
 
   </style>
-  

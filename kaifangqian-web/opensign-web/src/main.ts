@@ -36,26 +36,15 @@ import { router, setupRouter } from '/@/router';
 
 import axios from 'axios';
 
-import { Router } from 'vue-router'
 import { setupRouterGuard } from '/@/router/guard';
 import { setupStore } from '/@/store';
 import { setupGlobDirectives } from '/@/directives';
 import { setupI18n } from '/@/locales/setupI18n';
 import { registerGlobComp } from '/@/components/registerGlobComp';
-// import JsonViewer from "vue3-json-viewer";
 import eventHub from '/@/utils/eventHub';
-import { useUserStoreWithOut } from '/@/store/modules/user';
-import { useAppStore } from '/@/store/modules/app';
-
-// import microApp from '@micro-zoe/micro-app';
-// import MicroEnv from './public-path';
-
-// import { getConfigFileName } from '../build/getConfigFileName';
-// import { getAppEnvConfig } from '/@/utils/env';
+// import { useUserStoreWithOut } from '/@/store/modules/user';
+// import { useAppStore } from '/@/store/modules/app';
 import VueLazyload from 'vue-lazyload';
-
-// import type { UserConfig, ConfigEnv } from 'vite';
-// import { loadEnv } from 'vite';
 
 
 declare global {
@@ -66,8 +55,8 @@ declare global {
         __MICRO_APP_BASE_APPLICATION__: string
     }
 }
-const appStore = useAppStore();
-const userStore = useUserStoreWithOut();
+// const appStore = useAppStore();
+// const userStore = useUserStoreWithOut();
 let app = createApp(App);
 
 function transformAppInfoData(rawData) {

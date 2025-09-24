@@ -323,7 +323,7 @@
           style="border: 1px solid #e4e4e4; transform: translate(50px, 2px)" />
       </div>
       <div class="signature-footer" :style="{ width: signaturePadConfig.height - 40 + 'px' }">
-        <div>
+        <div v-if="clientHeight >= 700">
           <span class="signature-tip">
             <svg width="16" height="16" style="margin-right:4px;vertical-align:middle;" fill="#faad14" viewBox="0 0 1024 1024"><path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.3 0-372-166.7-372-372s166.7-372 372-372 372 166.7 372 372-166.7 372-372 372zm-40-272h80c4.4 0 8-3.6 8-8v-8c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v8c0 4.4 3.6 8 8 8zm40-440c-35.3 0-64 28.7-64 64v240c0 35.3 28.7 64 64 64s64-28.7 64-64V236c0-35.3-28.7-64-64-64z"></path></svg>
             请正楷签署您的姓名，避免错别字或书写过于潦草导致无法律效力
@@ -728,6 +728,8 @@ export default defineComponent({
     });
 
     const clientWidth = ref(document.body.clientWidth);
+    const clientHeight = ref(document.body.clientHeight);
+    // console.log('clientHeight----',clientHeight.value);
     const docList = ref([
       {
         text: '开放签API接口V1.0.0',
@@ -4030,6 +4032,7 @@ export default defineComponent({
       hashSignControl,
       locationSignControl,
       currentLocationIndex,
+      clientHeight,
     };
   },
 });

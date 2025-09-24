@@ -28,7 +28,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 /resrun-paas-tenant.iml
-/.env.development
 /yarn.lock
 
 package-lock.json
