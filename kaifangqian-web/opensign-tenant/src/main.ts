@@ -24,7 +24,6 @@ import 'virtual:windi-base.css';
 import 'virtual:windi-components.css';
 import '/@/design/index.less';
 import 'virtual:windi-utilities.css';
-// import "vue3-json-viewer/dist/index.css";
 // Register icon sprite
 import 'virtual:svg-icons-register';
 import App from './App.vue';
@@ -38,7 +37,6 @@ import { setupStore } from '/@/store';
 import { setupGlobDirectives } from '/@/directives';
 import { setupI18n } from '/@/locales/setupI18n';
 import { registerGlobComp } from '/@/components/registerGlobComp';
-import JsonViewer from 'vue3-json-viewer';
 import eventHub from '/@/utils/eventHub';
 // import Antd from 'ant-design-vue';
 import VueLazyload from 'vue-lazyload';
@@ -118,9 +116,6 @@ async function bootstrap() {
 
   // 待单独写成文件调用
   app.config.globalProperties.eventHub = eventHub;
-
-  // json预览
-  app.use(JsonViewer);
 
   // 使用 vue-lazyload 插件
   app.use(VueLazyload);
