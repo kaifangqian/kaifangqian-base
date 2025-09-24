@@ -2339,6 +2339,20 @@ public class RuBusinessService {
         return signConfirmType ;
     }
 
+    /**
+     * @Description #获取系统级个人签署节点实名认证配置
+     * @Param []
+     * @return java.lang.Boolean
+     **/
+    public String getSystemPersonalSignAuthType(){
+        String personalSignAuthTypeValue = null ;
+        SysConfig config = sysConfigService.getByType("personal_sign_auth");
+        if (config != null && config.getValue() != null) {
+            personalSignAuthTypeValue = config.getValue();
+        }
+        return personalSignAuthTypeValue ;
+    }
+
 
     public Boolean signConfirm(String taskId){
 
