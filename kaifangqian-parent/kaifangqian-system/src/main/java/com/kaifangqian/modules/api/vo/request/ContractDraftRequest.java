@@ -87,8 +87,12 @@ public class ContractDraftRequest extends ReqBaseVO implements Serializable {
 
     // @ApiModelProperty("经办人账号")
     private String operatorAccount;
+
     // @ApiModelProperty("发起方企业")
     private String enterpriseName;
+
+    //发起类型：api(接口发起)；app（应用发起）
+    private String sendType ;
 
 
 

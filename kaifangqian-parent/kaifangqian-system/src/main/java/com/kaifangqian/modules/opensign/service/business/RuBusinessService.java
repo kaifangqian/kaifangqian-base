@@ -408,7 +408,7 @@ public class RuBusinessService {
                     }
                 }
                 List<DocSenderVo> senderVoList = new ArrayList<>();
-                if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType()) ){
+                if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType())){
                     //发起人
                     List<SignRuSender> senderList = senderService.listBySignerId(signer.getId());
                     if(senderList != null && senderList.size() > 0){
@@ -448,6 +448,7 @@ public class RuBusinessService {
                             if(signRuSignConfirm != null){
                                 senderVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                                 senderVo.setVerifyType(signRuSignConfirm.getConfirmType());
+                                senderVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
                             }
 
 //                            if(confirmSignerIdList.contains(sender.getId())){
@@ -461,6 +462,7 @@ public class RuBusinessService {
                     if(signRuSignConfirm != null){
                         signerVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                         signerVo.setVerifyType(signRuSignConfirm.getConfirmType());
+                        signerVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
                     }
 
 //                    if(confirmSignerIdList.contains(signer.getId())){
@@ -1626,23 +1628,106 @@ public class RuBusinessService {
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
             }
 
-
         }else{
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
+            // 获取签署人确认信息
             SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(),signRuId);
+            // 获取平台个人实名认证节点配置
+            String personalSignAuth = this.getSystemPersonalSignAuthType();
+            SignRe signRe = reService.getById(signRu.getSignReId());
+            String sendType = signRu.getSendType();
             if(confirm != null){
+                //个人签署意愿认证类型逻辑判断
                 if(MyStringUtils.isNotBlank(confirm.getConfirmType())){
                     signOrderRequest.setVerifyTypes(Arrays.asList(confirm.getConfirmType()));
                 }else{
                     signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
                 }
+                //个人签署是否跳过意愿认证逻辑判断
                 if(confirm.getAgreeSkipWillingness() != null && confirm.getAgreeSkipWillingness() == 1){
                     signOrderRequest.setAgreeSkipWillingness("true");
                 }else{
                     signOrderRequest.setAgreeSkipWillingness("false");
                 }
+
+                if((MyStringUtils.isNotBlank(confirm.getPersonalSignAuth()))){
+                    if(personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                        if(confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                            throw new PaasException("不支持个人实名认证签署");
+                        }
+                    }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                        if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                            throw new PaasException("不支持个人无需实名认证签署");
+                        }
+                    }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                        if(sendType != null && sendType.equals(ContractSendTypeEnum.API.getType())){
+                            //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
+                            if(!confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) || !confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                                throw new PaasException("仅支持个人签署时实名认证或不实名认证");
+                            }
+                            signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
+                        }else{
+                            if (signRe != null && signRe.getPersonalSignAuth() != null){
+                                if(signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                                    if(confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                                        throw new PaasException("不支持个人实名认证签署");
+                                    }
+                                }else if (signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                                    if(confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                                        throw new PaasException("不支持个人无需实名认证签署");
+                                    }
+                                }else if (signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                                    //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
+                                    if(!confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) || !confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                                        throw new PaasException("仅支持个人签署时实名认证或不实名认证");
+                                    }
+                                    signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
+                                }
+                            }else{
+                                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                            }
+                        }
+                    }
+                    //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
+                    signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
+                } else {
+                    if(personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+                    }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                    }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                        if(signRe != null && signRe.getPersonalSignAuth() != null){
+                            if(signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+                            }else if(signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                            }else if (signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                            }
+                        }else{
+                            signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                        }
+                    }
+                }
             }else{
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
+                if(personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                    signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+                }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                    signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                    if(signRe != null && signRe.getPersonalSignAuth() != null){
+                        if(signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                            signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+                        }else if(signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                            signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                        }else if (signRe.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
+                            signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                        }
+                    }else{
+                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                    }
+                }
             }
         }
         CertTypeEnum certTypeEnum = null ;
@@ -2349,6 +2434,8 @@ public class RuBusinessService {
         SysConfig config = sysConfigService.getByType("personal_sign_auth");
         if (config != null && config.getValue() != null) {
             personalSignAuthTypeValue = config.getValue();
+        }else {
+            personalSignAuthTypeValue = PersonalSignAuthTypeEnum.REQUIRED.getType();
         }
         return personalSignAuthTypeValue ;
     }

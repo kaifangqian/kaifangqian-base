@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 // @Api(tags = "业务线-签署意愿校验")
 public class SignConfirmController {
 
-
-
-
     @Autowired
     private RuBusinessService ruBusinessService ;
 

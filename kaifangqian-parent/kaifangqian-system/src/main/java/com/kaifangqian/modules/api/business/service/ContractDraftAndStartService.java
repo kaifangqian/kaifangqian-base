@@ -99,8 +99,8 @@ public class ContractDraftAndStartService extends ContractService {
                 //生成主题和编号
                 ruBusinessService.startGenerateSubject(startRuId);
             }catch (Exception e){
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,生成主题和编号失败");
             }
-
 
             Date operateTime = new Date();
             //发起流程
@@ -1365,6 +1365,8 @@ public class ContractDraftAndStartService extends ContractService {
                 signRu.setControlChangeFlag(ControlChangeFlagEnum.NECESSARY_AND_ADD.getType());
             }
         }
+
+        signRu.setSendType(request.getSendType());
 
         signRu.setStatus(SignRuStatusEnum.DRAFT.getCode());
 
