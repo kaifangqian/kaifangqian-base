@@ -404,7 +404,8 @@
           }
           if(info.type=='signature' && info.value){
             QRsignatureBase64.value = 'data:image/png;base64,' + info.value;
-            socket.value.close();
+            // socket.value.close();
+            clearSocket();
           }
         })
       }
@@ -538,7 +539,7 @@
         left:0;right: 0;
         top:0;
         bottom:0;
-        background-color: rgba(64, 64, 64, 0.9);
+        background-color: rgba(0, 0, 0, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
