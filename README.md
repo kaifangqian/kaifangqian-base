@@ -115,4 +115,4 @@ kaifangqian-base/
 - [Apache Shiro](https://shiro.apache.org/)
 - [Redisson](https://redisson.org/)
 
-**开发指南请查看wiiki**
+**开发指南请查看wiki**[输入链接说明](https://gitee.com/kaifangqian/kaifangqian-base/wikis/%E5%BC%80%E6%94%BE%E7%AD%BE%E7%94%B5%E5%AD%90%E7%AD%BE%E7%AB%A0%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97)
