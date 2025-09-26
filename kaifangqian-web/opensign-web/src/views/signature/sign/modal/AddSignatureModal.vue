@@ -520,7 +520,7 @@
         left:0;right: 0;
         top:0;
         bottom:0;
-        background-color: rgba(64, 64, 64, 0.8);
+        background-color: rgba(0, 0, 0, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
