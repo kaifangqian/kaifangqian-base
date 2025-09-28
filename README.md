@@ -66,6 +66,10 @@ kaifangqian-base/
 
 [开发指南请查看wiki](https://gitee.com/kaifangqian/kaifangqian-base/wikis/%E5%BC%80%E6%94%BE%E7%AD%BE%E7%94%B5%E5%AD%90%E7%AD%BE%E7%AB%A0%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97)
 
+## 本地运行
+### [启动后端](./kaifangqian-parent/README.md)
+### [启动前端](./kaifangqian-web/README.md)
+
 # 功能截图
 ![输入图片说明](doc/shouyeimage.png)
 ![输入图片说明](doc/faqiimage.png)

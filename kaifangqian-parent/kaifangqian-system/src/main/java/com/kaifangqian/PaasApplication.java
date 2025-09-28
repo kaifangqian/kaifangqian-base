@@ -1,5 +1,6 @@
 package com.kaifangqian;
 
+import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.modules.storage.config.StorageProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -14,6 +15,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -36,6 +39,7 @@ import java.net.UnknownHostException;
 @EnableTransactionManagement
 @MapperScan({"com.kaifangqian.modules.**.mapper", "com.kaifangqian.mapper"})
 @EnableConfigurationProperties(StorageProperties.class)
+@RestController
 public class PaasApplication extends SpringBootServletInitializer {
 
     @Override
@@ -55,4 +59,8 @@ public class PaasApplication extends SpringBootServletInitializer {
                 "----------------------------------------------------------");
     }
 
+    @GetMapping("/")
+    public Result index(){
+        return Result.OK("service started successfully");
+    }
 }
