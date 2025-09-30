@@ -127,7 +127,7 @@ public class ValidService {
         if(request.getFileName() == null || request.getFileName().length() == 0){
             throw new RequestParamsException(ApiCode.PARAM_MISSING,"fileName参数缺失");
         }
-        if(request.getFileName().length() > 64){
+        if(request.getFileName().length() > 128){
             throw new RequestParamsException(ApiCode.PARAM_SIZE_INVALID,"fileName参数格式不正确，长度不合法");
         }
 //        if(request.getFileName().contains(" ")){
@@ -160,7 +160,7 @@ public class ValidService {
         if(request.getFileName() == null || request.getFileName().length() == 0){
             throw new RequestParamsException(ApiCode.PARAM_MISSING,"fileName参数缺失");
         }
-        if(request.getFileName().length() > 64){
+        if(request.getFileName().length() > 128){
             throw new RequestParamsException(ApiCode.PARAM_SIZE_INVALID,"fileName参数格式不正确，长度不合法");
         }
 //        if(request.getFileName().contains(" ")){
