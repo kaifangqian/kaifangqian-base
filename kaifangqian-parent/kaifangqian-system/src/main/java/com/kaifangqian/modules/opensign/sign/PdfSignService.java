@@ -21,6 +21,7 @@
  */
 package com.kaifangqian.modules.opensign.sign;
 
+import com.kaifangqian.modules.opensign.enums.PersonalSignAuthTypeEnum;
 import com.kaifangqian.modules.opensign.enums.SignTypeEnum;
 import com.kaifangqian.modules.opensign.service.business.vo.YundunSignPositionArrayData;
 import com.kaifangqian.exception.PaasException;
@@ -45,6 +46,7 @@ import com.kaifangqian.utils.MyStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import com.kaifangqian.modules.opensign.vo.base.sign.PdfSignVoInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,23 +95,23 @@ public class PdfSignService {
      * @Param [pdfFile 文档, signByte 签章, certInfo 证书, positions 位置]
      * @return byte[]
      **/
-    public Map<String,byte[]> signWithYundunHash(String contractId, String appName, String appId, Map<String,byte[]> newDocFileByteMap, byte[] entSealByte, String orderNo, String certHolderTenantId, SignRu signRu, List<YundunSignPositionArrayData> yundunSignPositionArrayDatas, String signType){
+    public Map<String,byte[]> signWithYundunHash(PdfSignVoInfo pdfSignVoInfo){
 //        log.info("开始签署了");
         //开始签署
         List<DocumentInfo> documentList = new ArrayList<>();
         VerifySignDocumentRequest verifySignDocumentRequest = null;
         AutoSignDocumentRequest autoSignDocumentRequest = null;
 
-        if(signType.equals(SignTypeEnum.AUTH_SIGN.getCode())){
+        if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
             verifySignDocumentRequest = new VerifySignDocumentRequest();
-            verifySignDocumentRequest.setSeal(Base64.encode(entSealByte));
-            verifySignDocumentRequest.setOrderNo(orderNo);
-        }else if(signType.equals(SignTypeEnum.AUTO_SIGN.getCode())){
+            verifySignDocumentRequest.setSeal(Base64.encode(pdfSignVoInfo.getEntSealByte()));
+            verifySignDocumentRequest.setOrderNo(pdfSignVoInfo.getOrderNo());
+        }else if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTO_SIGN.getCode())){
             autoSignDocumentRequest = new AutoSignDocumentRequest();
-            autoSignDocumentRequest.setContractNo(signRu.getId());
-            autoSignDocumentRequest.setContractName(signRu.getSubject());
-            autoSignDocumentRequest.setUnionId(certHolderTenantId);
-            autoSignDocumentRequest.setSeal(Base64.encode(entSealByte));
+            autoSignDocumentRequest.setContractNo(pdfSignVoInfo.getSignRu().getId());
+            autoSignDocumentRequest.setContractName(pdfSignVoInfo.getSignRu().getSubject());
+            autoSignDocumentRequest.setUnionId(pdfSignVoInfo.getCertHolderTenantId());
+            autoSignDocumentRequest.setSeal(Base64.encode(pdfSignVoInfo.getEntSealByte()));
         }
 
         Map<String,PdfboxSignData> asssinaturePdfMap = new HashMap<String,PdfboxSignData>();
@@ -117,7 +119,7 @@ public class PdfSignService {
         AssinaturaModel assinatura = null;
 
         //遍历每个文件，设置签署位置，执行签署
-        for (Map.Entry<String, byte[]> entry : newDocFileByteMap.entrySet()) {
+        for (Map.Entry<String, byte[]> entry : pdfSignVoInfo.getNewDocFileByteMap().entrySet()) {
             byte[] newDocFileByte = null;
             String docId = entry.getKey();
             SignRuDoc signRuDoc = signRuDocService.getById(docId);
@@ -133,18 +135,25 @@ public class PdfSignService {
 
             //签署所需基础数据
             assinatura = new AssinaturaModel();
-            assinatura.setLocation(appName+"："+appId);
-            assinatura.setReason("ID:"+contractId+"，依据电子签名法此电子签名与本人的签名/签章具有同等法律效力。");
+            assinatura.setLocation(pdfSignVoInfo.getAppName()+"："+pdfSignVoInfo.getAppId());
+            if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                assinatura.setReason("ID:"+pdfSignVoInfo.getSignRu().getId()+"，依据电子签名法此电子签名与本人的签名/签章具有同等法律效力。");
+            }else if(MyStringUtils.isBlank(pdfSignVoInfo.getPersonalSignAuthType())){
+                assinatura.setReason("ID:"+pdfSignVoInfo.getSignRu().getId()+"，依据电子签名法此电子签名与本人的签名/签章具有同等法律效力。");
+            }else if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                assinatura.setReason("ID:"+pdfSignVoInfo.getSignRu().getId()+"，该证书仅能保障文件在电子签名后不被篡改，不具备《电子签名法》所规定的法律效力。");
+            }
+
             //文件
             assinatura.setPdf(newDocFileByte);
             //签章
-            assinatura.setSignatureImage(entSealByte);
+            assinatura.setSignatureImage(pdfSignVoInfo.getEntSealByte());
 
             List<AssinaturaPosition> realPositions = new ArrayList<>();
 
-            for(int i = 0 ; i < yundunSignPositionArrayDatas.size() ; i++){
+            for(int i = 0 ; i < pdfSignVoInfo.getYundunSignPositionArrayDatas().size() ; i++){
 
-                YundunSignPositionArrayData yundunSignPositionArrayData = yundunSignPositionArrayDatas.get(i);
+                YundunSignPositionArrayData yundunSignPositionArrayData = pdfSignVoInfo.getYundunSignPositionArrayDatas().get(i);
 
                 if(docId.equals(yundunSignPositionArrayData.getDocId())){
                     List<YundunSignPositionData> yundunSignPositionDataList = yundunSignPositionArrayData.getYundunSignPositionDataList();
@@ -195,22 +204,22 @@ public class PdfSignService {
                 e.printStackTrace();
                 throw new PaasException("签署失败",e);
             }
-            if(signType.equals(SignTypeEnum.AUTH_SIGN.getCode())){
+            if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
                 verifySignDocumentRequest.setDocuments(documentList);
-            }else if (signType.equals(SignTypeEnum.AUTO_SIGN.getCode())){
+            }else if (pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTO_SIGN.getCode())){
                 autoSignDocumentRequest.setDocuments(documentList);
             }
         }
         try {
             List<DocumentInfo> yundunDocumentList = null;
-            if(signType.equals(SignTypeEnum.AUTH_SIGN.getCode())){
+            if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
                 // 构建云盾意愿校验签署返回数据
                 AuthSignDocumentResponse authSignDocumentResponse = null;
                 // 返回云盾签署数据
                 authSignDocumentResponse = signServiceExternal.submitAuthHashSign(verifySignDocumentRequest);
                 yundunDocumentList = authSignDocumentResponse.getDocuments();
 
-            }else if (signType.equals(SignTypeEnum.AUTO_SIGN.getCode())){
+            }else if (pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTO_SIGN.getCode())){
                 AutoSignDocumentResponse autoSignDocumentResponse = null;
                 autoSignDocumentResponse = signServiceExternal.submitAutoHashSign(autoSignDocumentRequest);
                 yundunDocumentList = autoSignDocumentResponse.getDocuments();
@@ -219,7 +228,7 @@ public class PdfSignService {
                 for(DocumentInfo documentInfoTemp : yundunDocumentList){
                     PdfboxSignData pdfboxSignData = asssinaturePdfMap.get(documentInfoTemp.getDocumentId());
                     byte[] newPDF = AddExternalSignature.addSignature(pdfboxSignData.getSignedFile(), pdfboxSignData.getOffset(), Base64.decode(documentInfoTemp.getSignature()));
-                    newDocFileByteMap.put(documentInfoTemp.getDocumentId(),newPDF);
+                    pdfSignVoInfo.getNewDocFileByteMap().put(documentInfoTemp.getDocumentId(),newPDF);
                 }
             }else{
                 throw new PaasException("文件签署失败，未检测到签署文件");
@@ -229,6 +238,6 @@ public class PdfSignService {
             throw new PaasException("签署失败",e);
         }
 //        log.info("签署完成了");
-        return newDocFileByteMap ;
+        return pdfSignVoInfo.getNewDocFileByteMap() ;
     }
 }

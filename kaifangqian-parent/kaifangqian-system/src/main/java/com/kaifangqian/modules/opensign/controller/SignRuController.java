@@ -1611,7 +1611,6 @@ public class SignRuController {
         TenantInfoDTO tenantInfoExt = tenantInfoExtendService.getTenantInfoExt(tenantId);
 
         //如果需要使用CA证书，则需要进行实名认证
-
         if (!certType.equals(CertTypeEnum.SYSTEM.getCode())) {
 
             if (tenantInfoExt == null || tenantInfoExt.getAuthStatus() != TenantAuthStatus.STATUS2.getStatus()) {
@@ -1652,6 +1651,13 @@ public class SignRuController {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String format = simpleDateFormat.format(certificateInfo.getTermOfValidityEndTime());
         return Result.OK("", format);
+    }
+
+    // 获取签署节点的配置信息，如是否需要实名，是否需要通知，是否需要签署意愿校验等
+    // Get the configuration information of the signing node, such as whether real-name authentication is required, whether notification is required, whether signing intention verification is required, etc.
+    @RequestMapping(value = "/run/sign/nodeConfig", method = RequestMethod.GET)
+    public Result<SignNodeConfigResponse> signNodeConfig() {
+        return Result.OK(ruBusinessService.getSignNodeConfig());
     }
 
     // @ApiOperation("业务线实例-运行中-是否需要签署意愿校验")

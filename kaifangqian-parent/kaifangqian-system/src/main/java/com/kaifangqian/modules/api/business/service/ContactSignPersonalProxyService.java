@@ -408,7 +408,7 @@ public class ContactSignPersonalProxyService extends ContractService {
             operateRecord.setOperateTime(new Date());
         }
         //签署操作
-        ruBusinessService.operate(controlList,signRu,operateTypeEnum,personalTenantId,sealByte,operateRecord,SignTypeEnum.AUTO_SIGN.getCode());
+        ruBusinessService.operate(controlList,signRu,operateTypeEnum,personalTenantId,sealByte,operateRecord,SignTypeEnum.AUTO_SIGN.getCode(),"");
         SignTaskThreadlocalVO threadlocalVO = new SignTaskThreadlocalVO();
         threadlocalVO.setSignRuId(signTaskThreadSignRuId);
         threadlocalVO.setTaskId(signTaskThreadTaskId);
