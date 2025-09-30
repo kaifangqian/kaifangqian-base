@@ -58,7 +58,7 @@ file:
 ```
 ### 3. 启动项目
 ```shell
-# 自行配置application-prod.yml中相关配置如Mysql、Redis、PowerJob必要的相关配置
+# 自行配置application-prod.yml中相关如Mysql、Redis、PowerJob必要的相关配置
 cd kaifangqian-system
 mvn spring-boot:run
 

@@ -602,8 +602,6 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
             tenantInfoExtend.setOrganizationNo(organizationNo);
             tenantInfoExtend.setAuthId(authLogId);
             tenantInfoExtend.setApplyTenantUser(tenantUser.getId());
-            //如果不存在则插入
-            tenantInfoExtend.setId(UUIDGenerator.generate());
             updateById(tenantInfoExtend);
         }
         //实名认证记录数据
