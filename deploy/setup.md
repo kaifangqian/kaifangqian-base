@@ -41,6 +41,7 @@ docker ps -f "name=mysql"
 ```
 docker cp /home/data/deploy/config/opensign.sql [容器id]:/home
 ```
+**数据库脚本位置：https://gitee.com/kaifangqian/kaifangqian-base/blob/master/kaifangqian-parent/sql/opensign.sql**
 ### 5.3进入容器
 ```
 docker exec -it [容器id] /bin/bash
