@@ -1376,13 +1376,20 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         //绑定租户下未绑定的用户
         SignRuTask taskQuery = new SignRuTask();
         taskQuery.setTenantId(tenantId);
-        List<SignRuTask> ruTasks = signRuTaskService.getTenanNoBindList(taskQuery);
+        List<SignRuTask> ruTasks = signRuTaskService.getTenantNoBindList(taskQuery);
+        if (CollUtil.isEmpty(ruTasks)){
+            ruTasks = signRuTaskService.getTenantNoBindListForApi(taskQuery);
+        }
+
         if (CollUtil.isNotEmpty(ruTasks)) {
             List<SignRuTask> tasks = new ArrayList<>();
             ruTasks.forEach(t -> {
                 SysTenantUser tenantUser = sysTenantUserService.getActiviTenantUser(t.getTenantId(), t.getUserId());
                 if (tenantUser != null) {
                     t.setTenantUserId(tenantUser.getId());
+                    if (MyStringUtils.isBlank(t.getUserId())){
+                        t.setUserId(tenantUser.getUserId());
+                    }
                     tasks.add(t);
                 }
             });
