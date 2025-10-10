@@ -28,6 +28,7 @@ import com.kaifangqian.modules.api.service.IApiCallbackService;
 import com.kaifangqian.modules.api.util.CallbackUtil;
 import com.kaifangqian.modules.api.vo.request.ApiCallbackVO;
 import com.kaifangqian.modules.opensign.constant.SignCommonConstant;
+import com.kaifangqian.modules.opensign.entity.SignRuTask;
 import com.kaifangqian.modules.opensign.interceptor.SignCommandInterceptor;
 import com.kaifangqian.modules.opensign.interceptor.SignCommandInvoker;
 import com.kaifangqian.modules.opensign.service.business.PdfConvertService;
@@ -37,6 +38,7 @@ import com.kaifangqian.modules.opensign.service.flow.IFlowService;
 import com.kaifangqian.modules.opensign.service.flow.SignCommandExecutor;
 import com.kaifangqian.modules.opensign.service.flow.impl.SignCommandExecutorImpl;
 import com.kaifangqian.modules.opensign.service.flow.impl.SignServiceImpl;
+import com.kaifangqian.modules.opensign.service.ru.SignRuTaskService;
 import com.kaifangqian.modules.system.entity.*;
 import com.kaifangqian.modules.system.service.*;
 import com.kaifangqian.common.constant.ApiConstants;
@@ -104,6 +106,9 @@ public class OpensignFlowIntiConfig implements ApplicationListener<ApplicationRe
     private PdfEncryptionService pdfEncryptionService ;
     @Autowired
     private PdfConvertService pdfConvertService ;
+
+    @Autowired
+    private SignRuTaskService signRuTaskService;
 
 
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
@@ -328,6 +333,18 @@ public class OpensignFlowIntiConfig implements ApplicationListener<ApplicationRe
         }
 
         sysConfigService.updateById(sysConfig);
+
+        //绑定并补充企业用户签署任务数据
+        SignRuTask query = new SignRuTask();
+        List<SignRuTask> signRuTaskList = signRuTaskService.getTenantNoBindListForLoading(query);
+        signRuTaskList.forEach(s -> {
+            //解析数据库已有数据做绑定表:sign_ru_task
+            //绑定企业名：租户ID
+            flowService.bindOutUserTask(s.getTenantName(), null, null, null, null, null, s.getTenantId(), null, "tenantCheck");
+            //绑定租户ID：(查询用户ID)租户账号ID
+            flowService.bindTenantUserTaskAll(s.getTenantId(), "tenantCheck");
+        });
+
     }
 
 
