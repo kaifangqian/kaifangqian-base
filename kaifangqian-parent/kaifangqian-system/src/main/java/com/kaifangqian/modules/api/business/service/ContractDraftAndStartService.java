@@ -953,13 +953,14 @@ public class ContractDraftAndStartService extends ContractService {
             ruSigner.setSignerExternalValue(receiver.getContact());
         }
         ruSigner.setDeleteFlag(false);
-        dataSigner.setAgreeSkipWillingness(personalSinger.getAgreeSkipWillingness());
+        dataSigner.setAgreeSkipWillingness(personalSinger.getReceiver().getAgreeSkipWillingness());
+        dataSigner.setPersonalSignAuth(personalSinger.getReceiver().getPersonalSignAuth());
         //人脸
         String signConfirm = personalSinger.getSignConfirm();
         if(signConfirm != null && signConfirm.equals("FACE")){
             dataSigner.setVerifyType("FACE");
         }else {
-            dataSigner.setVerifyType(personalSinger.getVerifyType());
+            dataSigner.setVerifyType(personalSinger.getReceiver().getVerifyType());
         }
         //控件数据
         if(personalSinger.getPositionParamList() != null && personalSinger.getPositionParamList().size() > 0){
@@ -1014,6 +1015,7 @@ public class ContractDraftAndStartService extends ContractService {
 
                 }
                 dataSigner.setAgreeSkipWillingness(contractSigner.getAgreeSkipWillingness());
+                dataSigner.setPersonalSignAuth(contractSigner.getPersonalSignAuth());
                 //人脸
                 String signConfirm = contractSigner.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1104,13 +1106,14 @@ public class ContractDraftAndStartService extends ContractService {
                 }
                 ruSender.setDeleteFlag(false);
 
-                dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+                dataSender.setAgreeSkipWillingness(node.getSigner().getAgreeSkipWillingness());
+                dataSender.setPersonalSignAuth(node.getSigner().getPersonalSignAuth());
                 //人脸
                 String signConfirm = node.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
                     dataSender.setVerifyType("FACE");
                 }else{
-                    dataSender.setVerifyType(node.getVerifyType());
+                    dataSender.setVerifyType(node.getSigner().getVerifyType());
                 }
                 //控件数据
                 if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
@@ -1201,13 +1204,14 @@ public class ContractDraftAndStartService extends ContractService {
 
                                 }
 
-                                dataSigner.setAgreeSkipWillingness(contractInternalNode.getAgreeSkipWillingness());
+                                dataSigner.setAgreeSkipWillingness(contractInternalNode.getSigner().getAgreeSkipWillingness());
+                                dataSigner.setPersonalSignAuth(contractInternalNode.getSigner().getPersonalSignAuth());
                                 //人脸
                                 String signConfirm = contractInternalNode.getSignConfirm();
                                 if(signConfirm != null && signConfirm.equals("FACE")){
                                     dataSender.setVerifyType("FACE");
                                 }else{
-                                    dataSender.setVerifyType(contractInternalNode.getVerifyType());
+                                    dataSender.setVerifyType(contractInternalNode.getSigner().getVerifyType());
                                 }
                                 if(contractInternalNode.getPositionParamList() != null && contractInternalNode.getPositionParamList().size() > 0){
                                     for(ContractPositionParam positionParam : contractInternalNode.getPositionParamList()){

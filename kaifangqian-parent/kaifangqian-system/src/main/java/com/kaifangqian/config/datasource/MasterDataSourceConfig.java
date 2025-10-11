@@ -86,7 +86,7 @@ public class MasterDataSourceConfig {
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setCacheEnabled(false);
         // 配置打印sql语句
-//        configuration.setLogImpl(StdOutImpl.class);
+        configuration.setLogImpl(StdOutImpl.class);
         bean.setConfiguration(configuration);
         return bean.getObject();
     }

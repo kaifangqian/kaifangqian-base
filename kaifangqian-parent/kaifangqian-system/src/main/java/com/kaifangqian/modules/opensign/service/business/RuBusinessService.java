@@ -1688,12 +1688,12 @@ public class RuBusinessService {
                 }else{
                     signOrderRequest.setAgreeSkipWillingness("false");
                 }
-                // 个人签署节点实名认证逻辑判断
-                this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
             }else{
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
-                setDefaultSignNodeConfig(signOrderRequest,personalSignAuth,signRu);
             }
+
+            // 个人签署节点实名认证逻辑判断
+            this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
 
         }else{
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
@@ -1713,12 +1713,11 @@ public class RuBusinessService {
                 }else{
                     signOrderRequest.setAgreeSkipWillingness("false");
                 }
-                // 个人签署节点实名认证逻辑判断
-                this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
             }else{
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
-                setDefaultSignNodeConfig(signOrderRequest,personalSignAuth,signRu);
             }
+            // 个人签署节点实名认证逻辑判断
+            this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
         }
         CertTypeEnum certTypeEnum = null ;
         OperateTypeEnum operateTypeEnum = null ;
@@ -2700,85 +2699,46 @@ public class RuBusinessService {
      * @param signRu
      */
     private void setSignNodeConfig(SignRuSignConfirm confirm,String personalSignAuth,String sendType,SignOrderRequest signOrderRequest,SignRu signRu){
-        // 个人签署节点实名认证逻辑判断
-        if((MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) && (MyStringUtils.isNotBlank(personalSignAuth))) {
-            if (personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
-                if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                    throw new PaasException("不支持个人实名认证签署");
-                }
-            } else if (personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
-                    throw new PaasException("不支持个人无须实名认证签署");
-                }
-            } else if (personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
-                if (sendType != null && sendType.equals(ContractSendTypeEnum.API.getType())) {
-                    //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
-                    if (!confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) && !confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                        throw new PaasException("仅支持个人实名认证或无须实名认证签署");
+
+        // 默认设置为需实名
+        String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
+
+        // 获取平台级个人实名类型配置，如果配置了，则使用配置的，否则设置为需实名
+        if (MyStringUtils.isNotBlank(personalSignAuth)) {
+            // 如果平台配置为无须实名或需实名，则直接使用平台的配置
+            if (personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                finalPersonalSignAuth = personalSignAuth;
+            }
+            // 如果平台配置为允许不实名认证，则判断签署实例的实名认证要求
+            else if (personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                if (signRu != null && MyStringUtils.isNotBlank(signRu.getPersonalSignAuth())) {
+                    // 如果签署实例为无须实名或需实名，则直接签署实例的配置
+                    if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                        signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                        finalPersonalSignAuth = signRu.getPersonalSignAuth();
                     }
-                    signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
-                } else {
-                    if (signRu != null && MyStringUtils.isNotBlank(signRu.getPersonalSignAuth())) {
-                        if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
-                            if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                                throw new PaasException("不支持个人实名认证签署");
+                    // 如果签署实例为允许不实名认证，则判断签署任务的实名认证要求
+                    else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                        // 判断签署任务的实名认证要求是否为空，为空则直接配置为需实名。
+                        if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                            // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                            if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                                confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                                finalPersonalSignAuth = confirm.getPersonalSignAuth();
                             }
-                        } else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                            if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
-                                throw new PaasException("不支持个人无须实名认证签署");
-                            }
-                        } else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
-                            //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
-                            if (!confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) && !confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
-                                throw new PaasException("仅支持个人实名认证或无须实名认证签署");
-                            }
-                            signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
                         }
-                    } else {
-                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                    }
+                }else if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                    // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                    if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                            confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                        finalPersonalSignAuth = confirm.getPersonalSignAuth();
                     }
                 }
             }
-            //签署人个人签署实名认证逻辑判断，如果为不允许实名认证，则设置为不允许
-            signOrderRequest.setPersonalSignAuth(confirm.getPersonalSignAuth());
-        }else {
-            setDefaultSignNodeConfig(signOrderRequest,personalSignAuth,signRu);
         }
+        signOrderRequest.setPersonalSignAuth(finalPersonalSignAuth);
     }
-
-    /**
-     * 设置默认签署节点实名认证逻辑
-     * @param signOrderRequest
-     * @param personalSignAuth
-     * @param signRu
-     */
-    private void setDefaultSignNodeConfig(SignOrderRequest signOrderRequest,String personalSignAuth,SignRu signRu){
-        if(MyStringUtils.isNotBlank(personalSignAuth)){
-            if(personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
-                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
-            }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
-                signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
-            }else if(personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
-                if(signRu != null && MyStringUtils.isNotBlank(signRu.getPersonalSignAuth())){
-                    if(signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
-                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
-                    }else if(signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
-                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
-                    }else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())){
-                        signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
-                    }
-                }else{
-                    signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
-                }
-            }
-        }else{
-            signOrderRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
-        }
-
-    }
-
-
-
-
 
 }

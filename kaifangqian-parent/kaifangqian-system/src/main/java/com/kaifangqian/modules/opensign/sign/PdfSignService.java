@@ -112,6 +112,13 @@ public class PdfSignService {
             autoSignDocumentRequest.setContractName(pdfSignVoInfo.getSignRu().getSubject());
             autoSignDocumentRequest.setUnionId(pdfSignVoInfo.getCertHolderTenantId());
             autoSignDocumentRequest.setSeal(Base64.encode(pdfSignVoInfo.getEntSealByte()));
+            if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
+                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.REQUIRED.getType());
+            }else if(MyStringUtils.isBlank(pdfSignVoInfo.getPersonalSignAuthType())){
+                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.REQUIRED.getType());
+            }else if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
+                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+            }
         }
 
         Map<String,PdfboxSignData> asssinaturePdfMap = new HashMap<String,PdfboxSignData>();
