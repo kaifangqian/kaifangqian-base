@@ -31,7 +31,6 @@ import com.kaifangqian.external.sign.request.VerifySignDocumentRequest;
 import com.kaifangqian.external.sign.response.AuthSignDocumentResponse;
 import com.kaifangqian.external.sign.response.AutoSignDocumentResponse;
 import com.kaifangqian.external.sign.service.SignServiceExternal;
-import com.kaifangqian.modules.opensign.entity.SignRu;
 import com.kaifangqian.modules.opensign.entity.SignRuDoc;
 import com.kaifangqian.modules.opensign.service.business.PdfEncryptionService;
 import com.kaifangqian.modules.opensign.service.business.vo.PdfboxSignData;
@@ -113,11 +112,11 @@ public class PdfSignService {
             autoSignDocumentRequest.setUnionId(pdfSignVoInfo.getCertHolderTenantId());
             autoSignDocumentRequest.setSeal(Base64.encode(pdfSignVoInfo.getEntSealByte()));
             if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
-                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                autoSignDocumentRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
             }else if(MyStringUtils.isBlank(pdfSignVoInfo.getPersonalSignAuthType())){
-                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.REQUIRED.getType());
+                autoSignDocumentRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
             }else if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
-                autoSignDocumentRequest.setPersonalSignAuthType(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
+                autoSignDocumentRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType());
             }
         }
 

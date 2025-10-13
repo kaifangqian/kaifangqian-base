@@ -2450,7 +2450,7 @@ public class RuBusinessService {
     public String getSystemPersonalSignAuthType(){
         String personalSignAuthTypeValue = null ;
         SysConfig config = sysConfigService.getByType("personal_sign_auth");
-        if (config != null && config.getValue() != null) {
+        if (config != null && MyStringUtils.isNotBlank(config.getValue())) {
             personalSignAuthTypeValue = config.getValue();
         }else {
             personalSignAuthTypeValue = PersonalSignAuthTypeEnum.REQUIRED.getType();

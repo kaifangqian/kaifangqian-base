@@ -51,5 +51,5 @@ public class AutoSignDocumentRequest implements Serializable {
     private String seal;
 
     // @ApiModelProperty("个人签署认证类型")
-    private String personalSignAuthType;
+    private String personalSignAuth;
 }

@@ -115,6 +115,7 @@ public class SignPersonSealController {
         QueryWrapper<SignPersonSeal> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(BaseEntity::getDeleteFlag,false);
         wrapper.lambda().eq(SignPersonSeal::getSysTenantId,tenantId);
+        wrapper.lambda().orderByDesc(BaseEntity::getCreateTime);
 
         Page<SignPersonSeal> page = personSealService.page(new Page<>(pageNo, pageSize), wrapper);
 
