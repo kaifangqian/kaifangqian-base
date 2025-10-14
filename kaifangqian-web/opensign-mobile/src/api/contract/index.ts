@@ -214,4 +214,12 @@ export default {
   async getBaseRuInfo(params: any) {
     return await http.get<Response>('/sign/ru/info/link', params, appHeader());
   },
+  async getPlatePersonalSignAuth(params: any) {
+    return await http.get<Response>('/sign/personal/auth/sys/type', params, appHeader());
+  },
+  async getSignNodeConfig(params: any) {
+    return await http.get<Response>('/sign/ru/run/sign/nodeConfig', params, appHeader());
+  },
+
+
 };

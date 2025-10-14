@@ -106,7 +106,7 @@
 
 <template>
   <div class="sign-info-container">
-    <Loading :loading="loading" :absolute="false" tip="数据提交中。。。" />
+    <Loading :loading="loading" :absolute="false" tip="签署验证中。。。" />
     <!-- <Loading :loading="signLoading" text="数据提交中..." /> -->
     <!-- <Alert
       v-if="hasNextTask == true"

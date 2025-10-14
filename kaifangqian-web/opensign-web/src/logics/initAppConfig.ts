@@ -108,7 +108,6 @@ export function initAppConfigStore() {
     updateHeaderBgColor();
     updateSidebarBgColor();
   } else {
-    console.log(headerBgColor,'---------color------');
     headerBgColor && updateHeaderBgColor(headerBgColor);
     bgColor && updateSidebarBgColor(bgColor);
   }

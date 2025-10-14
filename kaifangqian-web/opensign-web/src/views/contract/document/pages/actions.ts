@@ -24,16 +24,24 @@ import { revokeRuSignRu, restoreRu, deleteSignRu, deleteCompleteRu} from '/@/api
 import { useMessage } from '/@/hooks/web/useMessage';
 import { getCurrentInstance} from "vue";
 import eventHub from '/@/utils/eventHub';
+import { Router } from 'vue-router';
+
+// 定义 Action 接口
+export interface Action {
+  key: string;
+  name: string;
+  callback: (params: any, router?: Router) => void;
+  params: any;
+}
+
 const { createMessage: msg, createConfirm} = useMessage();
 let requestFun,requestParams,setTable,setPage,setLoad
 
-
-
-export  async function revoke(params) {
+export function revoke(params) {
   // const instance = getCurrentInstance();
   // const { eventHub } = instance?.proxy;
   console.log("revoke")
-  eventHub.$emit('triggerConfirm',params)
+  eventHub.emit('triggerConfirm',params)
   return
   
   // let result = await revokeRuSignRu({signRuId:params.signRuId});
@@ -157,7 +165,7 @@ export  function sign (params,router) {
   
 }
 
-export const actions = [
+export const actions: Action[] = [
   {
     key:'revoke',
     name:'撤回',
@@ -209,8 +217,8 @@ export const actions = [
 ]
 
 
-export function mapActions(keys){
-  let acts = []
+export function mapActions(keys): Action[] {
+  let acts: Action[] = []
   keys.forEach(v=>{
     actions.map(m=>{
       if(m.key==v){
@@ -220,7 +228,8 @@ export function mapActions(keys){
   })
   return acts;
 }
-export function formatAction (row,result){
+
+export function formatAction (row,result): Action[] {
   //整合参数
   actions.map(m=>{
     m.params = {
@@ -228,7 +237,7 @@ export function formatAction (row,result){
       ...result
     }
   })
-  let actionResult:any = [];
+  let actionResult: Action[] = [];
   //发起审批中
   if(row.status==1){
     actionResult = mapActions(['edit','delete'])

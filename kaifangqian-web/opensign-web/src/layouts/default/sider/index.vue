@@ -58,7 +58,7 @@
       const appStore = useAppStore();
       const { setMenuSetting, getCollapsed, getMenuWidth, getIsMixSidebar } = useMenuSetting();
       const isAppSidebar = computed(() => appStore.getMenuSetting.collapsed);
-      console.log(getIsMixSidebar, getIsMobile, isAppSidebar, '侧边菜单---');
+      // console.log(getIsMixSidebar, getIsMobile, isAppSidebar, '侧边菜单---');
       function handleClose() {
         setMenuSetting({
           collapsed: true,

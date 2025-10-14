@@ -41,15 +41,15 @@
         <!-- <a-tab-pane key="4" tab="证书配置">
           <tabCertificate />
         </a-tab-pane> -->
-        <!-- <a-tab-pane key="5" tab="实名认证配置">
-          <tabRealame />
-        </a-tab-pane> -->
-        <a-tab-pane key="6" tab="人脸识别配置">
+        <a-tab-pane key="5" tab="其他配置">
+          <otherConfig />
+        </a-tab-pane>
+        <!-- <a-tab-pane key="6" tab="人脸识别配置">
           <tabSign />
         </a-tab-pane>
         <a-tab-pane key="7" tab="账号类型配置">
           <account />
-        </a-tab-pane>
+        </a-tab-pane> -->
         <!-- <a-tab-pane key="7" tab="文件存储配置">Content of Tab Pane 3</a-tab-pane> -->
       </a-tabs>
     </div>
@@ -76,6 +76,7 @@
   import tabRealame from './tabs/realame.vue';
   import tabSign from './tabs/sign.vue';
   import account from './tabs/account.vue';
+  import otherConfig from './tabs/otherConfig.vue';
 
   export default defineComponent({
     name: 'PlatformConfig',
@@ -87,6 +88,7 @@
       tabRealame,
       tabSign,
       account,
+      otherConfig,
     },
     setup() {
       const activeKey = ref('2');

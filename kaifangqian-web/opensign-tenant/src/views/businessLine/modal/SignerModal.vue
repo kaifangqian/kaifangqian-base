@@ -60,7 +60,7 @@
                   </div>
                 </div>
                 <div class="org-seal" v-if="item.senderType == 4">
-                  <p>
+                  <span>
                     <span>指定印章：</span>
                     <a-select
                       style="width: 200px"
@@ -71,9 +71,6 @@
                       :fieldNames="{ label: 'sealName', value: 'sealId' }"
                     >
                     </a-select>
-                    <!-- <span>{{ item.senderSealId? item.sealName:'未指定' }}</span>
-                        <a-button type="link"  @click="handleSeal(item)">{{ item.senderSealId?'更换':'指定' }}</a-button> -->
-                    <!-- <p v-if="checkSealAuth()"> -->
                     <p>
                       <span>盖章方式：</span>
                       <a-checkbox
@@ -81,17 +78,8 @@
                         @change="handleCheckSealAUth(item)"
                         >自动盖章</a-checkbox
                       >
-                      <!-- <a-button type="link" v-if="item.senderSignType" @click="handlePos">立即设置</a-button> -->
                     </p>
-                  </p>
-                  <!-- <p>
-                    <span>盖章方式：</span>
-                    <a-checkbox
-                      v-model:checked="item.senderSignType"
-                      @change="handleCheckSealAUth(item)"
-                      >自动盖章</a-checkbox
-                    >
-                  </p> -->
+                  </span>
                   <p v-if="item.senderSignType != 1">
                     <span
                       >签署人：
@@ -138,6 +126,27 @@
                         </a-tooltip>
                     <a-checkbox-group :value="item.verifyType" :options="confirmOptions" @change="(val) => handleVerifyTypeChange(val, item)"/>
                   </p>
+                  <p v-show="personalSignAuth == 'allowed'">
+                    <span>实名认证要求：</span>
+                    <a-radio-group v-model:value="item.personalSignAuth">
+                      <a-radio value="required">
+                        须实名认证
+                        <a-tooltip>
+                          <template #title>
+                            须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                          </template>
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                      <a-radio value="not_required">
+                        无需实名认证
+                        <a-tooltip>
+                          <template #title>无需实名认证：使用个人电子签章前，无需进行实名认证</template>
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                    </a-radio-group>
+                  </p>
                 </div>
                 <div class="org-seal" v-else>
                   <p>
@@ -178,6 +187,27 @@
                         <Icon icon="ant-design:question-circle-outlined"  style="margin-right: 10px;color: #888;"/>
                     </a-tooltip>
                     <a-checkbox-group :value="item.verifyType" :options="confirmOptions" @change="(val) => handleVerifyTypeChange(val, item)" />
+                  </p>
+                  <p v-show="personalSignAuth == 'allowed'">
+                    <span>实名认证要求：</span>
+                    <a-radio-group v-model:value="item.personalSignAuth">
+                      <a-radio value="required">
+                        须实名认证
+                        <a-tooltip>
+                          <template #title>
+                            须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                          </template>
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                      <a-radio value="not_required">
+                        无需实名认证
+                        <a-tooltip>
+                          <template #title>无需实名认证：使用个人电子签章前，无需进行实名认证</template>
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                    </a-radio-group>
                   </p>
                 </div>
               </div>
@@ -255,6 +285,7 @@
     confirmType?: number;
     verifyType?: Array<string>;
     agreeSkipWillingness?: number;
+    personalSignAuth?: string;
   }
   export default defineComponent({
     name: 'SignerModal',
@@ -284,6 +315,7 @@
       const userStore = useUserStore();
       const tenantInfo = userStore.getTenantInfo;
       const userInfo = userStore.getUserInfo;
+      const personalSignAuth = ref('');
 
       const confirmOptions = ref([
         { label: '验证码', value: 'CAPTCHA' },
@@ -291,6 +323,7 @@
         { label: '双重校验（验证码 + 签署密码）', value: 'DOUBLE' },
         { label: '人脸识别', value: 'FACE', disabled: true },
       ]);
+
 
       const { createMessage: msg, createConfirm,createWarningModal } = useMessage();
       const [registerSeal, { openModal: openSealModal }] = useModal();
@@ -308,10 +341,13 @@
         signReId.value = data.record.signReId;
         signRuId.value = data.record.signRuId;
         signConfirm.value = data.record.signConfirm;
+        personalSignAuth.value = data.record.personalSignAuth || 'required';
         // if (signConfirm.value) {
         console.log('data.record', data.record);
         console.log('signConfirm.value', signConfirm.value);
         confirmOptions.value[3].disabled = !signConfirm.value;
+
+        
         // }
         senderList.value.map((item) => {
           item.edit = false;
@@ -320,7 +356,16 @@
             loadSealName(item, item.senderSealId);
             sealId.value = item.senderSealId as string;
           }
+          // 未设置认证要求数据时，设置默认数据
+          if (!item.personalSignAuth) {
+            item.personalSignAuth = personalSignAuth.value === 'not_required' ? 'not_required' : 'required';
+          }
+          // 当业务线设置认证要求为'required'和'not_required'时，强制签署节点的值与其保持一致
+          if(personalSignAuth.value == 'required' || personalSignAuth.value == 'not_required'){
+            item.personalSignAuth = personalSignAuth.value;
+          }
         });
+        console.log('senderList.value', senderList.value);
         let sealResult = await getSealList({});
         if (sealResult) {
           sealOptions.value = sealResult;
@@ -363,6 +408,7 @@
           senderUserId: '',
           signerId: '',
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
+          personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
         });
       }
       //选择人
@@ -702,6 +748,7 @@
         autoSign,
         checkSealAuth,
         handleVerifyTypeChange,
+        personalSignAuth,
       };
     },
   });
@@ -718,9 +765,12 @@
       .participants-item-content {
         display: flex;
         align-items: center;
-        background: #f2f2f25d;
+        background: #f7f8fb;
         padding: 10px 20px;
         justify-content: space-between;
+        margin-right: 20px;
+        border-radius: 5px;
+        border: 1px solid #ced2dc;
       }
       .participants-senderUserId-content {
         .participants-senderUserId-name {
@@ -742,5 +792,16 @@
     .participants-senderUserId-type {
       color: #797979;
     }
+  }
+  .signatory-action {
+    min-width: 100px;
+    cursor: pointer;
+    text-align: right;
+    :deep(.app-iconify){
+      margin: 0 10px;
+    }
+  }
+  :deep(.resrun-svg-icon){
+    margin: 0 10px;
   }
 </style>

@@ -36,7 +36,12 @@
       </van-notice-bar>
     </div>
     <div class="contract-header">
-      <div class="doc-list">
+       <!-- 当只有一个文件时，显示普通文本 -->
+      <div v-if="documentList && documentList.length === 1" class="single-doc-display">
+          {{ documentList[0].text }}
+      </div>
+      <!-- 当有多个文件时，显示下拉列表 -->
+      <div class="doc-list" v-else>
         <van-dropdown-menu>
           <van-dropdown-item v-model="docId" :options="documentList" placeholder="请选择" @change="handleDocChange" />
         </van-dropdown-menu>
@@ -213,16 +218,31 @@
     <van-action-sheet v-model:show="detailVisible" title="文档详情" :closeable="false" cancel-text="关闭">
       <SignDetail :signRuId="signRuId" ref="signDetailRef" />
     </van-action-sheet>
-
+    <!-- 定位控件 -->
     <van-button
-        class="custom-button-primary-locate"
-        type="primary"
-        @click="locationSignControl"
-        size="small"
-        v-show="hashSignControl"
+      class="custom-button-primary-locate"
+      type="primary"
+      @click="locationSignControl"
+      size="small"
+      v-show="hashSignControl"
+    >
+      <SvgIcon name="sign-location" size="28" />
+    </van-button>
+
+    <div class="sign-document-update" v-show="documentList.length > 1"> 
+      <van-button
+      class="custom-button-primary-document-update"
+      type="primary"
+      @click="quickHandleDocChange"
+      size="small"
       >
-        <SvgIcon name="sign-location" size="32" />
+      <SvgIcon name="doc-update" size="28" />
       </van-button>
+      <div class="doc-count-container">
+        <span class="doc-footer-operation-text">共 {{ documentList.length }} 份文档</span>
+      </div>
+    </div>
+    
 
     <div class="doc-footer-operation">
       <div class="add-control">
@@ -263,9 +283,9 @@
         <van-space :size="20">
           <van-button class="custom-button-minor" type="primary" size="small" @click="wakeUpComment"
             :disabled="isDetail">拒签</van-button>
-          <van-button class="custom-button-primary" type="primary" size="small" v-if="!userAuth.status"
+          <van-button class="custom-button-primary" type="primary" size="small" v-if="!userAuth.status && personalSignAuth == 'required'"
             :disabled="isDetail" @click="handleAuth">实名认证</van-button>
-          <van-button class="custom-button-primary" type="primary" size="small" v-else :disabled="isDetail"
+          <van-button class="custom-button-primary" type="primary" size="small" v-if="userAuth.status || personalSignAuth == 'not_required'" :disabled="isDetail"
             @click="handleSign">{{ isSignText ? '签署' : '提交签署' }}</van-button>
         </van-space>
       </div>
@@ -282,7 +302,7 @@
     <!-- <v-dialog v-model:show="signDatevisible" title="日期格式选择">
         </v-dialog> -->
 
-    <van-action-sheet v-model:show="sealVisible" title="签章选择" class="seal-set-dialog" :showCancelButton="true"
+    <van-action-sheet v-model:show="sealVisible" title="选择企业印章" class="seal-set-dialog" :showCancelButton="true"
       @confirm="handleSetSeals" :beforeClose="beforeCloseSeal">
       <van-list v-if="!signControlInfo.sealId">
         <div v-if="sealList && sealList.length" class="seal-list">
@@ -292,8 +312,12 @@
                 <template v-for="(item, colIndex) in row" :key="item.sealId">
                   <div class="signature-info seal-item" :class="{ 'active-seal-img': signSealId === item.sealId }"
                     @click.stop="selectSeal(item.sealId)">
-                    <img v-if="item.sealImage" :src="item.sealImage" class="signature-img"
-                      style="margin-bottom: 10px" />
+                    <!-- <img v-if="item.sealImage" :src="item.sealImage" class="signature-img"
+                      style="margin-bottom: 10px" /> -->
+                    <div class="signature-img">
+                      <img v-if="item.sealImage" :src="item.sealImage" 
+                      />
+                    </div>
                     <span class="signer-title" style="margin: 0">{{ item.sealName }}</span>
                     <span v-if="signSealId === item.sealId" class="seal-selected-icon"></span>
                   </div>
@@ -312,6 +336,56 @@
           @touchend="handleSetSeals">确定</van-button>
       </div>
     </van-action-sheet>
+    <van-action-sheet v-model:show="personSignatureVisible" title="选择个人签名" class="seal-set-dialog" :showCancelButton="true"
+      @confirm="handleSetSignature" :beforeClose="beforeCloseSeal">
+      <van-list>
+        <div class="seal-list"> 
+          <div style="height: 1px; background-color: #e5e5e5; margin-bottom:15px;"></div>
+          <div 
+            class="signature-info seal-item add-signature-btn" 
+            @click.stop="handleSignatureVisible"
+          >
+            <div class="signature-img add-signature-img">
+              <div class="add-signature-icon">
+                <!-- <SvgIcon name="contract-write" size="32" /> -->
+                <van-icon name="edit" />
+              </div>
+            </div>
+            <span class="signer-title" style="margin-bottom:10px">手写签名</span>
+          </div>
+          <!-- 添加横向分割线 -->
+          <div style="height: 1px; background-color: #e5e5e5; margin: 15px 0;"></div>
+          <div>
+          <!-- <div v-if="!signatureList && signatureList.length"> -->
+            <template v-for="(row, rowIndex) in personSignatureRows" :key="rowIndex">
+              <van-cell :style="{ justifyContent: 'center' }">
+                <div class="seal-row">
+                  <template v-for="(item, colIndex) in row" :key="item.sealId">
+                    <div class="signature-info seal-item" :class="{ 'active-seal-img': signSealId === item.sealId }"
+                      @click.stop="selectSeal(item.sealId)">
+                      <div class="signature-img">
+                        <img v-if="item.sealImage" :src="item.sealImage" 
+                        />
+                      </div>
+                      <span class="signer-title" :style="{ margin: '0' }">{{ item.sealName }}</span>
+                      <span v-if="signSealId === item.sealId" class="seal-selected-icon"></span>
+                    </div>
+                  </template>
+                </div>
+              </van-cell>
+            </template>
+          </div>
+          <!-- <p class="no-seal-list" v-else>
+            暂无常用签名。
+          </p> -->
+        </div>
+      </van-list>
+      <div :style="{ padding: '3px 0', background: 'var(--van-action-sheet-cancel-padding-color)' }"></div>
+      <div class="seal-modal-action" :style="{ position: 'sticky', bottom: '0', background: '#fff', zIndex: '10' }">
+        <van-button type="default" :style="{ marginLeft: '0', borderLeft: 'none', width: '100%' }"
+          @touchend="handleSetSignature">确定</van-button>
+      </div>
+    </van-action-sheet>
 
     <v-dialog v-model:show="signatureVisible" title="签名面板" :showCancelButton="true" className="signatur-modal"
       @confirm="handleSetSignature" @cancel="handleSignatureCancel">
@@ -320,12 +394,12 @@
         <div class="signature-context" v-show="!hasSignature">请在此区域签名</div>
         <VueSignaturePad class="signature-canvas" :width="signaturePadConfig.width + 'px'"
           :height="signaturePadConfig.height + 'px'" ref="signaturePad" :options="options"
-          style="border: 1px solid #e4e4e4; transform: translate(50px, 2px)" />
+          :style="{ border: '1px solid #e4e4e4', transform: 'translate(50px, 2px)' }" />
       </div>
       <div class="signature-footer" :style="{ width: signaturePadConfig.height - 40 + 'px' }">
         <div v-if="clientHeight >= 700">
           <span class="signature-tip">
-            <svg width="16" height="16" style="margin-right:4px;vertical-align:middle;" fill="#faad14" viewBox="0 0 1024 1024"><path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.3 0-372-166.7-372-372s166.7-372 372-372 372 166.7 372 372-166.7 372-372 372zm-40-272h80c4.4 0 8-3.6 8-8v-8c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v8c0 4.4 3.6 8 8 8zm40-440c-35.3 0-64 28.7-64 64v240c0 35.3 28.7 64 64 64s64-28.7 64-64V236c0-35.3-28.7-64-64-64z"></path></svg>
+            <svg width="16" height="16" :style="{ marginRight: '4px', verticalAlign: 'middle' }" fill="#faad14" viewBox="0 0 1024 1024"><path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.3 0-372-166.7-372-372s166.7-372 372-372 372 166.7 372 372-166.7 372-372 372zm-40-272h80c4.4 0 8-3.6 8-8v-8c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v8c0 4.4 3.6 8 8 8zm40-440c-35.3 0-64 28.7-64 64v240c0 35.3 28.7 64 64 64s64-28.7 64-64V236c0-35.3-28.7-64-64-64z"></path></svg>
             请正楷签署您的姓名，避免错别字或书写过于潦草导致无法律效力
           </span>
         </div>
@@ -344,14 +418,14 @@
             type="default"
             size="small"
             @click="closeSignaturePad"
-            style="margin-right: 15px"
+            :style="{ marginRight: '15px' }"
             >关闭</van-button
           >
           <van-button
             type="default"
             size="small"
             @click="clear"
-            style="margin-right: 15px"
+            :style="{ marginRight: '15px' }"
             v-show="hasSignature"
             >重写</van-button
           >
@@ -371,7 +445,7 @@
       <p>监测到该签约文档中您还有【{{
         taskInfo.taskType == 'sign' ? '签署 ' : '填写'
       }}】任务，是否前去处理？</p>
-      <div style="text-align: center">
+      <div :style="{ textAlign: 'center' }">
         <van-button type="default" @click="handleNoTask">暂不处理</van-button>
         <van-button type="primary" @click="handleGoNextTask">立即处理</van-button>
       </div>
@@ -382,8 +456,8 @@
       <div class="certificate-info">
         <p>您暂未开通个人账号，请开通个人账号</p>
         <!-- <p>您暂未开通个人账号，开通个人账号后，会为您自动颁发平台防篡改证书，用于文件签署时，保护文件不被篡改。</p> -->
-        <van-button type="default" @click="handleUnSign" style="margin: 0 10px">暂不签署</van-button>
-        <van-button type="primary" @click="faceOpenPersonalAccount" style="margin: 0 10px">开通个人账号</van-button>
+        <van-button type="default" @click="handleUnSign" :style="{ margin: '0 10px' }">暂不签署</van-button>
+        <van-button type="primary" @click="faceOpenPersonalAccount" :style="{ margin: '0 10px' }">开通个人账号</van-button>
       </div>
     </v-dialog>
 
@@ -391,14 +465,14 @@
       className="sign-certifcate-modal">
       <div class="certificate-info" v-if="!certificateInfo.tenantId && certificateInfo.returnCode == '2'">
         <p>您暂未开通个人账号，请开通个人账号</p>
-        <van-button type="default" @click="handleUnSign" style="margin: 0 10px">暂不签署</van-button>
-        <van-button type="primary" @click="openPersonalAccount" style="margin: 0 10px">开通个人账号</van-button>
+        <van-button type="default" @click="handleUnSign" :style="{ margin: '0 10px' }">暂不签署</van-button>
+        <van-button type="primary" @click="openPersonalAccount" :style="{ margin: '0 10px' }">开通个人账号</van-button>
       </div>
       <!-- 不校验证书 -->
       <div class="certificate-info" v-if="certificateInfo.returnCode == '1'">
-        <p>签署文件时，不使用任何数字证书，仅在文件上加盖合成签名和印章图片，<span style="color: #f20404fc">无法保护文件也不具备法律效力，</span>请知悉！</p>
+        <p>签署文件时，不使用任何数字证书，仅在文件上加盖合成签名和印章图片，<span :style="{ color: '#f20404fc' }">无法保护文件也不具备法律效力，</span>请知悉！</p>
         <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-        <van-button type="primary" @click="goSign" style="margin: 0 10px">继续签署</van-button>
+        <van-button type="primary" @click="goSign" :style="{ margin: '0 10px' }">继续签署</van-button>
       </div>
       <!-- 测试证书 -->
       <div class="certificate-info" v-if="certificateInfo.certType == '2' && certificateInfo.returnCode == '2'">
@@ -410,11 +484,11 @@
         </p>
         <div>
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="updateCertificate" style="margin: 0 10px"
+          <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }"
             v-if="certificateInfo.holderType == '2'">获取证书</van-button>
-          <van-button type="primary" @click="handlePersonAuth" style="margin: 0 10px"
+          <van-button type="primary" @click="handlePersonAuth" :style="{ margin: '0 10px' }"
             v-if="certificateInfo.holderType == '1' && tenantInfo.authStatus != '2'">实名认证</van-button>
-          <van-button type="primary" @click="updateCertificate" style="margin: 0 10px"
+          <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }"
             v-if="certificateInfo.holderType == '1' && tenantInfo.authStatus == '2'">获取证书</van-button>
         </div>
       </div>
@@ -423,7 +497,7 @@
         <p v-if="certificateInfo.holderType == '1'">您签署所使用的证书已过期，如果您需要继续签署，请申请新的证书</p>
         <div class="sign-tip-footer">
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="updateCertificate" style="margin: 0 10px">更新证书</van-button>
+          <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }">更新证书</van-button>
         </div>
       </div>
 
@@ -438,10 +512,10 @@
         <p>
           <van-button @click="updateCertificate">刷新</van-button>
         </p>
-        <van-button type="default" @click="handleUnSign" style="margin: 0 10px">暂不签署</van-button>
-        <van-button type="primary" @click="handlePersonAuth" style="margin: 0 10px"
+        <van-button type="default" @click="handleUnSign" :style="{ margin: '0 10px' }">暂不签署</van-button>
+        <van-button type="primary" @click="handlePersonAuth" :style="{ margin: '0 10px' }"
           v-if="certificateInfo.holderType == '1' && tenantInfo.authStatus != '2'">实名认证</van-button>
-        <van-button type="primary" @click="updateCertificate" style="margin: 0 10px"
+        <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }"
           v-if="certificateInfo.holderType == '1' && tenantInfo.authStatus == '2'">获取证书</van-button>
       </div>
       <div class="certificate-info" v-if="
@@ -452,7 +526,7 @@
         <p v-if="certificateInfo.holderType == '1'">您签署所使用的证书已过期，如果您需要继续签署，请申请新的证书</p>
         <div>
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="updateCertificate" style="margin: 0 10px">更新证书</van-button>
+          <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }">更新证书</van-button>
         </div>
       </div>
       <!-- 平台防篡改证书 -->
@@ -460,7 +534,7 @@
         <p>您暂未开通个人账号，开通个人账号后，会为您自动颁发平台防篡改证书，用于文件签署时，保护文件不被篡改</p>
         <div>
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="openPersonalAccount" style="margin: 0 10px"
+          <van-button type="primary" @click="openPersonalAccount" :style="{ margin: '0 10px' }"
             v-if="certificateInfo.holderType == '1'">开通个人账号</van-button>
         </div>
       </div>
@@ -468,24 +542,24 @@
         <p>您签署所使用的防篡改证书已失效，如果您需要继续签署，请申请新的证书</p>
         <div>
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="updateCertificate" style="margin: 0 10px">更新证书</van-button>
+          <van-button type="primary" @click="updateCertificate" :style="{ margin: '0 10px' }">更新证书</van-button>
         </div>
       </div>
       <div class="certificate-info" v-if="certificateInfo.certType == '1' && certificateInfo.returnCode == '4'">
-        <p>您当前用于文件签署的证书是平台下发的防篡改证书，<span style="color: #f20404fc">该证书非CA机构颁发，</span>仅用于文件保护，避免文件被篡改，<span
-            style="color: #f20404fc">签署后的文件不具备法律效力，</span>请知悉！</p>
+        <p>您当前用于文件签署的证书是平台下发的防篡改证书，<span :style="{ color: '#f20404fc' }">该证书非CA机构颁发，</span>仅用于文件保护，避免文件被篡改，<span
+            :style="{ color: '#f20404fc' }">签署后的文件不具备法律效力，</span>请知悉！</p>
         <div>
           <van-button type="default" @click="handleUnSign">暂不签署</van-button>
-          <van-button type="primary" @click="goSign" style="margin: 0 10px">继续签署</van-button>
+          <van-button type="primary" @click="goSign" :style="{ margin: '0 10px' }">继续签署</van-button>
         </div>
       </div>
     </v-dialog>
     <v-dialog v-model:show="authCertificateVisible" title="签署提醒" :showCancelButton="false" :show-confirm-button="false"
       className="sign-certifcate-tip-modal">
       <p>您已经申请新的证书，可用于电子签约</p>
-      <p>证书有效期：<span style="color: #f20404fc; margin-left: 20px">{{ authCerInfo }}</span></p>
+      <p>证书有效期：<span :style="{ color: '#f20404fc', marginLeft: '20px' }">{{ authCerInfo }}</span></p>
       <van-button type="primary" @click="goSign"
-        style="position: relative; left: 50%; transform: translate(-50%)">继续签署</van-button>
+        :style="{ position: 'relative', left: '50%', transform: 'translate(-50%)' }">继续签署</van-button>
     </v-dialog>
   </div>
   <ConfirmModal ref="confirmRef" @success="handleConfirmSuccess" />
@@ -505,6 +579,7 @@ import {
   onActivated,
   onBeforeUnmount,
   watch,
+  h,
 } from 'vue';
 import { getCanvasZoom } from '@/utils/ControlData';
 import {
@@ -568,7 +643,7 @@ export default defineComponent({
     ConfirmModal,
   },
   setup() {
-    console.log(CanvasZoom, 'sdsfd');
+    // console.log(CanvasZoom, 'sdsfd');
 
     const userStore = useUserStore();
     const docs: any = ref([]);
@@ -614,6 +689,7 @@ export default defineComponent({
     const isActive3 = ref(false);
     const activeKey = ref(1);
     const sealVisible = ref(false);
+    const personSignatureVisible = ref(false);
     const signatureVisible = ref(false);
     const signDatevisible = ref(false);
     const detailVisible = ref(false);
@@ -648,6 +724,8 @@ export default defineComponent({
     const partyName = getHashQueryString('partyName')
       ? decodeURIComponent(getHashQueryString('partyName') as string)
       : '';
+      
+    const personalSignAuth = ref('');
     const options = ref({
       penColor: '#000',
       dotSize: 1,
@@ -699,6 +777,10 @@ export default defineComponent({
     const newSealSize = ref({
       width: 120,
       height: 120,
+    });
+    const newSignatureSize = ref({
+      width: 112,
+      height: 52,
     });
     // const baseUrl = window.appInfo.mobile_app_info.url + '/resrun-paas';
     let baseUrl = import.meta.env.VITE_APP_API_BASE_URL;
@@ -802,6 +884,7 @@ export default defineComponent({
       // getFromPath()
       checkStatus();
       generateOrderNo();
+      getSignNodeInfo();
     });
     // onBeforeRouteUpdate(() => {
     //     getFromPath()
@@ -843,8 +926,12 @@ export default defineComponent({
             width: 120,
             height: 120,
           };
-        }
+          newSignatureSize.value = {
+            width: 112,
+            height: 52,
+          };
       }
+    }
     );
     watch(
       () => entSealId.value,
@@ -914,6 +1001,46 @@ export default defineComponent({
     //     deep: true,
     //   }
     // );
+
+    // 获取签署节点的签署要求
+    async function getSignNodeInfo(){
+
+      const { result: userCheckResult }: any = await Api.getVerifyCertificate({signRuId});
+      // 签署主体是个人
+      if(userCheckResult.holderType === TenantTypeEnum.PERSONAL){
+        let platePersonSignAuth = '';
+        const personalSignAuthRes = await Api.getPlatePersonalSignAuth({});
+        // 获取平台总的签署要求
+        if (personalSignAuthRes.code === 200) {
+          platePersonSignAuth = personalSignAuthRes.result.personalSignAuthType;
+        }
+        console.log('平台总的签署要求', platePersonSignAuth);
+        
+        // 如果平台配置要求个人签署必须认证或无需认证，则直接使用该值
+        if(platePersonSignAuth === 'required' || platePersonSignAuth === 'not_required'){
+          personalSignAuth.value = platePersonSignAuth;
+        } else {
+          // 查询该签署流程的总的签署要求
+          const { result: ruInfo }: any = await Api.getDocInfoByRuId({signRuId});
+          console.log('签署流程的总的签署要求', ruInfo.baseVo.personalSignAuth);
+          if(ruInfo && ruInfo.baseVo.personalSignAuth === 'required' || ruInfo.baseVo.personalSignAuth === 'not_required'){
+            personalSignAuth.value = ruInfo.baseVo.personalSignAuth;
+          } else {
+            // 查询该签署节点的签署要求
+            const { result: signNodeResult }: any = await Api.getSignNodeConfig({taskId});
+            console.log('签署节点的签署要求', signNodeResult.personalSignAuth);
+            if(signNodeResult && signNodeResult.personalSignAuth){
+              personalSignAuth.value = signNodeResult.personalSignAuth;
+            } else {
+              personalSignAuth.value = 'required';
+            }
+          }
+        }
+      } else {
+        personalSignAuth.value = 'required';
+      }
+      
+    }
 
     async function generateOrderNo() {
       let { result, code } = await Api.getOrderNo({ mainId: taskId });
@@ -1063,7 +1190,7 @@ export default defineComponent({
     }
     // 获取文档
     async function init() {
-      console.log(Api, '接口api');
+      // console.log(Api, '接口api');
       let { result } = await Api.getDocFiles({ signRuId: signRuId });
       if (result && result.length) {
         controlList.value = [];
@@ -1086,28 +1213,31 @@ export default defineComponent({
         getDocImgs();
       }
     }
+
+    //文档切换
+    async function quickHandleDocChange() {
+      // console.log('快速文档切换----');
+      // 遍历文档列表，按照顺序进行切换
+      // 若当前文档是最后一个，则切换到第一个文档
+      // 若当前文档不是最后一个，则切换到下一个文档
+      const currentIndex = documentList.value.findIndex((v: any) => v.signRuDocId == docId.value);
+      let nextIndex = 0;
+      if (currentIndex < documentList.value.length - 1) {
+        nextIndex = currentIndex + 1;
+      }
+      docId.value = documentList.value[nextIndex].signRuDocId;
+      nowDocument.value = documentList.value[nextIndex];
+      handleDocChange(docId.value);
+    }
     //文档切换
     async function handleDocChange(val: any) {
+      // console.log('文档切换----');
       let matchDoc = documentList.value.find((item) => item.signRuDocId == val);
       nowDocument.value = matchDoc;
       docId.value = val;
       images.value = matchDoc.images;
+      // console.log(docId.value,'docId.value----');
       document.getElementsByClassName('doc-content')[0].scrollTop = 0;
-
-      // docId.value = val;
-      // images.value = [];
-      // annexId.value = docs.value.filter((v: any) => v.id == docId.value)[0].annexId;
-      // let { result } = await Api.getDocImgsInSign({ signFileId: docId.value });
-      // let matchDoc = documentList.value.find((item: any) => item.signRuDocId == docId.value);
-      // if (matchDoc) {
-      //     console.log(matchDoc, '测试文档---')
-      //     matchDoc.images = result;
-      //     //更新文档图片数量用于重新计算拖拽范围
-      //     matchDoc.pageSize = result.length;
-      //     nowDocument.value = matchDoc;
-      // }
-      // document.getElementsByClassName('doc-content')[0].scrollTop = 0;
-      // console.log(documentList, docId.value, matchDoc, '匹配文档')
     }
 
     //获取图片
@@ -1203,7 +1333,7 @@ export default defineComponent({
             flatControls.push(item);
           }
         });
-        console.log(flatControls, 'flatControls-------------');
+        // console.log(flatControls, 'flatControls-------------');
 
         //将控件按文档分类
         let groupControls: any = [];
@@ -1253,7 +1383,7 @@ export default defineComponent({
           }
         });
 
-        console.log(groupControls, aspecRatio, '分组控件--');
+        // console.log(groupControls, aspecRatio, '分组控件--');
         //将控件按页码配置按文档进行设置
         groupControls.map((item: any) => {
           const currentDoc = docs.value.find((v) => v.id == item.controlDocId);
@@ -1382,7 +1512,7 @@ export default defineComponent({
           });
         });
 
-        console.log(groupControls, '分组后的控件--');
+        // console.log(groupControls, '分组后的控件--');
         //按文档进行控件设置
         for (let i = 0; i < docs.value.length; i++) {
           let matchControl = groupControls.find((v) => v.controlDocId == docs.value[i].id);
@@ -1433,6 +1563,7 @@ export default defineComponent({
           imageLoading: true,
         });
       }
+      console.log(documentList.value,'documentList.value------');
       nowDocument.value = documentList.value.find((v: any) => v.signRuDocId == docId.value);
       nowDocument.value = {
         ...nowDocument.value,
@@ -1446,6 +1577,11 @@ export default defineComponent({
         width: 120,
         height: 120,
       };
+      newSignatureSize.value = {
+        width: 112,
+        height: 52,
+      };
+
       // controlMove.activeControl = buildResponseControl(controls);
       //receiveActive(signers.value);
     }
@@ -1904,6 +2040,9 @@ export default defineComponent({
       const pageWidth = target.width;
       const pageHeight = target.height;
 
+      // console.log(signControl.size.width, signControl.size.height, 'signControl.size-----');
+      // console.log(newSignatureSize.value.width, newSignatureSize.value.height, 'newSignatureSize.value-----');
+
       let uid = parseInt(
         new Date().getMilliseconds() + '' + Math.ceil(Math.random() * 100000)
       ).toString(11);
@@ -1965,14 +2104,17 @@ export default defineComponent({
             propertyValue: scrollPage + 1,
           },
         ],
+        
         width: signControl.size.width,
         height: signControl.size.height,
+
         size: {
-          width: signControl.size.width,
-          height: signControl.size.height,
+          width: newSignatureSize.value.width ? newSignatureSize.value.width : signControl.size.width,
+          height: newSignatureSize.value.height ? newSignatureSize.value.height : signControl.size.height,
         },
         controlType: 'signature',
       };
+      
       signatureCount.value += 1;
       nowDocument.value.activeControl.push(signControl);
       controlList.value.push(signControl);
@@ -2114,7 +2256,7 @@ export default defineComponent({
     }
     //控件点击
     function controlShowMenu(e, element) {
-      console.log(e, element);
+      // console.log(e, element);
       nowDocument.value.activeControl.forEach((el: any) => {
         if (el.uid == element.uid) {
           el.showPopover = true;
@@ -2167,10 +2309,12 @@ export default defineComponent({
         signDateType.value = element.format;
         return;
       } else {
-        signatureVisible.value = true;
-        setTimeout(() => {
-          showPad.value = true;
-        });
+        getSignaturs();
+        personSignatureVisible.value = true;
+        // signatureVisible.value = true;
+        // setTimeout(() => {
+        //   showPad.value = true;
+        // });
         // getSignaturs()
         return;
       }
@@ -2201,6 +2345,16 @@ export default defineComponent({
         }
       });
     }
+    //获取个人签名图片
+    function loadSignatureBase64() {
+      signatureList.value.forEach(async (item: any) => {
+        item.base64 = '';
+        const { result } = await Api.getBase64ById({ id: item.annexId });
+        if (result) {
+          item.sealImage = result.image;
+        }
+      });
+    }
     //校验签章id
     async function checkSignSeal() {
       let { result, code } = await Api.verifySignSeal({ sealId: unref(signControlInfo).sealId });
@@ -2213,30 +2367,57 @@ export default defineComponent({
       }
     }
     //获取签名列表
-    async function getSignaturs(params: type) {
-      let { result } = await Api.getSignatureList({});
+    async function getSignaturs() {
+      let { result } = await Api.getSignatureList({
+            pageNo: 1,
+            pageSize: 1000
+          });
+      // console.log(result,"result-------");
       if (result) {
-        signatureList.value = result;
-        signatureList.value.map(async (item) => {
-          item.base64 = '';
-          const { result } = await Api.getBase64ById({ id: item.annexId });
-          // console.log(result, '签名结果')
-          if (result) {
-            item.base64 = result.image;
-          }
-        });
+        signatureList.value = result.records;
+        loadSignatureBase64();
+        // signatureList.value.map(async (item) => {
+        //   item.base64 = '';
+        //   const { result } = await Api.getBase64ById({ id: item.annexId });
+        //   // console.log(result, '签名结果')
+        //   if (result) {
+        //     item.base64 = result.image;
+        //   }
+        // });
       }
     }
     //获取图片流宽高
-    function getImageIdSize(imgId: string) {
+    function getImageIdSize(imgId: string,controlType: string) {
+      // console.log(imgId,'imgId-----------');
       let sealSize = {
-        width: 120,
-        height: 120,
-      };
+          width: 120,
+          height: 120,
+        };
       let newSealSize = {
-        width: 120,
-        height: 120,
-      };
+          width: 120,
+          height: 120,
+        };
+      let newSignatureSize = {
+          width: 112,
+          height: 52,
+        };
+      // if(controlType === 'seal'){
+      //   sealSize = {
+      //     width: 120,
+      //     height: 120,
+      //   };
+      //   newSealSize = {
+      //     width: 120,
+      //     height: 120,
+      //   };
+      // }
+      if(controlType === 'signature'){
+         sealSize = {
+          width: 112,
+          height: 52,
+        };
+      }
+      // console.log(sealSize,'sealSize-----------');
       // 图片地址
       if (imgId) {
         let img_url: any =
@@ -2251,8 +2432,13 @@ export default defineComponent({
             // 加载完成执行
             if (sealSize.width / sealSize.height == img.width / img.height) {
               newSealSize = sealSize;
+              newSignatureSize = sealSize;
             } else if (sealSize.width / sealSize.height < img.width / img.height) {
               newSealSize = {
+                width: sealSize.width,
+                height: img.height / (img.width / sealSize.width),
+              };
+              newSignatureSize = {
                 width: sealSize.width,
                 height: img.height / (img.width / sealSize.width),
               };
@@ -2261,11 +2447,18 @@ export default defineComponent({
                 width: img.width / (img.height / sealSize.height),
                 height: sealSize.height,
               };
+              newSignatureSize = {
+                width: img.width / (img.height / sealSize.height),
+                height: sealSize.height,
+              };
             }
+             console.log(newSealSize,newSignatureSize,'newSealSize-----------');
             resolve(newSealSize);
+            resolve(newSignatureSize);
           };
         });
       }
+      
     }
 
     const sealRows = computed(() => {
@@ -2276,6 +2469,16 @@ export default defineComponent({
       }
       return rows;
     });
+
+    const personSignatureRows = computed(() => {
+      if (!signatureList.value) return [];
+      const rows = [];
+      for (let i = 0; i < signatureList.value.length; i += 2) {
+        rows.push(signatureList.value.slice(i, i + 2));
+      }
+      return rows;
+    });
+
     // 选中印章
     function selectSeal(sealId) {
       signSealId.value = sealId;
@@ -2288,7 +2491,7 @@ export default defineComponent({
         currentControl.value.sealId = sealImgId.value;
         sealAnnexId.value = sealImgId.value;
         if (sealAnnexId.value) {
-          getImageIdSize(sealAnnexId.value).then((res) => {
+          getImageIdSize(sealAnnexId.value,'seal').then((res) => {
             updateAllSealImg(
               nowDocument.value.activeControl,
               unref(signControlInfo).sealId,
@@ -2309,32 +2512,78 @@ export default defineComponent({
             entSealId.value = signSealId.value;
             currentControl.value.sealId = signSealId.value;
             sealAnnexId.value = sealInfo.annexId;
-            updateAllSealImg(nowDocument.value.activeControl, signSealId.value, sealInfo.annexId);
+            if (sealAnnexId.value) {
+              getImageIdSize(sealAnnexId.value,'seal').then((res) => {
+                updateAllSealImg(nowDocument.value.activeControl, signSealId.value, sealInfo.annexId,res);
+              });
+              isSignText.value = false;
+              sealVisible.value = false;
+              signPosition('company');
+            }
           }
-          isSignText.value = false;
-          sealVisible.value = false;
-          signPosition('company');
         }
       }
     }
+
+    //签名图片大小计算
+      function reCaculatImgSize(orisignSize){
+        newSignatureSize.value = {
+          width:112,
+          height:52
+        }
+        if((newSignatureSize.value.width / newSignatureSize.value.height) == (orisignSize.width / orisignSize.height)){
+          return orisignSize
+        }
+        if((newSignatureSize.value.width / newSignatureSize.value.height) < (orisignSize.width / orisignSize.height)){
+          return {
+            width: newSignatureSize.value.width,
+            height: parseInt(orisignSize.height / (orisignSize.width / newSignatureSize.value.width))
+          }
+        }
+        if((newSignatureSize.value.width / newSignatureSize.value.height) > (orisignSize.width / orisignSize.height)){
+          return {
+            width: parseInt(orisignSize.width / (orisignSize.height / newSignatureSize.value.height)),
+            height: newSignatureSize.value.height
+          }
+        }
+
+      }
+     
     //选择签名
     function handleSetSignature() {
-      if (signatureTabKey.value == 1) {
-        let row = signatureList.value.filter((v: any) => v.annexId == signatureId.value)[0];
-        console.log(signatureList.value, '签名里列表');
-        if (row) {
-          privateSeal.value = row.base64.split('base64,')[1];
-          currentControl.value.signatureId = row.annexId;
-          currentControl.value.signature = '';
-          updateAllSignatureImg(nowDocument.value.activeControl, row.base64, row.annexId);
-          signatureVisible.value = false;
-        }
-      } else {
+      let row = signatureList.value.filter((v: any) => v.sealId == signSealId.value)[0];
+      // console.log(signatureList.value, '签名列表',signatureId.value);
+      // console.log(row, '签名列表---');
+      if (row) {
+        privateSeal.value = row.sealImage.split('base64,')[1];
+        // console.log(row.sealImage,'row.sealImage---');
+        // console.log(privateSeal.value,'privateSeal.value---');
+        currentControl.value.signatureId = row.annexId;
+        currentControl.value.signature = '';
+        singatureBae64.value = row.sealImage;
+        getImageIdSize(row.annexId,'signature').then((res) => {
+            updateAllSignatureImg(nowDocument.value.activeControl, signSealId.value, row.annexId,res);
+         });
+        
+        personSignatureVisible.value = false;
+        hasSignature.value = false; 
+        signPosition('person');
       }
+
     }
-    //签名弹框
+    //关闭签名弹框
     function handleSignatureCancel() {
       signatureVisible.value = false;
+    }
+
+    //打开签名弹框
+    function handleSignatureVisible() {
+      personSignatureVisible.value = false;
+      showSignControlTip.value = false;
+      signatureVisible.value = true;
+        setTimeout(() => {
+          showPad.value = true;
+        });
     }
 
     //更新所有签章图片
@@ -2392,25 +2641,54 @@ export default defineComponent({
     }
 
     //更新所有签名图片
-    function updateAllSignatureImg(controls, base64, signatureId) {
+    function updateAllSignatureImg(controls:any, sealId: string, annexId: string, sealSize?: any) {
+      // console.log(sealSize,'sealSize-----');
       controls.map((v: any) => {
         if (v.controlType == 'signature') {
-          v.signature = '';
-          v.signatureId = signatureId;
+          v.sealId = sealId;
+          v.signatureId = annexId;
+          if (sealSize && sealSize.width) {
+            newSignatureSize.value = {
+              width: sealSize.width,
+              height: sealSize.height,
+            };
+            v.size.width = sealSize.width;
+            v.size.height = sealSize.height;
+          }
         }
       });
       // console.log()
       //更新其他文档
       controlList.value.map((v: any) => {
-        v.signature = '';
-        v.signatureId = signatureId;
+        v.sealId = sealId;
+        v.signatureId = annexId;
+        if (sealSize && sealSize.width) {
+            newSignatureSize.value = {
+              width: sealSize.width,
+              height: sealSize.height,
+            };
+            v.size = {
+              width: sealSize.width,
+              height: sealSize.height,
+            };
+          }
       });
 
       documentList.value.map((m) => {
         m.activeControl.forEach((v: any) => {
           if (v.controlType == 'signature') {
-            v.signature = '';
-            v.signatureId = signatureId;
+            v.sealId = sealId;
+            v.signatureId = annexId;
+            if (sealSize && sealSize.width) {
+            newSignatureSize.value = {
+              width: sealSize.width,
+              height: sealSize.height,
+            };
+            v.size = {
+              width: sealSize.width,
+              height: sealSize.height,
+            };
+          }
           }
         });
       });
@@ -2500,7 +2778,7 @@ export default defineComponent({
       
       const totalLength = calcTotalLength(signaturePad.value);
 
-      console.log('totalLength:', totalLength);
+      // console.log('totalLength:', totalLength);
 
       if (isEmpty) {
         Notify({ type: 'warning', message: '未书写签名，请签名' });
@@ -2515,7 +2793,7 @@ export default defineComponent({
       }
 
 
-      
+      // console.log(data,'data---------');
       currentControl.value.signature = data;
       currentControl.value.signatureId = '';
 
@@ -2538,16 +2816,30 @@ export default defineComponent({
         const rotatedBase64 = canvas.toDataURL();
         singatureBae64.value = rotatedBase64;
         privateSeal.value = rotatedBase64.split('base64,')[1];
+        let orisignSize = {
+          width:canvas.width,
+          height:canvas.height
+        }
+        let signatureSize = reCaculatImgSize(orisignSize);
+        console.log(signatureSize,'signatureSize----');
+        newSignatureSize.value = {
+              width: signatureSize.width,
+              height: signatureSize.height,
+            };
         nowDocument.value.activeControl.map((v: any) => {
           if (v.controlType == 'signature') {
             v.signature = rotatedBase64;
             v.signatureId = '';
+            v.size.width = newSignatureSize.value.width;
+            v.size.height = newSignatureSize.value.height;
           }
         });
         controlList.value.map((v: any) => {
           if (v.controlType == 'signature') {
             v.signature = rotatedBase64;
             v.signatureId = '';
+            v.size.width = newSignatureSize.value.width;
+            v.size.height = newSignatureSize.value.height;
           }
         });
 
@@ -2556,6 +2848,8 @@ export default defineComponent({
             if (v.controlType == 'signature') {
               v.signature = rotatedBase64;
               v.signatureId = '';
+              v.size.width = newSignatureSize.value.width;
+              v.size.height = newSignatureSize.value.height;
             }
           });
         });
@@ -2676,8 +2970,8 @@ export default defineComponent({
             errorText += `《${item.documentName}》`;
           });
           Dialog.confirm({
-            title: '开启安全可靠的电子签章',
-            message: `签约文件${errorText}未指定签署位置，请检查确认`,
+            title: '签署文件未全部指定签署位置',
+            message: `文件${errorText}未指定签署位置，请检查确认！`,
             confirmButtonText: '继续签署',
             cancelButtonText: '取消',
           }).then(() => {
@@ -2687,7 +2981,45 @@ export default defineComponent({
           });
           return;
         }
-        submitSignData();
+        // 判断是否是无实名认证签署
+        if(personalSignAuth.value == 'not_required'){
+          // 弹窗提示
+          Dialog.confirm({
+            title: '非实名认证签署风险告知书',
+            message: () => h('div', {
+              class: 'van-popup__content',
+              style: {
+                fontSize: '14px',
+                lineHeight: '1.6',
+                marginTop: '20px',
+                textAlign: 'left'
+              }
+            }, [
+              h('p', {
+                class: 'van-notice-bar__text',
+                style: { color: '#333' }
+              }, '本次签署无需进行实名认证。如您同意，系统将使用平台防篡改证书（非CA权威数字证书）为您完成电子签名。'),
+              h('p', {
+              class: 'van-notice-bar__text',
+              style: { color: '#333' }
+              }, '如对实名认证要求有疑议，请联系签署发起方。'),
+              h('p', {
+                class: 'van-notice-bar__text',
+                style: { color: 'red' }
+              }, [h('strong', '重要声明：'), '平台防篡改证书仅能确保文件在签名后不被篡改，不具备《电子签名法》规定的法律效力。']),
+              h('p', {
+                class: 'van-notice-bar__text',
+                style: { color: '#333' }
+              }, ['点击“',h('strong', '同意，继续签署'), '”即代表您已知悉非实名认证签署的相关风险，并同意以该方式完成本次签署。']),
+            ]),
+            confirmButtonText: '同意，继续签署',
+            cancelButtonText: '暂不签署',
+          }).then(() => {
+            submitSignData();
+          });
+        } else {
+          submitSignData();
+        }
       } else {
         //组织签章
         if (signControlInfo.value?.type == '2') {
@@ -2743,11 +3075,13 @@ export default defineComponent({
           }
         } else {
           checkSignatureCount();
-          showSignControlTip.value = false;
-          signatureVisible.value = true;
-          setTimeout(() => {
-            showPad.value = true;
-          });
+          getSignaturs();
+          personSignatureVisible.value = true;
+          // showSignControlTip.value = false;
+          // signatureVisible.value = true;
+          // setTimeout(() => {
+          //   showPad.value = true;
+          // });
         }
       }
     }
@@ -2782,7 +3116,7 @@ export default defineComponent({
       let { result, code }: any = await Api.verifyCertificate({ signRuId });
       if (code == 200) {
         certificateInfo.value = result;
-        console.log('获取开通个人租户信息：', result);
+        // console.log('获取开通个人租户信息：', result);
         if (result.tenantId) {
           let tenantResult = await Api.getSignAuthStatus({ tenantId: result.tenantId });
           if (tenantResult.code == 200) {
@@ -2896,7 +3230,7 @@ export default defineComponent({
         if (signControls.length === 0) return;
   
         // 获取当前要定位的控件
-        const targetControl = signControls[currentLocationIndex.value];
+        const targetControl = signControls[currentLocationIndex.value % signControls.length];
         
         // 定位到目标控件
         if (targetControl) {
@@ -2943,7 +3277,7 @@ export default defineComponent({
     }
     function userHandleAuth() {
       // const asyncUrl = `${location.href}`;
-      console.log('userAuth', userAuth.value);
+      // console.log('userAuth', userAuth.value);
       if (userAuth.value.tenantType === TenantTypeEnum.PERSONAL) {
         Dialog.confirm({
           title: '开启安全可靠的电子签章',
@@ -3193,7 +3527,7 @@ export default defineComponent({
     async function checkCaAndAuthStatus() {
       // const tenantInfo = userStore.getTenantInfo;
       const { result: userCheckResult }: any = await Api.getVerifyCertificate({ signRuId });
-      console.log('userCheckResult', userCheckResult);
+      // console.log('userCheckResult', userCheckResult);
       certificateInfo.value = userCheckResult;
       if (userCheckResult.holderType === TenantTypeEnum.ENTERPRISE) {
         // 签署主体是否实名
@@ -3339,8 +3673,8 @@ export default defineComponent({
         });
       });
       // authCertificateVisible.value = false;
-      console.log(paramsControl, '提交合并前的控件参数----');
-      console.log(mergedDataFn(paramsControl), '提交的控件参数----');
+      // console.log(paramsControl, '提交合并前的控件参数----');
+      // console.log(mergedDataFn(paramsControl), '提交的控件参数----');
 
       // const callbackPage = `${location.origin}${location.pathname}#/wishCheck`;
       const callbackPageYd = `${location.origin}${location.pathname}#/wishCheck?orderNo=${orderNo.value}&signRuId=${signRuId}&callbackPage=${callbackPage}`;
@@ -3354,16 +3688,21 @@ export default defineComponent({
           signConfirmOrderNo: orderNo.value,
           callbackPage: callbackPageYd,
         });
+        
         if (code == 200) {
           signCertificateVisible.value = false;
-          setTimeout(() => {
+          if (result.signConfirmUrl) {
+            setTimeout(() => {
+              signLoading.value = false;
+              window.open(result.signConfirmUrl, '_self');
+            }, 500);
+          }else{
             signLoading.value = false;
-            // handleFace();
-            window.open(result.signConfirmUrl, '_self');
-          }, 500);
+            Notify({ type: 'danger', message: '未成功获取到意愿校验订单', duration: 5000});
+          }
         } else {
           setTimeout(() => {
-            Notify({ type: 'warning', message: result.message });
+            Notify({ type: 'danger', message: result.message });
             signLoading.value = false;
           }, 1000);
         }
@@ -3550,7 +3889,7 @@ export default defineComponent({
         docKeys.value,
         Array.from(new Set(pages))
       );
-      console.log(minTarget, 'minTarget================');
+      // console.log(minTarget, 'minTarget================');
       minTargetInfo.value = minTarget;
       const elementTarget = nowDocument.value.targets[element.position.page];
       const elementOffsetWidth = (nowDocument.value.maxWidth - elementTarget.width) / 2;
@@ -3962,6 +4301,7 @@ export default defineComponent({
       controlShowMenu,
       sealVisible,
       signatureVisible,
+      personSignatureVisible,
       signDatevisible,
       signatureList,
       signatureId,
@@ -3970,6 +4310,7 @@ export default defineComponent({
       sealImgId,
       onDateTypeSelect,
       handleSignatureCancel,
+      handleSignatureVisible,
       handleSetSeals,
       signerCaAuthInfo,
       undo,
@@ -3983,6 +4324,7 @@ export default defineComponent({
       authCerInfo,
       signSealId,
       handleDocChange,
+      quickHandleDocChange,
       signLoading,
       authCertificateVisible,
       signaturePadConfig,
@@ -4023,6 +4365,7 @@ export default defineComponent({
       wakeUpComment,
       callbackPage,
       sealRows,
+      personSignatureRows,
       selectSeal,
       userAuth,
       hasSignature,
@@ -4033,6 +4376,7 @@ export default defineComponent({
       locationSignControl,
       currentLocationIndex,
       clientHeight,
+      personalSignAuth,
     };
   },
 });
@@ -4130,14 +4474,33 @@ export default defineComponent({
   // position: relative;
   :deep(.van-dropdown-menu) {
     width: 400px;
+    // width: calc(100% - 60px);
   }
+}
+.single-doc-display {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    // width: 100%;
+    font-size: 28px;
+    font-weight: 500;
+    padding-left: 30px;
+    color: #333;
+    // 添加文本省略号样式
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 70%;
 }
 
 .doc-operation {
   width: 240px;
   display: flex;
   justify-content: right;
-  margin-right: 10px;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .document-list {
@@ -4226,7 +4589,7 @@ export default defineComponent({
     }
 
     .signer-info {
-      margin-bottom: 40px;
+      margin-bottom: 10px;
     }
 
     .sender-info {
@@ -4264,9 +4627,38 @@ export default defineComponent({
   align-items: center;
 
   img {
-    width: 180px;
+    width: 100%;
     // margin-left: 30px;
+    display: block;
+    margin: 0 auto;
   }
+}
+/* 响应式设计，根据屏幕宽度调整 */
+  // @media (max-width: 320px) {
+  //   .signature-info {
+  //     width: calc(50% - 5px);
+  //   }
+  // }
+
+  // @media (min-width: 321px) and (max-width: 480px) {
+  //   .signature-info {
+  //     width: calc(50% - 5px);
+  //   }
+  // }
+
+  // @media (min-width: 481px) {
+  //   .signature-info {
+  //     width: calc(33.333% - 5px);
+  //   }
+  // }
+
+.signature-img{
+  width: 180px;
+  height: 180px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+
 }
 
 :deep(.van-cell__value--alone) {
@@ -4439,7 +4831,7 @@ export default defineComponent({
 
     :deep(.van-button) {
       width: 50%;
-      height: 80px;
+      height: 100px;
       font-size: 32px;
     }
   }
@@ -4541,7 +4933,7 @@ export default defineComponent({
     display: flex;
     justify-content: flex-start;
     align-items: stretch;
-    gap: 1.5rem;
+    gap: 1.0rem;
     padding: 8px 0;
   }
 
@@ -4550,18 +4942,19 @@ export default defineComponent({
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    border: 2px solid transparent;
+    border: 2px solid #288cf226;
     border-radius: 10px;
     padding: 12px 18px 8px 18px;
     transition: border 0.2s, box-shadow 0.2s;
     position: relative;
-    min-width: 120px;
+    min-width: 240px;
   }
 
   .seal-item.active-seal-img {
     border: 2px solid #288cf2;
     box-shadow: 0 2px 12px #288cf233;
     background: #f5faff;
+    margin: 0 auto; /* 居中显示 */
   }
 
   .seal-selected-icon {
@@ -4574,6 +4967,51 @@ export default defineComponent({
     background-size: contain;
     pointer-events: none;
   }
+
+  .add-signature-icon {
+    font-size: 48px;
+    font-weight: bold;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .add-signature-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    border: 2px dashed #288cf2;
+    border-radius: 10px;
+    padding: 12px 18px 8px 18px;
+    transition: border 0.2s, box-shadow 0.2s;
+    position: relative;
+    min-width: 120px;
+    width: calc(70%);
+    background-color: #f8f9fa;
+    margin: 0 auto ;
+  }
+
+  .add-signature-btn:hover {
+    border: 2px dashed #288cf2;
+    box-shadow: 0 2px 12px #288cf233;
+    background: #e6f4ff;
+  }
+
+  .add-signature-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+
 }
 
 /* 明亮模式 */
@@ -4665,12 +5103,12 @@ export default defineComponent({
     right: 0.2rem;
     font-size:36px;
     color: #fff;
-    // padding-right: 20px;
+    /* padding-right: 20px; */
   }
 
   .custom-button-primary-locate {
     position: fixed;
-    right: 32px;
+    left: 50px;
     bottom: 20%;
     z-index: 200;
     color: #fff;
@@ -4678,8 +5116,8 @@ export default defineComponent({
     border-radius: 50%;
     font-size: 18px;
     font-weight: 600;
-    height: 80px;
-    width: 80px;
+    height: 70px;
+    width: 70px;
     // padding: 0px;
     transition: box-shadow 0.2s, background 0.2s;
     display: flex;
@@ -4687,6 +5125,58 @@ export default defineComponent({
     justify-content: center;
     background: linear-gradient(90deg, #0084ff, #6ebeff);
     box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
+  }  
+  
+
+
+  .sign-document-update{
+    position: fixed;
+    left: 50px;
+    bottom: 26%;
+    z-index: 200;
+    height: 100px;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;  
+    // border: 1px solid rgb(229, 16, 16);
+    // padding: 10px 0;
+  }
+
+  .custom-button-primary-document-update {
+    position: fixed;
+    margin-bottom: 10px;
+    // right: 32px;
+    // bottom: 27%;
+    // z-index: 200;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: 600;
+    height: 70px;
+    width: 70px;
+    // padding: 0px;
+    transition: box-shadow 0.2s, background 0.2s;
+    // display: flex;
+    // align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #0084ff, #6ebeff);
+    box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
+  }
+
+  .doc-count-container {
+    margin-top: 0.9rem;
+    // margin-bottom: 0;
+    text-align: center;
+    // z-index: 999;
+  }
+
+  .doc-footer-operation-text {
+    font-size: 16px;
+    color: #333;
+    white-space: nowrap;
   }
 
 </style>

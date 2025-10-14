@@ -38,7 +38,7 @@
           <div v-else class="no-data">
             <img src="~@/assets/images/no-data.png" alt="" />
             <p style="text-align: center">
-              <a-button type="primary" size="small" @click="handleAuthEnterPrise"
+              <a-button type="primary" size="small" style="margin-top: 15px" @click="handleAuthEnterPrise"
                 >加入/创建企业</a-button
               >
             </p>

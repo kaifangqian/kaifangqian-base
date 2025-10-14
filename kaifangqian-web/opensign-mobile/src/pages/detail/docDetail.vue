@@ -113,8 +113,8 @@
 		                                    :color="loadSignColor(item.writeStatus)">{{
 		                                        loadWriteStatus(item.writeStatus) }}</van-tag>
 		                            </div>
-		                            <div class="sender-list-area">
-		                                <span class="sub-sign-title">签署流程：</span>
+		                            <div class="sender-list-area" v-if="item.senderList && item.senderList.length > 0">
+		                                <span class="sub-sign-title" >签署流程：</span>
 		                                <div class="sender-list-info">
 		                                    <div v-for="(sendItem, sendIndex) in item.senderList" :key="sendIndex"
 		                                        class="sender-item-info">
@@ -129,6 +129,7 @@
 		                                    </div>
 		                                </div>
 		                            </div>
+                                    <div style="font-size: 12px;" v-else>未参与签署</div>
 		                        </div>
 		                    </div>
 		                    <div v-if="item.signerType == 2" class="signer-item">

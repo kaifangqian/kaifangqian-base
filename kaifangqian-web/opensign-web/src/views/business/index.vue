@@ -40,7 +40,7 @@
               v-model:value="searchForm.status" 
               placeholder="请选择状态" 
               allow-clear
-              style="width: 220px"
+              style="width: 220px;font-size: 12px;"
               @change="handleSearch"
             >
               <a-select-option :value="1">启用</a-select-option>
@@ -223,10 +223,6 @@
             params.status = searchForm.value.status;
           }
 
-          // const res = await getBusinessLineList({
-          //   pageNo: pagination.value.current,
-          //   pageSize: pagination.value.pageSize,
-          // });
           const res = await getBusinessLineList(params);
           if (res && Array.isArray(res.records)) {
             tableData.value = res.records;

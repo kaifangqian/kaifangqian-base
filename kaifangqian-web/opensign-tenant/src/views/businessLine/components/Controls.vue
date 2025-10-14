@@ -137,7 +137,7 @@
                             <template #item="{ element }">
                                 <div class="control-item">
                                     <div :class="['control-li control-move']" :style="[
-                                        'z-index:2020',
+                                        // 'z-index:2020',
                                         'borderColor:' + getColor(senderLength + index - 1, 'background'),
                                         'color:' + getColor(senderLength + index - 1, 'background'),
                                     ]">
@@ -203,7 +203,7 @@
                                     <div class="control-item">
                                       <template v-if="!(element.type == ControlType.ChopStamp && !element.chopStampUse)">
                                         <div :class="['control-li control-move']" :style="[
-                                            'z-index:2020',
+                                            // 'z-index:2020',
                                             'borderColor:' + getColor(sendItem.colorIndex, 'background'),
                                             'color:' + getColor(sendItem.colorIndex, 'background'),
                                         ]">

@@ -1,28 +1,12 @@
-<!--
-  @description 合同详情页面header
-
-  Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-  注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
-  必须公开修改后的完整源码（包括衍生作品），详见协议全文。
--->
 <template>
     <div class="sign-header-container">
-        <van-dropdown-menu>
-            <van-dropdown-item v-model="pickerId" :options="options ? options : []" placeholder="请选择" @change="handleChangeDoc"></van-dropdown-item>
+        <!-- 当只有一个文件时，显示普通文本 -->
+        <div v-if="options && options.length === 1" class="single-doc-display">
+            {{ singleDocName }}
+        </div>
+        <!-- 当有多个文件时，显示下拉列表 -->
+        <van-dropdown-menu v-else>
+            <van-dropdown-item v-model="pickerId" :options="dropdownOptions" placeholder="请选择" @change="handleChangeDoc"></van-dropdown-item>
         </van-dropdown-menu>
         <div class="doc-info">
             <a href="javascript:;" @click="handleProcess"> 进度</a>
@@ -32,18 +16,25 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, watch } from "vue"
+import { ref, defineComponent, watch, computed } from "vue"
 
-interface DocIem {
+interface DocItem {
     name: string;
-    text: string;
+    id: string;
     [key: string]: string;
 }
+
+interface DropdownOption {
+    text: string;
+    value: string;
+    [key: string]: string;
+}
+
 export default defineComponent({
     name: "SignHeader",
     props: {
         docs: {
-            type: Array,
+            type: Array as () => DocItem[],
             default: function () {
                 return []
             }
@@ -54,40 +45,48 @@ export default defineComponent({
         }
     },
     setup(props, { emit }) {
-        const pickerId = ref(props.docId);
-        const options: any = ref(props.docs);
+        const pickerId = ref<string>(props.docId);
+        const options = ref<DocItem[]>([]);
 
+        // 计算单个文档的名称
+        const singleDocName = computed(() => {
+            if (options.value && options.value.length === 1) {
+                return options.value[0].name;
+            }
+            return '';
+        });
+
+        // 转换为下拉选项格式
+        const dropdownOptions = computed<DropdownOption[]>(() => {
+            return options.value.map(item => ({
+                text: item.name,
+                value: item.id
+            }));
+        });
 
         watch(
             () => pickerId.value,
-            (val) => {
+            (val: string) => {
                 // pickerId.value = val;
                 // emit('docChange', val)
             }
         )
         watch(
             () => props.docId,
-            (val) => {
+            (val: string) => {
                 pickerId.value = val;
             }
         )
         watch(
             () => props.docs,
-            (list) => {
-
+            (list: DocItem[]) => {
                 if (list) {
-                    list.map((v) => {
-                        v.text = v.name;
-                        v.value = v.id;
-                    });
-                    console.log(list, '测试wacth列表')
+                    console.log(list, '测试watch列表')
                     options.value = list;
                 }
-
             },
             {
                 deep: true
-
             }
         )
 
@@ -97,7 +96,7 @@ export default defineComponent({
         function handleDetail() {
             emit('detail')
         }
-        function handleChangeDoc(val) {
+        function handleChangeDoc(val: string) {
             console.log(val, '测试----文档val')
             emit('docChange', val)
         }
@@ -107,6 +106,8 @@ export default defineComponent({
             handleProcess,
             handleDetail,
             options,
+            dropdownOptions,
+            singleDocName,
             handleChangeDoc
         }
     }
@@ -119,7 +120,6 @@ export default defineComponent({
     position: fixed;
     left: 0;
     background: #fff;
-    width: 100%;
     width: 100%;
     top: @header-height;
     right: 0;
@@ -137,7 +137,21 @@ export default defineComponent({
     :deep(.van-dropdown-menu__bar) {
         box-shadow: none;
         height: 100%;
-
+    }
+    
+    .single-doc-display {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        font-size: 28px;
+        font-weight: 500;
+        padding-left: 30px;
+        color: #333;
+        // 添加文本省略号样式
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
     }
 
     .doc-info {
@@ -152,10 +166,7 @@ export default defineComponent({
             cursor: pointer;
             font-size: 24px;
             margin: 0 20px;
-
         }
     }
-
-
 }
 </style>

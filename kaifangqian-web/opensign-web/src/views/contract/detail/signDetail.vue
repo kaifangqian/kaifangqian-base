@@ -169,20 +169,21 @@
                     <span>发起方</span>
                   </div>
                   <div class="signer-area">
+                    <a-tag class="signer-initiator-tag">发起方</a-tag>
                     <div class="sender-name">
                       <p>{{ item.signerName }}</p>
                       <a-tag
-                        v-if="item.writeStatus > -1"
+                        v-if="item.writeStatus > 0"
                         class="sign-status"
                         :color="loadSignColor(item.writeStatus)"
                         >{{ loadWriteStatus(item.writeStatus) }}</a-tag
                       >
                     </div>
-
                     <div
                       v-for="(sendItem, sendIndex) in item.senderList"
                       :key="sendIndex"
                       class="signer-control-info"
+                      v-if="item.senderList && item.senderList.length > 0"
                     >
                       <div class="signer-head">
                         <div class="sender-status-item">
@@ -215,6 +216,9 @@
                         </a-tooltip>
                       </div>
                     </div>
+                    <div class="sign-detail-item" style="margin-left: 20px;" v-else>
+                      <span>未参与签署</span>
+                    </div>
                   </div>
                 </div>
                 <div v-if="item.signerType == 2">
@@ -225,15 +229,16 @@
                     >
                   </div>
                   <div class="signer-info signer-area">
+                    <a-tag class="signer-person-tag">个人</a-tag>
                     <div class="receive-name">
-                      <a-badge status="default" color="#333" />
+                      <!-- <a-badge status="default" color="#333" /> -->
                       <span class="operater-name" style="margin-right: 10px">
                         {{ item.signerName }}
                       </span>
                       <span> {{ item.signerExternalValue }} </span>
                     </div>
                     <a-tag
-                      v-if="item.writeStatus > -1"
+                      v-if="item.writeStatus > 0"
                       class="sign-status"
                       :color="loadSignColor(item.writeStatus)"
                       >{{ loadWriteStatus(item.writeStatus) }}</a-tag
@@ -276,10 +281,11 @@
                     >
                   </div>
                   <div class="signer-area">
+                    <a-tag class="signer-company-tag">企业</a-tag>
                     <div class="sender-name">
                       <p>{{ item.signerName }}</p>
                       <a-tag
-                        v-if="item.writeStatus > -1"
+                        v-if="item.writeStatus > 0"
                         class="sign-status"
                         :color="loadSignColor(item.writeStatus)"
                         >{{ loadWriteStatus(item.writeStatus) }}</a-tag
@@ -525,7 +531,7 @@
           type: 'default',
           text: '下载签约文件',
           callBack: handleDownloadFiles,
-          show: true,
+          show: false,
           svgIcon: 'download',
           disabled: false,
         },
@@ -558,7 +564,7 @@
               type: 'default',
               text: '下载签约文件',
               callBack: handleDownloadFiles,
-              show: true,
+              show: signRuInfo.value.baseVo.downloadFileType == 1,
               svgIcon: 'download',
               disabled: false,
             },
@@ -577,7 +583,7 @@
               type: 'default',
               text: '下载签约文件',
               callBack: handleDownloadFiles,
-              show: true,
+              show: signRuInfo.value.baseVo.downloadFileType == 1,
               svgIcon: 'download',
               disabled: false,
             },
@@ -1162,12 +1168,16 @@
   }
   .signer-area {
     padding: 10px 20px;
-    background: #f9f9f9;
     margin-bottom: 10px;
+    background: #f7f8fb;
+    border-radius: 2px;
+    align-items: center;
+    border-radius: 5px;
+    border: 1px solid #ced2dc;
     .sender-name {
       display: flex;
       align-items: center;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
       p {
         margin-bottom: 0;
         min-width: 200px;
@@ -1308,5 +1318,45 @@
   .signer-card-title {
     display: flex;
     justify-content: space-between;
+  }
+
+  .signer-initiator-tag {
+    margin-bottom: 10px;
+    left: 2px;
+    top: 0;
+    border-bottom-left-radius: 8px;
+    // padding: 0 20px;
+    width: 60px;
+    text-align: center;
+    background: #0079fe30;
+    color: #0079fe;
+    border: #0079fe 1px solid;
+  }
+
+  .signer-person-tag {
+    // margin-bottom: 10px;
+    margin-right: 40px;
+    left: 2px !important;
+    top: 0;
+    border-bottom-left-radius: 8px;
+    // padding: 0 20px;
+    width: 60px;
+    text-align: center;
+    background: #19be6b30;
+    color: #19be6b;
+    border: #19be6b 1px solid;
+  }
+
+  .signer-company-tag {
+    margin-bottom: 10px;
+    left: 2px;
+    top: 0;
+    border-bottom-left-radius: 8px;
+    // padding: 0 20px;
+    width: 60px;
+    text-align: center;
+    background: #fe950030;
+    color: #fe9500;
+    border: #fe9500 1px solid;
   }
 </style>

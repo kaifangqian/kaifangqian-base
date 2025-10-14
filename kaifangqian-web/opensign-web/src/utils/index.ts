@@ -125,7 +125,7 @@ export function getRawRoute(route: RouteLocationNormalized): RouteLocationNormal
 export const withInstall = <T>(component: T, alias?: string) => {
     const comp = component as any;
     comp.install = (app: App) => {
-        console.log(comp.name, '组件注册名称');
+        // console.log(comp.name, '组件注册名称');
         app.component(comp.name || comp.displayName, component);
         if (alias) {
             app.config.globalProperties[alias] = component;

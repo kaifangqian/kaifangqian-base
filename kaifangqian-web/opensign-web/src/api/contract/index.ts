@@ -495,3 +495,10 @@ export function deleteCompleteRu(params) {
 export function getMenuStastics(params) {
     return defHttp.get({ url: "/company/task/menuStastics", params }, { errorMessageMode: 'none' });
 }
+
+/**
+ * @description
+ */ 
+export function getSignNodeConfig(params) {
+    return defHttp.get({ url: "/sign/ru/run/sign/nodeConfig", params }, { errorMessageMode: 'none' });
+}

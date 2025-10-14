@@ -84,7 +84,7 @@ export default defineComponent({
       const { currentRoute } = router;
       const route = unref(currentRoute);
       const pageSource = route.query.from;
-      console.log(pageSource,'路由来源')
+      // console.log(pageSource,'路由来源')
       watch(
         ()=>props.docId,
         (val)=>{

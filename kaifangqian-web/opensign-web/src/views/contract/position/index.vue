@@ -514,7 +514,7 @@
                   }
                 
               })
-              console.log(flatControls,'flatControls-------------')
+              // console.log(flatControls,'flatControls-------------')
               //将控件按文档分类
               let groupControls:any = [];
   
@@ -673,7 +673,7 @@
                         })
                     }
                 })
-              console.log(groupControls,'分组后的控件--')
+              // console.log(groupControls,'分组后的控件--')
               //按文档进行控件设置
               for (let i = 0; i < docs.value.length; i++) {
                   let matchControl = groupControls.find(v=>v.controlDocId == docs.value[i].id)
@@ -1509,13 +1509,20 @@
                       signLoading.value = false;
                         Modal.destroyAll();
                         setTimeout(()=>{
-                          router.push("/contract/doc");
+                          // router.push("/contract/doc");
+                          // 指定跳转到“已发送”tab
+                          router.push({
+                            path:'/contract/doc',
+                            query:{
+                              key:'2',
+                            },
+                          });
                           return;
-                          if(window.opener){
-                            window.close();
-                          }else{
-                            router.push("/contract/doc")
-                          }
+                          // if(window.opener){
+                          //   window.close();
+                          // }else{
+                          //   router.push("/contract/doc")
+                          // }
                         })
                     }else{
                       setTimeout(() => {

@@ -145,7 +145,7 @@ export default defineComponent({
     const smsCount = ref(null);
     const visibleModal = ref(false)
     const submitLoading = ref(false);
-    console.log(visibleModal,'敏感操作设置------');
+    // console.log(visibleModal,'敏感操作设置------');
     const verifyType = computed(()=>  appStore.getSensitiveConfig.sensitiveType)
     const formRef = ref();
     const callBackFun = reactive({
