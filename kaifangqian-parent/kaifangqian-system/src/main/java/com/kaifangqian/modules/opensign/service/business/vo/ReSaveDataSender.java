@@ -24,5 +24,8 @@ public class ReSaveDataSender implements Serializable {
 
     private Integer agreeSkipWillingness;
 
+    //个人签署节点实名认证类型：value字段值为：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）
+    private String personalSignAuth ;
+
     private SignReSender sender ;
 }

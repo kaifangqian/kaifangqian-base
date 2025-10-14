@@ -12,7 +12,6 @@ tests/server/static/upload
 .env.local
 .env.*.local
 .eslintcache
-.env.development
 
 # Log files
 npm-debug.log*
@@ -28,7 +27,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-/.env.development
 
 
 /package-lock.json

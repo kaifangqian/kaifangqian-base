@@ -38,7 +38,6 @@ import { setupStore } from '/@/store';
 import { setupGlobDirectives } from '/@/directives';
 import { setupI18n } from '/@/locales/setupI18n';
 import { registerGlobComp } from '/@/components/registerGlobComp';
-import JsonViewer from 'vue3-json-viewer';
 import eventHub from '/@/utils/eventHub';
 import axios from 'axios';
 
@@ -47,9 +46,6 @@ async function bootstrap() {
 
   // 待单独写成文件调用
   app.config.globalProperties.eventHub = eventHub;
-
-  // json预览
-  app.use(JsonViewer);
 
   // Configure store
   setupStore(app);

@@ -286,6 +286,7 @@ public class RuSaveService {
                 dataSigner.setSignerType(signerVo.getSignerType());
                 dataSigner.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                 dataSigner.setVerifyType(signerVo.getVerifyType());
+                dataSigner.setPersonalSignAuth(signerVo.getPersonalSignAuth());
 
                 if(SignerTypeEnum.SENDER.getCode().equals(signerVo.getSignerType())){
                     //发起人
@@ -493,6 +494,10 @@ public class RuSaveService {
                 dataSender.setConfirmType(senderVo.getConfirmType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setVerifyType(senderVo.getVerifyType());
+                if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                    dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                }
+
                 dataSigner.getAddSenderList().add(dataSender);
             }
         }
@@ -520,6 +525,9 @@ public class RuSaveService {
                 dataSender.setConfirmType(senderVo.getConfirmType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setVerifyType(senderVo.getVerifyType());
+                if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())) {
+                    dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                }
                 dataSigner.getAddSenderList().add(dataSender);
             }
         }
@@ -564,6 +572,10 @@ public class RuSaveService {
                 dataSender.setConfirmType(senderVo.getConfirmType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setVerifyType(senderVo.getVerifyType());
+                if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                    dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                }
+
                 dataSigner.getUpdateSenderList().add(dataSender);
             }
         }
@@ -590,6 +602,10 @@ public class RuSaveService {
                 dataSender.setConfirmType(senderVo.getConfirmType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setVerifyType(senderVo.getVerifyType());
+                if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                    dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                }
+
                 dataSigner.getUpdateSenderList().add(dataSender);
             }
         }

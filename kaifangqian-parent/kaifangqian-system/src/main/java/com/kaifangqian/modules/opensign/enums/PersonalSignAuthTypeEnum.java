@@ -1,5 +1,5 @@
 /**
- * @description 签署业务校验服务接口类
+ * @description 意愿验证枚举
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,29 +19,42 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.opensign.service.ru;
+package com.kaifangqian.modules.opensign.enums;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.kaifangqian.modules.opensign.entity.SignRuSignConfirm;
+public enum PersonalSignAuthTypeEnum {
 
-import java.util.List;
+    REQUIRED("required", "须实名认证"),
 
-/**
- * @Description: SignRuSignConfirmService
- * @Package: com.kaifangqian.modules.opensign.service.ru
- * @ClassName: SignRuSignConfirmService
- * @author: FengLai_Gong
- */
-public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
+    ALLOWED("allowed", "允许不实名认证"),
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth);
+    NOT_REQUIRED("not_required", "无需实名认证"),
+    ;
 
-    SignRuSignConfirm getByParam(String signerId, String ruId);
+    private String type;
 
-    List<SignRuSignConfirm> listByParam(String ruId);
+    private String name;
 
-    void delete(String signerId,String ruId);
+    PersonalSignAuthTypeEnum(String type, String name) {
+        this.type = type;
+        this.name = name;
+    }
 
 
+    public String getType() {
+        return this.type;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public static PersonalSignAuthTypeEnum getByType(String type) {
+        for (PersonalSignAuthTypeEnum confirmType : PersonalSignAuthTypeEnum.values()) {
+            if (confirmType.getType().equals(type)) {
+                return confirmType;
+            }
+        }
+        return null;
+    }
 
 }

@@ -1,5 +1,5 @@
 /**
- * @description 签署业务校验服务接口类
+ * @description 文件签署发起类型枚举
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,29 +19,41 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.opensign.service.ru;
+package com.kaifangqian.modules.opensign.enums;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.kaifangqian.modules.opensign.entity.SignRuSignConfirm;
+public enum ContractSendTypeEnum {
 
-import java.util.List;
+    API("api", "通过接口发起"),
 
-/**
- * @Description: SignRuSignConfirmService
- * @Package: com.kaifangqian.modules.opensign.service.ru
- * @ClassName: SignRuSignConfirmService
- * @author: FengLai_Gong
- */
-public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
+    APP("app", "通过签署应用发起"),
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth);
+    ;
 
-    SignRuSignConfirm getByParam(String signerId, String ruId);
+    private String type;
 
-    List<SignRuSignConfirm> listByParam(String ruId);
+    private String name;
 
-    void delete(String signerId,String ruId);
+    ContractSendTypeEnum(String type, String name) {
+        this.type = type;
+        this.name = name;
+    }
 
 
+    public String getType() {
+        return this.type;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public static ContractSendTypeEnum getByType(String type) {
+        for (ContractSendTypeEnum confirmType : ContractSendTypeEnum.values()) {
+            if (confirmType.getType().equals(type)) {
+                return confirmType;
+            }
+        }
+        return null;
+    }
 
 }

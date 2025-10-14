@@ -165,7 +165,7 @@ public class SignServiceExternalImpl implements SignServiceExternal {
     @Override
     public AuthSignDocumentResponse submitAuthHashSign(VerifySignDocumentRequest verifySignDocumentRequest) throws Exception {
         CommonResult<AuthSignDocumentResponse> result = null;
-        AuthSignDocumentResponse authSignDocumentResponse = null;
+        AuthSignDocumentResponse authSignDocumentResponse = new AuthSignDocumentResponse();
 
         // 获取当前登录用户
         LoginUser loginUser = MySecurityUtils.getCurrentUser();
@@ -212,7 +212,7 @@ public class SignServiceExternalImpl implements SignServiceExternal {
     @Override
     public AutoSignDocumentResponse submitAutoHashSign(AutoSignDocumentRequest autoSignDocumentRequest) throws Exception {
         CommonResult<AutoSignDocumentResponse> result = null;
-        AutoSignDocumentResponse autoSignDocumentResponse = null;
+        AutoSignDocumentResponse autoSignDocumentResponse = new AutoSignDocumentResponse();
 
         // 获取当前登录用户
         // LoginUser loginUser = MySecurityUtils.getCurrentUser();

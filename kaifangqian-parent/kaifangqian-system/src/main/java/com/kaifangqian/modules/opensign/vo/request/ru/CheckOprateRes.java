@@ -38,4 +38,6 @@ public class CheckOprateRes {
     private String signRuId;
     //是否为发起者
     private boolean startFlag;
+    //是否可下载
+    private boolean downloadFlag;
 }

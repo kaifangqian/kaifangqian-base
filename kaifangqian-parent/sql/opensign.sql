@@ -5401,6 +5401,14 @@ INSERT INTO `sys_permission` (`id`, `app_id`, `name`, `menu_type`, `parent_id`, 
 INSERT INTO `sys_app_version_permission` (`id`, `app_info_id`, `app_version_id`, `permission_id`, `delete_flag`, `delete_by`, `delete_time`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('e83c31cd-250b-4d33-b24b-0cc9fb67cb17', '70588803-52e4-433d-a61f-0a68e1febd72', '2e1f31de-651b-49da-a89c-03f6b5daa9be', '850397f1-2ac9-40c2-a19f-8ddfe180523b', 0, NULL, NULL, NULL, '2025-09-04 14:17:42', NULL, NULL);
 INSERT INTO `sys_auth_group_permission` (`id`, `group_id`, `app_id`, `permission_id`, `permission_perms`, `permission_data_id`) VALUES ('c4b7c959-c3da-421e-a5d0-3c8f237dc588', '07b3e2cd-eb1b-4e07-8844-685478909734', '70588803-52e4-433d-a61f-0a68e1febd72', '850397f1-2ac9-40c2-a19f-8ddfe180523b', NULL, NULL);
 
+-- v3.0.3
+INSERT INTO `sys_config` (`id`, `name`, `type`, `value`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('5coo6af-1eff-ad09-4fb4-p93b22d61608', '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）', 'personal_sign_auth', 'required', NULL, NULL, 'admin', '2025-09-23 08:28:01');
+ALTER TABLE `sign_re` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `send_type` varchar(20) NULL DEFAULT NULL COMMENT '发起类型：api(接口发起)；app（应用发起）';
+ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+
 -- 这是最后一句
 SET FOREIGN_KEY_CHECKS = 1;
 

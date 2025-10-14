@@ -37,7 +37,11 @@ public interface SignRuTaskService extends IService<SignRuTask> {
 
     List<SignRuTask> getNoTenantUserList(SignRuTask query);
 
-    List<SignRuTask> getTenanNoBindList(SignRuTask query);
+    List<SignRuTask> getTenantNoBindList(SignRuTask query);
+
+    List<SignRuTask> getTenantNoBindListForApi(SignRuTask query);
+
+    List<SignRuTask> getTenantNoBindListForLoading(SignRuTask query);
 
     List<SignRuTask> getPersonalTenanList(SignRuTask query);
 

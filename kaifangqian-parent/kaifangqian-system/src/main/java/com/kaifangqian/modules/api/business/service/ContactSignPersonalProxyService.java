@@ -21,6 +21,7 @@
  */
 package com.kaifangqian.modules.api.business.service;
 
+import com.kaifangqian.external.sign.request.SignOrderRequest;
 import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.cert.enums.CertHolderTypeEnum;
 import com.kaifangqian.modules.cert.enums.CertTypeEnum;
@@ -44,6 +45,7 @@ import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.business.vo.RuCreateData;
 import com.kaifangqian.modules.opensign.service.business.vo.RuDataDoc;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
+import com.kaifangqian.utils.MyStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -407,8 +409,19 @@ public class ContactSignPersonalProxyService extends ContractService {
             operateRecord.setIpAddr(null);
             operateRecord.setOperateTime(new Date());
         }
+
+        // 获取平台个人签署认证方式
+        String personalSignAuth = null;
+
+
+        // 计算个人签署认证方式
+        if(MyStringUtils.isNotBlank(contractUser.getPersonalSignAuth())){
+            String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+            personalSignAuth = setSignNodeConfig(contractUser, personalSignAuthPlatform, signRu);
+        }
+
         //签署操作
-        ruBusinessService.operate(controlList,signRu,operateTypeEnum,personalTenantId,sealByte,operateRecord,SignTypeEnum.AUTO_SIGN.getCode());
+        ruBusinessService.operate(controlList,signRu,operateTypeEnum,personalTenantId,sealByte,operateRecord,SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuth);
         SignTaskThreadlocalVO threadlocalVO = new SignTaskThreadlocalVO();
         threadlocalVO.setSignRuId(signTaskThreadSignRuId);
         threadlocalVO.setTaskId(signTaskThreadTaskId);
@@ -435,7 +448,51 @@ public class ContactSignPersonalProxyService extends ContractService {
         SignTaskInfo.THREAD_LOCAL.remove();
         MySecurityUtils.THREAD_LOCAL.remove();
     }
+    /**
+     * 根据系统配置、签署实例、签署节点校验并设置签署节点配置
+     * @param confirm
+     * @param signRu
+     */
+    private String setSignNodeConfig(ContractUser confirm, String personalSignAuthPlatform, SignRu signRu){
 
+        // 默认设置为需实名
+        String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
 
-
+        // 获取平台级个人实名类型配置，如果配置了，则使用配置的，否则设置为需实名
+        if (MyStringUtils.isNotBlank(personalSignAuthPlatform)) {
+            // 如果平台配置为无须实名或需实名，则直接使用平台的配置
+            if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                    personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                finalPersonalSignAuth = personalSignAuthPlatform;
+            }
+            // 如果平台配置为允许不实名认证，则判断签署实例的实名认证要求
+            else if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                if (signRu != null && MyStringUtils.isNotBlank(signRu.getPersonalSignAuth())) {
+                    // 如果签署实例为无须实名或需实名，则直接签署实例的配置
+                    if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                            signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                        finalPersonalSignAuth = signRu.getPersonalSignAuth();
+                    }
+                    // 如果签署实例为允许不实名认证，则判断签署任务的实名认证要求
+                    else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                        // 判断签署任务的实名认证要求是否为空，为空则直接配置为需实名。
+                        if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                            // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                            if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                                    confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                                finalPersonalSignAuth = confirm.getPersonalSignAuth();
+                            }
+                        }
+                    }
+                }else if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                    // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                    if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                            confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                        finalPersonalSignAuth = confirm.getPersonalSignAuth();
+                    }
+                }
+            }
+        }
+        return finalPersonalSignAuth;
+    }
 }

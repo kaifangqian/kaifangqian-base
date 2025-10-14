@@ -1,5 +1,4 @@
 /**
- * @description 签署业务校验服务接口类
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,29 +18,30 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.opensign.service.ru;
+package com.kaifangqian.modules.opensign.vo.response.ru;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.kaifangqian.modules.opensign.entity.SignRuSignConfirm;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * @Description: SignRuSignConfirmService
- * @Package: com.kaifangqian.modules.opensign.service.ru
- * @ClassName: SignRuSignConfirmService
+ * @Description: RunSignConfirmResponse
+ * @Package: com.kaifangqian.modules.opensign.vo.response.ru
+ * @ClassName: RunSignConfirmResponse
  * @author: FengLai_Gong
  */
-public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+// 签署节点配置信息
+// Signature node configuration information
+public class SignNodeConfigResponse implements Serializable {
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth);
-
-    SignRuSignConfirm getByParam(String signerId, String ruId);
-
-    List<SignRuSignConfirm> listByParam(String ruId);
-
-    void delete(String signerId,String ruId);
-
+    // 个人实名认证配置
+    // Personal real-name authentication configuration
+    private String personalSignAuth ;
 
 
 }

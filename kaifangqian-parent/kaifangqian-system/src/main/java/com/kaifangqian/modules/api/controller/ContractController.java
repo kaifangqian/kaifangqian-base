@@ -538,6 +538,7 @@ public class ContractController {
         String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
         ContractDraftRequest request = JSON.parseObject(cachedRequestBody, ContractDraftRequest.class);
 
+        request.setSendType(ContractSendTypeEnum.API.getType());
         String contractId = contractDraftAndStartService.contractDraftAndStart(request);
         if(contractId == null || contractId.length() == 0){
             return ApiCommonRes.error(ApiCode.UNKNOWN);

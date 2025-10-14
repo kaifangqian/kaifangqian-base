@@ -51,6 +51,12 @@ public class SignOrderRequest implements Serializable {
     // @ApiModelProperty("签署意愿验证方式")
     private List<String> verifyTypes;
 
+    //value字段值为：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）
+    private String personalSignAuth ;
+
+    //开放签客户账号
+    private String clientUsername;
+
     // @ApiModelProperty("合同编号")
     private String contractId;
 

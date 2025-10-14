@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,9 +106,33 @@ public class SignRuTaskServiceImpl extends ServiceImpl<SignRuTaskMapper, SignRuT
     }
 
     @Override
-    public List<SignRuTask> getTenanNoBindList(SignRuTask query) {
+    public List<SignRuTask> getTenantNoBindList(SignRuTask query) {
         LambdaQueryWrapper<SignRuTask> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MyStringUtils.isNotBlank(query.getTenantId()), SignRuTask::getTenantId, query.getTenantId()).eq(SignRuTask::getDeleteFlag, false).isNotNull(SignRuTask::getUserId).isNull(SignRuTask::getTenantUserId);
+        queryWrapper.eq(MyStringUtils.isNotBlank(query.getTenantId()), SignRuTask::getTenantId, query.getTenantId())
+                .eq(SignRuTask::getDeleteFlag, false)
+                .isNotNull(SignRuTask::getUserId)
+                .isNull(SignRuTask::getTenantUserId);
+
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<SignRuTask> getTenantNoBindListForApi(SignRuTask query) {
+        LambdaQueryWrapper<SignRuTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MyStringUtils.isNotBlank(query.getTenantId()), SignRuTask::getTenantId, query.getTenantId())
+                .eq(SignRuTask::getDeleteFlag, false)
+                .isNull(SignRuTask::getTenantUserId);
+
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<SignRuTask> getTenantNoBindListForLoading(SignRuTask query) {
+        LambdaQueryWrapper<SignRuTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SignRuTask::getDeleteFlag, false)
+                .eq(SignRuTask::getTaskType, TaskTypeEnum.SIGN_TASK.getCode())
+                .isNull(SignRuTask::getUserId)
+                .isNull(SignRuTask::getTenantUserId);
 
         return this.list(queryWrapper);
     }
