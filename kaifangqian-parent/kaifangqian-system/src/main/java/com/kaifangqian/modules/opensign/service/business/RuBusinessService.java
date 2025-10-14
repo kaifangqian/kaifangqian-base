@@ -1693,8 +1693,9 @@ public class RuBusinessService {
             }
 
             // 个人签署节点实名认证逻辑判断
-            this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
-
+            if(tenantType != TenantType.GROUP.getType()){
+                this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
+            }
         }else{
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
             // 获取签署人确认信息

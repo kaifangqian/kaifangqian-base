@@ -107,7 +107,7 @@ public class RuCreateService {
         if(signReId == null || signReId.length() == 0){
             throw new PaasException("业务线id不存在");
         }
-        SignRe re = reService.getById(vo.getBaseVo().getSignReId());
+         SignRe re = reService.getById(vo.getBaseVo().getSignReId());
         if(re == null){
             throw new PaasException("业务线不存在");
         }
@@ -228,7 +228,11 @@ public class RuCreateService {
                         dataSender.setConfirmType(senderVo.getConfirmType());
                         dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                         dataSender.setVerifyType(senderVo.getVerifyType());
-                        dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+
+                        if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                            dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                        }
+
                         dataSinger.getAddSenderList().add(dataSender);
                     }
                 }
@@ -254,7 +258,9 @@ public class RuCreateService {
                         dataSender.setConfirmType(senderVo.getConfirmType());
                         dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                         dataSender.setVerifyType(senderVo.getVerifyType());
-                        dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                        if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                            dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                        }
                         dataSinger.getAddSenderList().add(dataSender);
                     }
                 }

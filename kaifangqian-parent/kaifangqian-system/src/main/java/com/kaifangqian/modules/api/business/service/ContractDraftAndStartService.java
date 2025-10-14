@@ -41,6 +41,7 @@ import com.kaifangqian.modules.opensign.entity.*;
 import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.business.vo.*;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
+import com.kaifangqian.utils.MyStringUtils;
 import com.kaifangqian.utils.UUIDGenerator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -805,6 +806,12 @@ public class ContractDraftAndStartService extends ContractService {
                     if(node != null){
                         //人脸,兼容V2版本接口服务
                         dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+
+                        if(node.getNodeType() != null && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+
+                        }
+                        dataSender.setPersonalSignAuth(node.getPersonalSignAuth());
+
                         String signConfirm = node.getSignConfirm();
                         if(signConfirm != null && signConfirm.equals("FACE")){
                             dataSender.setVerifyType("FACE");
@@ -892,6 +899,7 @@ public class ContractDraftAndStartService extends ContractService {
                 ruSender.setSenderName(SenderTypeEnum.PERSONAL.getName());
                 ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
             }
+
             //非自动签署需要指定签署人
             if(!autoSignFlag){
                 ContractUser signer = node.getSigner();
@@ -907,13 +915,18 @@ public class ContractDraftAndStartService extends ContractService {
                 ruSender.setSenderUserId(tenantUser.getId());
             }
             ruSender.setDeleteFlag(false);
-            dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+            dataSender.setAgreeSkipWillingness(node.getSigner().getAgreeSkipWillingness());
+            if(MyStringUtils.isNotBlank(node.getNodeType()) && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+                String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+                String personalSignAuth = setSignNodeConfig(node.getSigner().getPersonalSignAuth(), personalSignAuthPlatform);
+                dataSender.setPersonalSignAuth(personalSignAuth);
+            }
             //人脸
             String signConfirm = node.getSignConfirm();
             if(signConfirm != null && signConfirm.equals("FACE")){
                 dataSender.setVerifyType("FACE");
             }else {
-                dataSender.setVerifyType(node.getVerifyType());
+                dataSender.setVerifyType(node.getSigner().getVerifyType());
             }
             //控件数据
             if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
@@ -954,7 +967,10 @@ public class ContractDraftAndStartService extends ContractService {
         }
         ruSigner.setDeleteFlag(false);
         dataSigner.setAgreeSkipWillingness(personalSinger.getReceiver().getAgreeSkipWillingness());
-        dataSigner.setPersonalSignAuth(personalSinger.getReceiver().getPersonalSignAuth());
+
+        String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+        String personalSignAuth = setSignNodeConfig(personalSinger.getReceiver().getPersonalSignAuth(), personalSignAuthPlatform);
+        dataSigner.setPersonalSignAuth(personalSignAuth);
         //人脸
         String signConfirm = personalSinger.getSignConfirm();
         if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1107,7 +1123,12 @@ public class ContractDraftAndStartService extends ContractService {
                 ruSender.setDeleteFlag(false);
 
                 dataSender.setAgreeSkipWillingness(node.getSigner().getAgreeSkipWillingness());
-                dataSender.setPersonalSignAuth(node.getSigner().getPersonalSignAuth());
+
+                if(MyStringUtils.isNotBlank(node.getNodeType()) && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+                    String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+                    String personalSignAuth = setSignNodeConfig(node.getSigner().getPersonalSignAuth(), personalSignAuthPlatform);
+                    dataSender.setPersonalSignAuth(personalSignAuth);
+                }
                 //人脸
                 String signConfirm = node.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1205,7 +1226,10 @@ public class ContractDraftAndStartService extends ContractService {
                                 }
 
                                 dataSigner.setAgreeSkipWillingness(contractInternalNode.getSigner().getAgreeSkipWillingness());
-                                dataSigner.setPersonalSignAuth(contractInternalNode.getSigner().getPersonalSignAuth());
+                                if(contractInternalNode.getNodeType() != null && !contractInternalNode.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getName())){
+                                    dataSigner.setPersonalSignAuth(contractInternalNode.getSigner().getPersonalSignAuth());
+                                }
+
                                 //人脸
                                 String signConfirm = contractInternalNode.getSignConfirm();
                                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1421,7 +1445,37 @@ public class ContractDraftAndStartService extends ContractService {
         loginUser.setTenantUserId(tenantUser.getId());
         MySecurityUtils.THREAD_LOCAL.set(loginUser);
 
+    }
 
+    /**
+     * 根据系统配置、签署实例、签署节点校验并设置签署节点配置
+     * @param personalSignAuthNode
+     * @param personalSignAuthPlatform
+     */
+    private String setSignNodeConfig(String personalSignAuthNode, String personalSignAuthPlatform){
+
+        // 默认设置为需实名
+        String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
+
+        // 获取平台级个人实名类型配置，如果配置了，则使用配置的，否则设置为需实名
+        if (MyStringUtils.isNotBlank(personalSignAuthPlatform)) {
+            // 如果平台配置为无须实名或需实名，则直接使用平台的配置
+            if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                    personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                finalPersonalSignAuth = personalSignAuthPlatform;
+            }
+            // 如果平台配置为允许不实名认证，则判断签署实例的实名认证要求
+            else if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                if (MyStringUtils.isNotBlank(personalSignAuthNode)) {
+                    // 如果签署实例为无须实名或需实名，则直接签署实例的配置
+                    if (personalSignAuthNode.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                            personalSignAuthNode.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                        finalPersonalSignAuth = personalSignAuthNode;
+                    }
+                }
+            }
+        }
+        return finalPersonalSignAuth;
     }
 
 

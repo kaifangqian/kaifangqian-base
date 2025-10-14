@@ -415,12 +415,10 @@ public class ContactSignPersonalProxyService extends ContractService {
 
 
         // 计算个人签署认证方式
-
-        if(MyStringUtils.isNotBlank(contractUser.getPersonalSignAuth()) && contractUser.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())){
-            // String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
-            personalSignAuth = PersonalSignAuthTypeEnum.NOT_REQUIRED.getType();
+        if(MyStringUtils.isNotBlank(contractUser.getPersonalSignAuth())){
+            String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+            personalSignAuth = setSignNodeConfig(contractUser, personalSignAuthPlatform, signRu);
         }
-
 
         //签署操作
         ruBusinessService.operate(controlList,signRu,operateTypeEnum,personalTenantId,sealByte,operateRecord,SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuth);
