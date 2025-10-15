@@ -1556,12 +1556,6 @@ public class RuBusinessService {
         //签署操作
         operate(docControlList,signRu,operateTypeEnum,signRu.getSysTenantId(),entSealByte,operateRecord, SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuthType);
 
-        //自动签署回调
-//        SignRuTask ruTaskQuery = new SignRuTask();
-//        ruTaskQuery.setSignRuId(signRu.getId());
-//        ruTaskQuery.setUserTaskId(sender.getId());
-//        List<SignRuTask> taskList = ruTaskService.getByEntity(ruTaskQuery);
-
         QueryWrapper<SignRuTask> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(SignRuTask::getSignRuId,signRu.getId());
         wrapper.lambda().eq(SignRuTask::getUserTaskId,sender.getId());
@@ -1658,10 +1652,6 @@ public class RuBusinessService {
         Integer tenantType = TenantType.PERSONAL.getType() ;
         Integer holderType = CertHolderTypeEnum.PERSONAL.getCode();
         signOrderRequest.setTenantType("PERSONAL");
-        // 获取平台个人实名认证节点配置
-        String personalSignAuth = this.getSystemPersonalSignAuthType();
-        // 获取签署流程发送类型
-        String sendType = signRu.getSendType();
 
         if(threadlocalVO.getUserType().equals(SignerTypeEnum.SENDER.getCode()) || threadlocalVO.getUserType().equals(SignerTypeEnum.RECEIVER_ENT.getCode())){
             SignRuSender sender = senderService.getById(threadlocalVO.getUserTaskId());
@@ -1694,7 +1684,7 @@ public class RuBusinessService {
 
             // 个人签署节点实名认证逻辑判断
             if(tenantType != TenantType.GROUP.getType()){
-                this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
+                signOrderRequest.setPersonalSignAuth(this.setSignNodeConfig(confirm,signRu));
             }
         }else{
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
@@ -1718,7 +1708,7 @@ public class RuBusinessService {
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
             }
             // 个人签署节点实名认证逻辑判断
-            this.setSignNodeConfig(confirm,personalSignAuth,sendType,signOrderRequest,signRu);
+            signOrderRequest.setPersonalSignAuth(this.setSignNodeConfig(confirm,signRu));
         }
         CertTypeEnum certTypeEnum = null ;
         OperateTypeEnum operateTypeEnum = null ;
@@ -1840,19 +1830,6 @@ public class RuBusinessService {
             throw new PaasException("业务线实例不存在");
         }
         String personalSignAuthType = null;
-        //获取证书
-        String certTenantId = vo.getCertTenantId();
-        Integer certType = vo.getCertType();
-        Integer certHolderType = vo.getCertHolderType();
-//        CertificateProperty certificateProperty = null ;
-//        if(certType != null && certTenantId != null && certHolderType != null){
-//            CertTypeEnum certTypeEnum = CertTypeEnum.getByCode(certType);
-//            //准备证书数据
-//            certificateProperty = certBusinessService.findAndGenerateCertProperty(certTenantId, certTypeEnum,certHolderType);
-//            if(certificateProperty == null){
-//                throw new PaasException("业务线实例-证书不存在");
-//            }
-//        }
 
         //获取签章
         byte[] sealByte = signFileService.getByteById(vo.getSealAnnexId());
@@ -1875,36 +1852,39 @@ public class RuBusinessService {
         if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode() || signRu.getCaSignType() == SignRuCaSignTypeEnum.SYSTEM_CA.getCode()){
             operateRecord = new SignRuOperateRecord();
             operateRecord.setSignRuId(signRu.getId());
-            //operateRecord.setCertId(certificateProperty.getCertificateInfoId());
             operateRecord.setConfirmOrderNo(vo.getSignConfirmOrderNo());
             operateRecord.setTaskId(vo.getTaskId());
             operateRecord.setAccountId(vo.getUserId());
             operateRecord.setTenantId(vo.getTenantId());
             operateRecord.setTenantUserId(vo.getTenantUserId());
+
             if(signTaskThreadlocalVO.getUserType() != null && signTaskThreadlocalVO.getUserType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()) {
                 operateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+                SignRuSigner signer = signerService.getById(signTaskThreadlocalVO.getUserTaskId());
+                // 获取签署人确认信息,并计算签署人的实名认证类型
+                if (signer != null){
+                    SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(),vo.getSignRuId());
+                    if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                        personalSignAuthType = this.setSignNodeConfig(confirm,signRu);
+                    }
+                }
             }else {
                 SignRuSender sender = senderService.getById(signTaskThreadlocalVO.getUserTaskId());
                 if(sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()){
-                    SignRuSignConfirm confirm = ruSignConfirmService.getByParam(sender.getId(),vo.getSignRuId());
-
-                    if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
-                        personalSignAuthType = confirm.getPersonalSignAuth();
-                    }
                     operateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
                 }else {
-                    SignRuSigner signer = signerService.getById(signTaskThreadlocalVO.getUserTaskId());
-                    // 获取签署人确认信息
-                    if (signer != null){
-                        SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(),vo.getSignRuId());
+                    // SignRuSigner signer = signerService.getById(signTaskThreadlocalVO.getUserTaskId());
+                    // 获取签署人确认信息，,并计算签署人的实名认证类型
+                    if (sender != null && sender.getSenderType() != null && sender.getSenderType() != SenderTypeEnum.ENTERPRISE.getCode()){
+                        SignRuSignConfirm confirm = ruSignConfirmService.getByParam(sender.getId(),vo.getSignRuId());
                         if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
-                            personalSignAuthType = confirm.getPersonalSignAuth();
+                            personalSignAuthType = this.setSignNodeConfig(confirm,signRu);
                         }
                     }
-
                     operateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
                 }
             }
+
             operateRecord.setActionType(SignRecordActionTypeEnum.SUBMIT_SIGN.getType());
             operateRecord.setIpAddr(ipAddr);
             operateRecord.setOperateTime(new Date());
@@ -2200,22 +2180,6 @@ public class RuBusinessService {
             saveSignNewOperateFile(newDocFileByteMap,docOperateMap,operateRecord);
 
         }
-
-//        if(OperateTypeEnum.SIGN.getCode() == operateTypeEnum.getCode()){
-//            Integer eventCaUseModel = certBusinessService.getEventCaUseModel();
-//            if(eventCaUseModel == EventCaUseModelEnum.ONCE_USE.getCode()){
-//                if(certificateProperty.getTenantCertificateType() == CertTypeEnum.CA_TEST.getCode() || certificateProperty.getTenantCertificateType() == CertTypeEnum.CA_SHORT_TERM.getCode()){
-//                    //除放篡改证书之外的证书，在签署操作之后都要设置为失效
-//                    String certTenantId = certificateProperty.getTenantId();
-//                    Integer tenantCertificateType = certificateProperty.getTenantCertificateType();
-//                    List<Integer> certTypeList = new ArrayList<>();
-//                    certTypeList.add(tenantCertificateType);
-//                    //使证书失效
-//                    certBusinessService.unable(certTenantId,certTypeList);
-//                }
-//            }
-//        }
-
     }
 
     public void signFiledCallback(){
@@ -2694,12 +2658,12 @@ public class RuBusinessService {
     /**
      * 根据系统配置、签署实例、签署节点校验并设置签署节点配置
      * @param confirm
-     * @param personalSignAuth
-     * @param sendType
-     * @param signOrderRequest
      * @param signRu
      */
-    private void setSignNodeConfig(SignRuSignConfirm confirm,String personalSignAuth,String sendType,SignOrderRequest signOrderRequest,SignRu signRu){
+    private String setSignNodeConfig(SignRuSignConfirm confirm,SignRu signRu){
+
+        // 获取平台个人实名认证节点配置
+        String personalSignAuth = this.getSystemPersonalSignAuthType();
 
         // 默认设置为需实名
         String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
@@ -2739,7 +2703,7 @@ public class RuBusinessService {
                 }
             }
         }
-        signOrderRequest.setPersonalSignAuth(finalPersonalSignAuth);
+        return finalPersonalSignAuth;
     }
 
 }
