@@ -24,7 +24,7 @@
   <div class="doc-list-container">
     <div class="doc-content">
       <div class="doc-menu">
-        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart">
+        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart" style="width:160px;height:40px">
           <Icon icon="ant-design:plus-outlined" />发起签署</a-button>
         <!-- <a-button  v-if="tenantInfo.tenantType=='1' && userType == 'core'" type="primary" @click="handleStart">
         <Icon icon="ant-design:plus-outlined" />发起签署</a-button> -->
@@ -241,7 +241,7 @@ export default defineComponent({
       state.selectedKeys = ['7'];
       listTitle.value = '待我处理'
     }
-    if(route.query.key && route.query.key == '2'){
+    if(route.query.key && route.query.key == '2' && tenantInfo.tenantType=='1' ){
       state.selectedKeys = ['2'];
       listTitle.value = '已发送'
     }
@@ -292,8 +292,7 @@ export default defineComponent({
       //   pageNo = allRef.value.pageinfo.pageNo;
       //   pageSize = allRef.value.pageinfo.pageSize;
       // }
-      
-      (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key?route.query.key:'7'});
+      (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key && tenantInfo.tenantType=='1'?route.query.key:'7'});
       console.log(state.activeMenuKey,'state.activeMenuKey')
       document.addEventListener("visibilitychange", function() {
         if(!document.hidden){
@@ -607,6 +606,8 @@ export default defineComponent({
     color:#999;
     margin-top:2px;
     cursor:pointer;
+    font-size: 14px;
+    margin-left: 5px;
   }
 }
 .list-title{
