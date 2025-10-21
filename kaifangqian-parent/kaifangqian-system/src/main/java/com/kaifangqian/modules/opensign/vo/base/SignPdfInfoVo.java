@@ -23,6 +23,7 @@ package com.kaifangqian.modules.opensign.vo.base;
 
 // import io.swagger.annotations.ApiModel;
 // import io.swagger.annotations.ApiModelProperty;
+import com.kaifangqian.modules.opensign.enums.SignStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -55,7 +56,14 @@ public class SignPdfInfoVo {
      * 文件签名结果
      */
     // @ApiModelProperty(value = "文件签名结果")
-    private Integer pdfSingResult;
+    private Integer pdfSingResult = 0;
+
+
+    public void setPdfSingResult(Integer pdfSingResult){
+        if(this.pdfSingResult.intValue() != SignStatus.SIGN_STATUS_FIDDLE.getCode() ||this.pdfSingResult.intValue() != SignStatus.SIGN_STATUS_ERROR.getCode()){
+            this.pdfSingResult = pdfSingResult;
+        }
+    }
 
     // @ApiModelProperty(value = "数字签名详细集合")
     private List<SignatureDetail> signatureDetails = new ArrayList<>();
@@ -156,6 +164,8 @@ public class SignPdfInfoVo {
         public String fileDigest;
 
         public float llx, lly, urx, ury;
+
+        private Integer pdfSingResult;
         /**
          * 文件路径
          */

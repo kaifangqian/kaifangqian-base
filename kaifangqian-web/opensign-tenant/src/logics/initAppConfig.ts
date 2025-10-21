@@ -49,7 +49,6 @@ export function initAppConfigStore() {
   const localeStore = useLocaleStore();
   const appStore = useAppStore();
   let projCfg: ProjectConfig = Persistent.getLocal(PROJ_CFG_KEY) as ProjectConfig;
-  console.log(projCfg)
   projCfg = deepMerge(projectSetting, projCfg || {});
   const darkMode = appStore.getDarkMode;
   const {
