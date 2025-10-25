@@ -38,6 +38,8 @@ public interface SignRuSignerService extends IService<SignRuSigner> {
 
     List<SignRuSigner> getByEntity(SignRuSigner query);
 
+    List<SignRuSigner> getByEntityForApi(SignRuSigner query);
+
     void deleteByRuId(String ruId);
 
     void deleteByIdList(List<String> idList);

@@ -148,6 +148,9 @@ public class DocBaseVo implements Serializable {
     //发起类型：api(接口发起)；app（应用发起）
     private String sendType ;
 
+    //自动完成：1自动，0手动
+    private Integer autoFinish;
+
 
 
 }

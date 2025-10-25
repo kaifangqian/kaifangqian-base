@@ -219,7 +219,7 @@ public class RuDataService {
                                     ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
                                 }
 
-                                //发起方
+                                //发起方-保存签署意愿校验信息
                                 ruSignConfirmService.save(ruSender.getId(),ruId,dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
 //                                if(dataSender.getConfirmType() != null && dataSender.getConfirmType() == 1){
 //                                    //开启人脸识别
@@ -739,7 +739,10 @@ public class RuDataService {
             throw new PaasException("发起失败-单号生成失败");
         }
         //先删除之前的操作人
-        ruOperatorService.deleteByRuId(ru.getId());
+        if(ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()){
+            ruOperatorService.deleteByRuId(ru.getId());
+        }
+
         //插入
         boolean saveBatchOperatorList = ruOperatorService.saveBatch(operatorList);
         if(!saveBatchOperatorList){

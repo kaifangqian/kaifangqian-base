@@ -22,6 +22,7 @@
 package com.kaifangqian.modules.opensign.service.cmd;
 
 import cn.hutool.core.collection.CollUtil;
+import com.kaifangqian.modules.opensign.enums.SignFinishTypeEnum;
 import com.kaifangqian.modules.opensign.interceptor.SignCommand;
 import com.kaifangqian.modules.opensign.interceptor.SignCommandContext;
 import com.kaifangqian.modules.opensign.service.flow.IFlowService;
@@ -78,7 +79,7 @@ public class SignActivitiFlowCmd implements SignCommand<TaskCmdInfo> {
             query.setSignRuId(signCommandContext.getSignRuId());
             query.setTaskStatus(1);
             List<SignRuTask> tasks = signRuTaskService.getByEntity(query);
-            if (CollUtil.isEmpty(tasks)) {
+            if (CollUtil.isEmpty(tasks) && (signRu.getAutoFinish() == null || signRu.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode())) {
                 //签署完成后抄送
                 if (signRu != null) {
                     if (signRu.getCcedOpportunityType() == 2) {

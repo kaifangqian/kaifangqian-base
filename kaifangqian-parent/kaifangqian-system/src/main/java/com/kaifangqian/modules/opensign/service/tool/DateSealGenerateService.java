@@ -76,20 +76,58 @@ public class DateSealGenerateService {
     }
 
     public BufferedImage createImage(String str, int width, int height) {
+//        // 设置背景宽高
+//        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+//        // 获取图形上下文对象
+//        Graphics2D graphics = image.createGraphics();
+//        // 设置更高的渲染提示以提高质量
+//        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+//        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+//        graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+//        graphics.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+//        // 填充
+////        graphics.fillRect(0, 0, width, height);
+//        // 设定字体大小及样式
+//        graphics.setFont(new Font("宋体", Font.BOLD,18));
+//        // 字体颜色
+//        graphics.setColor(Color.BLACK);
+//        // 描绘字符串
+//        graphics.drawString(str, 20,  28);
+//        graphics.dispose();
+
+
         // 设置背景宽高
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         // 获取图形上下文对象
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
         // 填充
 //        graphics.fillRect(0, 0, width, height);
         // 设定字体大小及样式
-        graphics.setFont(new Font("宋体", Font.BOLD,18));
+        graphics.setFont(new Font("宋体", Font.BOLD,14));
         // 字体颜色
         graphics.setColor(Color.BLACK);
-        // 描绘字符串
-        graphics.drawString(str, 20,  28);
+
+        // 计算字符串的宽度和高度，以实现居中对齐
+        FontMetrics fontMetrics = graphics.getFontMetrics();
+        int stringWidth = fontMetrics.stringWidth(str);
+        int stringHeight = fontMetrics.getAscent();
+
+        // 计算居中位置
+        int x = (width - stringWidth) / 2;
+        int y = (height + stringHeight) / 2;
+
+        // 描绘字符串（居中）
+        graphics.drawString(str, x, y);
         graphics.dispose();
+
         return image;
     }
 }

@@ -1,5 +1,5 @@
 /**
- * @description API接口合同操作人
+ * @description API接口合同信息对象
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,36 +19,35 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.api.vo.base;
+package com.kaifangqian.modules.api.vo.request;
 
-// import io.swagger.annotations.ApiModel;
-// import io.swagger.annotations.ApiModelProperty;
+import com.kaifangqian.modules.api.base.ReqBaseVO;
+import com.kaifangqian.modules.api.vo.base.*;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
- * @Description: ContractUser
- * @Package: com.kaifangqian.modules.api.vo.base
- * @ClassName: ContractUser
+ * @Description: ContractDraftRequest
+ * @Package: com.kaifangqian.modules.api.vo.request
+ * @ClassName: ContractDraftRequest
  * @author: FengLai_Gong
- * @Date: 2024/03/19
+ * @Date: 2024/3/19
  */
 @Data
-// @ApiModel("操作人")
-public class ContractUser implements Serializable {
+//public class ContractDraftRequest implements Serializable {
+public class ContractSignNodeRequest extends ReqBaseVO implements Serializable {
 
-    private static final long serialVersionUID = 862003493609163515L;
+    private static final long serialVersionUID = -7293700917961018375L;
 
-//    @NotNull(message = "NotNull",groups = ValidationSorts.SortA1.class)
-//    @NotBlank(message = "NotBlank",groups = ValidationSorts.SortA1.class)
-    // @ApiModelProperty("姓名")
-    private String name ;
+    //基本信息
+    // @ApiModelProperty("合同ID")
+    private String signRuId ;
 
-    // @ApiModelProperty("联系类型")
-    private String contactType ;
+    //签署方
+    // @ApiModelProperty("签署方信息")
+    private List<ContractSigner> signerList ;
 
-    // @ApiModelProperty("联系方式")
-    private String contact ;
 
 }

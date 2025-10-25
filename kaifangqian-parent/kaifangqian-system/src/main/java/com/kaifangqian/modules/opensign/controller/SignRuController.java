@@ -925,7 +925,10 @@ public class SignRuController {
             }
             signRuId = ruSaveService.save(requestBaseVo);
         } else {
+            //设置数据发起类型为APP发起
             requestBaseVo.getBaseVo().setSendType(ContractSendTypeEnum.APP.getType());
+            //设置自动完成类型为自动完成
+            requestBaseVo.getBaseVo().setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
             signRuId = ruCreateService.create(requestBaseVo);
         }
 
