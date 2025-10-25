@@ -618,6 +618,7 @@ import doc2 from '@/assets/images/doc_1.png';
 import { computed } from 'vue';
 import http from '@/utils/http';
 import { ok } from 'assert';
+import { getTodayDateByFormat } from "@/utils/util"
 
 interface SignItem {
   signerType: number;
@@ -2133,14 +2134,16 @@ export default defineComponent({
       if (scrollPage >= nowDocument.value.pageSize) {
         scrollPage = nowDocument.value.pageSize;
       }
-
       const { targets, maxWidth } = nowDocument.value;
+
       const target = targets[scrollPage];
       const offsetWidth = (maxWidth - target.width) / 2;
       const offsetX = 80;
       const offsetY = 80;
-      const pageWidth = target.width * baseImgZoomRatio.value;
-      const pageHeight = target.height * baseImgZoomRatio.value;
+      // const pageWidth = target.width * baseImgZoomRatio.value;
+      // const pageHeight = target.height * baseImgZoomRatio.value;
+      const pageWidth = target.width;
+      const pageHeight = target.height;
 
       let uid = parseInt(
         new Date().getMilliseconds() + '' + Math.ceil(Math.random() * 100000)
@@ -2156,6 +2159,7 @@ export default defineComponent({
         uid,
         unequalId,
         title: '签署日期',
+        // format: 'YYYY-MM-DD',
         originType: 3,
         offsetX,
         offsetY,
@@ -2320,10 +2324,12 @@ export default defineComponent({
       }
     }
     //日期格式选择
-    function onDateTypeSelect(val) {
+    function onDateTypeSelect(val: string) {
+      console.log(val,'选择日期格式',controlItemRef.value);
       signDatevisible.value = false;
       signDateElement.value.format = val;
       currentControl.value.format = val;
+      signDateElement.value.today = getTodayDateByFormat(val);
     }
     //获取签章id
     async function getSealIds() {
@@ -2660,9 +2666,10 @@ export default defineComponent({
       // console.log()
       //更新其他文档
       controlList.value.map((v: any) => {
-        v.sealId = sealId;
-        v.signatureId = annexId;
-        if (sealSize && sealSize.width) {
+        if (v.controlType == 'signature') {
+          v.sealId = sealId;
+          v.signatureId = annexId;
+          if (sealSize && sealSize.width) {
             newSignatureSize.value = {
               width: sealSize.width,
               height: sealSize.height,
@@ -2672,6 +2679,7 @@ export default defineComponent({
               height: sealSize.height,
             };
           }
+        }
       });
 
       documentList.value.map((m) => {
@@ -3678,6 +3686,7 @@ export default defineComponent({
 
       // const callbackPage = `${location.origin}${location.pathname}#/wishCheck`;
       const callbackPageYd = `${location.origin}${location.pathname}#/wishCheck?orderNo=${orderNo.value}&signRuId=${signRuId}&callbackPage=${callbackPage}`;
+      console.log(mergedDataFn(paramsControl),'mergedDataFn(paramsControl)');
       try {
         let { result, code } = await Api.submitSign({
           signRuId: signRuId,

@@ -92,6 +92,7 @@
   import { signList, signDefault, signDelete } from "./api";
   import Unauthenticated from "/@/views/signature/authorisation/modal/Unauthenticated.vue";
   import { useUserStore } from '/@/store/modules/user';
+  import { useMessage } from '/@/hooks/web/useMessage';
 
   export default defineComponent({
     name: 'App',
@@ -102,6 +103,7 @@
       const router = useRouter();
       const userStore = useUserStore();
       const tenantInfo = ref({ ...userStore.getTenantInfo });
+      const { createMessage: msg, createConfirm } = useMessage();
       
       // 分页相关数据
       const currentPage = ref(1);
@@ -180,11 +182,21 @@
       }
 
       async function signDeleteInfo(sealId) {
-        const result = await signDelete({ sealId: sealId });
-        if (result.code == 200) {
-          fetchSignatureList(); // 重新获取数据
-          message.success("删除成功！");
-        }
+        createConfirm({
+          iconType: "warning",
+          title: "删除签名确认",
+          content: "确定要删除此签名吗？",
+          okText: '确定',
+          cancelText: '取消',
+          onOk: async () => {
+            const result = await signDelete({ sealId: sealId });
+            if (result.code == 200) {
+              fetchSignatureList(); // 重新获取数据
+              message.success("删除成功！");
+            }
+          },
+        });
+        
       }
 
       // 组件挂载时获取数据
