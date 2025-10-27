@@ -104,7 +104,6 @@ public class SignRe extends BaseEntity implements Serializable {
     // @ApiModelProperty("'异常状态，1为是，2为否'")
     private Integer errorStatus ;
 
-
     // @ApiModelProperty("状态'")
     private Integer status ;
 
@@ -128,4 +127,7 @@ public class SignRe extends BaseEntity implements Serializable {
 
     // @ApiModelProperty("控件变更状态")
     private String controlChangeFlag ;
+
+    //value字段值为：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）
+    private String personalSignAuth ;
 }

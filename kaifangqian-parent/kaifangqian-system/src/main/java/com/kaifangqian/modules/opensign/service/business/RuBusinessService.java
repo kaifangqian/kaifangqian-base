@@ -21,13 +21,17 @@
  */
 package com.kaifangqian.modules.opensign.service.business;
 
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.kaifangqian.common.constant.ApiCode;
+import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.external.sign.request.SignOrderRequest;
 import com.kaifangqian.external.sign.response.SignAppInfoResponse;
 import com.kaifangqian.external.sign.response.SignServiceOpenInfoResponse;
 import com.kaifangqian.external.sign.service.SignServiceExternal;
 import com.kaifangqian.external.sign.service.SignServiceManageExternal;
+import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.cert.enums.CertHolderTypeEnum;
 import com.kaifangqian.modules.cert.enums.CertTypeEnum;
 import com.kaifangqian.modules.cert.service.CertBusinessService;
@@ -46,6 +50,7 @@ import com.kaifangqian.modules.opensign.service.template.SignTemplateImageRecord
 import com.kaifangqian.modules.opensign.service.template.SignTemplateRecordService;
 import com.kaifangqian.modules.opensign.sign.PdfSignService;
 import com.kaifangqian.modules.opensign.vo.base.sign.*;
+import com.kaifangqian.modules.opensign.vo.response.ru.SignNodeConfigResponse;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.modules.system.entity.SysTenantUser;
 import com.kaifangqian.modules.system.enums.TenantStatus;
@@ -83,6 +88,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.mvel2.ast.Sign;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -408,7 +414,7 @@ public class RuBusinessService {
                     }
                 }
                 List<DocSenderVo> senderVoList = new ArrayList<>();
-                if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType()) ){
+                if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType())){
                     //发起人
                     List<SignRuSender> senderList = senderService.listBySignerId(signer.getId());
                     if(senderList != null && senderList.size() > 0){
@@ -448,6 +454,7 @@ public class RuBusinessService {
                             if(signRuSignConfirm != null){
                                 senderVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                                 senderVo.setVerifyType(signRuSignConfirm.getConfirmType());
+                                senderVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
                             }
 
 //                            if(confirmSignerIdList.contains(sender.getId())){
@@ -461,6 +468,7 @@ public class RuBusinessService {
                     if(signRuSignConfirm != null){
                         signerVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                         signerVo.setVerifyType(signRuSignConfirm.getConfirmType());
+                        signerVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
                     }
 
 //                    if(confirmSignerIdList.contains(signer.getId())){
@@ -1109,21 +1117,6 @@ public class RuBusinessService {
         if(ru == null){
             throw new PaasException("业务线实例不存在");
         }
-//        SignRe re = reService.getById(ru.getSignReId());
-//        if(re == null){
-//            throw new PaasException("业务线配置不存在");
-//        }
-//        if(re.getSubjectType() != null && re.getSubjectType().equals(SignReRuleGenerateEnum.RULE.getCode())){
-//            //单号生成
-//            ru.setCode(reBusinessService.generateCode(re.getId(),singerList));
-//            ru.setSubject(reBusinessService.generateSubject(re.getId(),singerList));
-//
-//        }else {
-//            if(ru.getSubject() == null || ru.getSubject().length() == 0){
-//                ru.setSubject(System.currentTimeMillis() + "-" + re.getName());
-//            }
-//
-//        }
 
         //根据发起人、接受人、控件列表计算操作人
         List<SignRuOperator> operatorList = new ArrayList<>();
@@ -1288,18 +1281,309 @@ public class RuBusinessService {
                 operatorList.add(signerWriteOperator);
             }
         }
-        if(operatorList.size() == 0){
+        if((ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()) && operatorList.size() == 0){
             throw new PaasException("操作人为空");
         }
 
-        ruDataService.saveStartData(operatorList,relationList,ru);
+        if (operatorList.size() > 0) {
+            ruDataService.saveStartData(operatorList,relationList,ru);
+        }
 
         return ruId ;
     }
 
+    public void saveRuSignerForApi(RuCreateData ruCreateData){
+        //签署人
+        List<RuDataSigner> singerListByApi = ruCreateData.getSignerList();
 
+        //获取签署人列表
+        List<SignRuSigner> singerList = new ArrayList<SignRuSigner>();
 
+        //企业内部签署人列表
+        List<SignRuSender> senderList = new ArrayList<SignRuSender>();
 
+        //单号生成
+        SignRu ru = ruService.getById(ruCreateData.getRuId());
+        if(ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务线实例不存在");
+        }
+
+        if(ru.getStatus() == SignRuStatusEnum.DONE.getCode()){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"合同已经完成签署，不能继续追加签署人");
+        }
+
+        if(singerListByApi.size() > 0){
+            for(RuDataSigner dataSinger : singerListByApi){
+
+                if(SignerTypeEnum.SENDER.getCode().equals(dataSinger.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(dataSinger.getSignerType())){
+
+                    //查询当前用户
+                    SignRuSigner query = new SignRuSigner();
+                    query.setSignRuId(ruCreateData.getRuId());
+                    query.setSignerName(dataSinger.getRuSigner().getSignerName());
+
+                    List<SignRuSigner> ruSigners = signerService.getByEntityForApi(query);
+                    if(CollUtil.isNotEmpty(ruSigners)){
+
+                        for (int i = 0; i < ruSigners.size(); i++){
+                            boolean isAddSigner = false;
+                            if(ru.getSignOrderType() == SignOrderTypeEnum.NO_ORDER.getCode()){
+                                isAddSigner = true;
+                            }else if(ru.getSignOrderType() == SignOrderTypeEnum.ORDER.getCode()){
+                                // 获取企业签署人的签署方列表
+                                SignRuSigner nextSignerQuery = new SignRuSigner();
+                                nextSignerQuery.setSignRuId(ruCreateData.getRuId());
+                                nextSignerQuery.setSignerOrder(ruSigners.get(i).getSignerOrder()+1);
+                                // 查询下一个签署人
+                                List<SignRuSigner> ruNextSigners = signerService.getByEntityForApi(nextSignerQuery);
+
+                                if (CollUtil.isNotEmpty(ruNextSigners)){
+                                    for(SignRuSigner ruNextSigner : ruNextSigners){
+                                        if(ruNextSigner.getSignerType() == SignerTypeEnum.RECEIVER_ENT.getCode() || ruNextSigner.getSignerType() == SignerTypeEnum.SENDER.getCode()){
+                                            List<SignRuSender> senderOfNextEntList = senderService.listBySignerId(ruNextSigner.getId());
+                                            if(CollUtil.isNotEmpty(senderOfNextEntList)){
+                                                for (SignRuSender senderOfEnt : senderOfNextEntList){
+                                                    SignRuOperator opqQuery = new SignRuOperator();
+                                                    opqQuery.setSignRuId(ruNextSigner.getSignRuId());
+                                                    opqQuery.setSignerId(senderOfEnt.getId());
+                                                    List<SignRuOperator> signRuOperators = ruOperatorService.getByEntity(opqQuery);
+                                                    if(CollUtil.isNotEmpty(signRuOperators)){
+                                                        for(SignRuOperator ruOperator : signRuOperators){
+                                                            //如果企业签署人还有未完成和代办操作，则可以继续添加签署人
+                                                            if(ruOperator.getOperateStatus() == OperateStatusEnum.WAIT_TO_FINISH.getCode()|| ruOperator.getOperateStatus() == OperateStatusEnum.FINISHED.getCode()){
+                                                                isAddSigner = false;
+                                                                break;
+                                                            }
+                                                            isAddSigner = true;
+                                                        }
+                                                    }
+                                                    if(isAddSigner == false){
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }else if(ruNextSigner.getSignerType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()){
+                                            SignRuOperator opqQuery = new SignRuOperator();
+                                            opqQuery.setSignRuId(ruNextSigner.getSignRuId());
+                                            opqQuery.setSignerId(ruNextSigner.getId());
+                                            List<SignRuOperator> signRuOperators = ruOperatorService.getByEntity(opqQuery);
+                                            if(CollUtil.isNotEmpty(signRuOperators)){
+                                                for(SignRuOperator ruOperator : signRuOperators){
+                                                    //如果企业签署人还有未完成和代办操作，则可以继续添加签署人
+                                                    if(ruOperator.getOperateStatus() == OperateStatusEnum.WAIT_TO_FINISH.getCode() || ruOperator.getOperateStatus() == OperateStatusEnum.FINISHED.getCode()){
+                                                        isAddSigner = false;
+                                                        break;
+                                                    }
+                                                    isAddSigner = true;
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }else{
+                                    isAddSigner = true;
+                                }
+                            }
+                            // 如果有待完成或者未完成操作，则可以添加签署人
+                            if(isAddSigner){
+                                //发起方
+                                List<RuDataSender> addSenderList = dataSinger.getAddSenderList();
+                                if(addSenderList.size() > 0){
+                                    for(RuDataSender dataSender : addSenderList){
+                                        SignRuSender ruSender = dataSender.getRuSender();
+                                        if(ruSender != null){
+                                            ruSender.setSignerId(ruSigners.get(i).getId());
+                                            ruSender.setDeleteFlag(false);
+                                            boolean b = senderService.save(ruSender);
+                                            if(!b){
+                                                throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                            }
+                                            if(dataSender.getReSenderId() != null){
+                                                //关联关系
+                                                ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
+                                            }
+                                            //保存企业签署人信息
+                                            senderList.add(ruSender);
+                                            //发起方-保存签署意愿校验信息
+                                            ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                        }
+                                    }
+                                }
+                                singerList.add(ruSigners.get(i));
+                            }else{
+                                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署人" + ruSigners.get(i).getSignerName() + "已完成签署任务，不能继续追加签署人。");
+                            }
+                        }
+                    }else{
+                        SignRuSigner ruSigner = dataSinger.getRuSigner();
+                        ruSigner.setSignRuId(ruCreateData.getRuId());
+                        ruSigner.setDeleteFlag(false);
+                        boolean saveSigner = signerService.save(ruSigner);
+                        if(!saveSigner){
+                            //异常处理
+                            throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                        }
+                        if(dataSinger.getReSignerId() != null){
+                            //关联关系
+                            ruCreateData.getReSigner2RuSingerMap().put(dataSinger.getReSignerId(),ruSigner.getId());
+                        }
+
+                        //发起方
+                        List<RuDataSender> addSenderList = dataSinger.getAddSenderList();
+                        if(addSenderList.size() > 0){
+                            for(RuDataSender dataSender : addSenderList){
+                                SignRuSender ruSender = dataSender.getRuSender();
+                                if(ruSender != null){
+                                    ruSender.setSignerId(ruSigner.getId());
+                                    ruSender.setDeleteFlag(false);
+                                    boolean b = senderService.save(ruSender);
+                                    if(!b){
+                                        throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                    }
+                                    if(dataSender.getReSenderId() != null){
+                                        //关联关系
+                                        ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
+                                    }
+                                    //保存企业签署人信息
+                                    senderList.add(ruSender);
+                                    //发起方-保存签署意愿校验信息
+                                    ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                }
+                            }
+                        }
+                        singerList.add(ruSigner);
+                    }
+                } else {
+                    SignRuSigner ruSigner = dataSinger.getRuSigner();
+                    ruSigner.setSignRuId(ruCreateData.getRuId());
+                    ruSigner.setDeleteFlag(false);
+                    boolean saveSigner = signerService.save(ruSigner);
+                    if(!saveSigner){
+                        //异常处理
+                        throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                    }
+                    if(dataSinger.getReSignerId() != null){
+                        //关联关系
+                        ruCreateData.getReSigner2RuSingerMap().put(dataSinger.getReSignerId(),ruSigner.getId());
+                    }
+                    //个人接收方
+                    ruSignConfirmService.save(ruSigner.getId(),ruCreateData.getRuId(),SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType(),dataSinger.getPersonalSignAuth());
+
+                    singerList.add(ruSigner);
+                }
+            }
+        }
+
+        // = signerService.listByRuId(ruCreateData.getRuId());
+        if(singerList == null || singerList.size() == 0){
+            throw new PaasException("签署人为空");
+        }
+
+        //根据发起人、接受人、控件列表计算操作人
+        List<SignRuOperator> operatorList = new ArrayList<>();
+        //实例关联人
+        List<SignRuRelation> relationList = new ArrayList<>();
+
+        //获取控件列表
+        ControlQueryVo controlQueryVo = new ControlQueryVo();
+        controlQueryVo.setSignRuId(ru.getId());
+        List<SignRuDocControl> controlList = ruDocControlService.listByParam(controlQueryVo);
+
+        for(SignRuSigner signer : singerList){
+            if(signer.getSignerType().equals(SignerTypeEnum.SENDER.getCode())){
+                //获取发起人
+                //List<SignRuSender> senderList = senderService.listBySignerId(signer.getId());
+                if(senderList != null && senderList.size() > 0){
+                    for(SignRuSender sender : senderList){
+                        if(sender.getSignerId().equals(signer.getId())){
+                            if(sender.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                                //必须设定签章
+                                if(sender.getSenderSealId() == null || sender.getSenderSealId().length() == 0){
+                                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"组织签章未指定签章");
+                                }
+                                //如果没有指定签署人，则为自动盖章，必须有相关的签章
+                                if(sender.getSenderSignType().equals(SenderSignTypeEnum.AUTO.getCode())){
+                                    boolean enterpriseControlFlag = true;
+                                    for(SignRuDocControl signRuDocControl : controlList){
+                                        //必须是企业签章
+                                        if(signRuDocControl.getSignerId() != null && signRuDocControl.getSignerId().equals(sender.getId()) && ControlTypeEnum.SEAL.getName().equals(signRuDocControl.getControlType())){
+                                            enterpriseControlFlag = false ;
+                                        }
+                                    }
+                                    if(enterpriseControlFlag){
+                                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"自动盖章的签署节点未指定签署位置");
+
+                                    }
+                                }
+                            }
+                            //发起方签署操作人
+                            SignRuOperator senderSignOperator = new SignRuOperator();
+                            BeanUtils.copyProperties(sender,senderSignOperator);
+                            senderSignOperator.setOperateName(sender.getSenderName());
+                            senderSignOperator.setSignRuId(ru.getId());
+                            senderSignOperator.setOperateOrder(sender.getSenderOrder());
+                            senderSignOperator.setSignerType(SignerTypeEnum.SENDER.getCode());
+                            senderSignOperator.setSignerId(sender.getId());
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                            senderSignOperator.setOperateUserId(sender.getSenderUserId());
+                            senderSignOperator.setDeleteFlag(false);
+                            senderSignOperator.setId(null);
+                            senderSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+                            operatorList.add(senderSignOperator);
+                        }
+                    }
+                }
+            }else if(signer.getSignerType().equals(SignerTypeEnum.RECEIVER_PERSONAL.getCode())){
+                //接收方签署操作人
+                SignRuOperator signerSignOperator = new SignRuOperator();
+                BeanUtils.copyProperties(signer,signerSignOperator);
+                signerSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                signerSignOperator.setOperateName(signer.getSignerName());
+                signerSignOperator.setSignRuId(ru.getId());
+                signerSignOperator.setOperateOrder(signer.getSignerOrder());
+                signerSignOperator.setSignerId(signer.getId());
+                signerSignOperator.setSignerType(SignerTypeEnum.RECEIVER_PERSONAL.getCode());
+                signerSignOperator.setOperateUserId(signer.getSignerUserId());
+                signerSignOperator.setOperateExternalType(signer.getSignerExternalType());
+                signerSignOperator.setOperateExternalValue(signer.getSignerExternalValue());
+                signerSignOperator.setDeleteFlag(false);
+                signerSignOperator.setId(null);
+                signerSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+                operatorList.add(signerSignOperator);
+            }else if(signer.getSignerType().equals(SignerTypeEnum.RECEIVER_ENT.getCode())){
+                //获取企业接收方
+                if(senderList != null && senderList.size() > 0){
+                    for(SignRuSender sender : senderList){
+                        if(sender.getSignerId().equals(signer.getId())){
+                            //发起方签署操作人
+                            SignRuOperator senderSignOperator = new SignRuOperator();
+                            BeanUtils.copyProperties(sender,senderSignOperator);
+                            senderSignOperator.setOperateName(sender.getSenderName());
+                            senderSignOperator.setSignRuId(ru.getId());
+                            senderSignOperator.setOperateOrder(sender.getSenderOrder());
+                            senderSignOperator.setSignerType(SignerTypeEnum.RECEIVER_ENT.getCode());
+                            senderSignOperator.setSignerId(sender.getId());
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                            senderSignOperator.setOperateUserId(sender.getSenderUserId());
+                            senderSignOperator.setDeleteFlag(false);
+                            senderSignOperator.setId(null);
+                            senderSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+
+                            //添加租户名称
+                            senderSignOperator.setTenantName(signer.getSignerName());
+                            senderSignOperator.setOperateExternalType(sender.getSenderExternalType());
+                            senderSignOperator.setOperateExternalValue(sender.getSenderExternalValue());
+                            operatorList.add(senderSignOperator);
+                        }
+                    }
+                }
+            }
+        }
+        if(operatorList.size() == 0){
+            throw new PaasException("操作人为空");
+        }
+        ruDataService.saveStartData(operatorList,relationList,ru);
+    }
 
     /**
      * @Description #业务线实例整体填写
@@ -1441,7 +1725,7 @@ public class RuBusinessService {
             return;
         }
         //填写操作
-        operate(writeControlList,signRu,OperateTypeEnum.WRITE,null, null,null,null);
+        operate(writeControlList,signRu,OperateTypeEnum.WRITE,null, null,null,null,null);
 
     }
 
@@ -1453,6 +1737,7 @@ public class RuBusinessService {
     public void autoSign(String id , Integer signerType){
         SignRuSigner signer = null ;
         SignRuSender sender = null ;
+        String personalSignAuthType = null;
         if(SignerTypeEnum.SENDER.getCode().equals(signerType)){
             //获取发起人-签署人-数据
             sender = senderService.getById(id);
@@ -1469,6 +1754,18 @@ public class RuBusinessService {
         if(signRu == null){
             throw new PaasException("业务线实例不存在");
         }
+
+        SignRuSignConfirm confirm = ruSignConfirmService.getByParam(sender.getId(),signRu.getId());
+
+        if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+            personalSignAuthType = confirm.getPersonalSignAuth();
+        }else {
+            confirm = ruSignConfirmService.getByParam(signer.getId(),signRu.getId());
+            if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                personalSignAuthType = confirm.getPersonalSignAuth();
+            }
+        }
+
         //准备签章数据
         byte[] entSealByte = null ;
         if(sender.getSenderSealId() == null || sender.getSenderSealId().length() == 0){
@@ -1537,13 +1834,7 @@ public class RuBusinessService {
         }
 
         //签署操作
-        operate(docControlList,signRu,operateTypeEnum,signRu.getSysTenantId(),entSealByte,operateRecord, SignTypeEnum.AUTO_SIGN.getCode());
-
-        //自动签署回调
-//        SignRuTask ruTaskQuery = new SignRuTask();
-//        ruTaskQuery.setSignRuId(signRu.getId());
-//        ruTaskQuery.setUserTaskId(sender.getId());
-//        List<SignRuTask> taskList = ruTaskService.getByEntity(ruTaskQuery);
+        operate(docControlList,signRu,operateTypeEnum,signRu.getSysTenantId(),entSealByte,operateRecord, SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuthType);
 
         QueryWrapper<SignRuTask> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(SignRuTask::getSignRuId,signRu.getId());
@@ -1558,6 +1849,50 @@ public class RuBusinessService {
             }
         }
 
+    }
+
+    /**
+     * @Description #获取签署节点配置
+     * @Param []
+     * @return com.kaifangqian.modules.opensign.vo.SignNodeConfigResponse
+     **/
+    public SignNodeConfigResponse getSignNodeConfig() {
+
+        SignTaskThreadlocalVO threadlocalVO = SignTaskInfo.THREAD_LOCAL.get();
+        if (threadlocalVO == null) {
+            throw new PaasException("业务线实例不存在");
+        }
+        String signRuId = threadlocalVO.getSignRuId();
+        SignRu ru = ruService.getById(signRuId);
+        if (ru == null) {
+            throw new PaasException("业务线实例不存在");
+        }
+        SignNodeConfigResponse signNodeConfigResponse = new SignNodeConfigResponse();
+
+        if(threadlocalVO.getUserType().equals(SignerTypeEnum.SENDER.getCode()) || threadlocalVO.getUserType().equals(SignerTypeEnum.RECEIVER_ENT.getCode())) {
+            SignRuSender sender = senderService.getById(threadlocalVO.getUserTaskId());
+
+            SignRuSignConfirm confirm = ruSignConfirmService.getByParam(sender.getId(), signRuId);
+
+            if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                signNodeConfigResponse.setPersonalSignAuth(confirm.getPersonalSignAuth());
+            }else{
+                signNodeConfigResponse.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+            }
+
+        }else {
+            SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
+            // 获取签署人确认信息
+            SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(), signRuId);
+            // 获取平台个人实名认证节点配置
+            if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                signNodeConfigResponse.setPersonalSignAuth(confirm.getPersonalSignAuth());
+            }else{
+                signNodeConfigResponse.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+            }
+        }
+
+        return signNodeConfigResponse;
     }
 
     /**
@@ -1597,6 +1932,7 @@ public class RuBusinessService {
         Integer tenantType = TenantType.PERSONAL.getType() ;
         Integer holderType = CertHolderTypeEnum.PERSONAL.getCode();
         signOrderRequest.setTenantType("PERSONAL");
+
         if(threadlocalVO.getUserType().equals(SignerTypeEnum.SENDER.getCode()) || threadlocalVO.getUserType().equals(SignerTypeEnum.RECEIVER_ENT.getCode())){
             SignRuSender sender = senderService.getById(threadlocalVO.getUserTaskId());
 
@@ -1626,16 +1962,23 @@ public class RuBusinessService {
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
             }
 
-
+            // 个人签署节点实名认证逻辑判断
+            if(tenantType != TenantType.GROUP.getType()){
+                signOrderRequest.setPersonalSignAuth(this.setSignNodeConfig(confirm,signRu));
+            }
         }else{
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
+            // 获取签署人确认信息
             SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(),signRuId);
+
             if(confirm != null){
+                //个人签署意愿认证类型逻辑判断
                 if(MyStringUtils.isNotBlank(confirm.getConfirmType())){
                     signOrderRequest.setVerifyTypes(Arrays.asList(confirm.getConfirmType()));
                 }else{
                     signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
                 }
+                //个人签署是否跳过意愿认证逻辑判断
                 if(confirm.getAgreeSkipWillingness() != null && confirm.getAgreeSkipWillingness() == 1){
                     signOrderRequest.setAgreeSkipWillingness("true");
                 }else{
@@ -1644,6 +1987,8 @@ public class RuBusinessService {
             }else{
                 signOrderRequest.setVerifyTypes(Arrays.asList("CAPTCHA","PASSWORD","DOUBLE","FACE"));
             }
+            // 个人签署节点实名认证逻辑判断
+            signOrderRequest.setPersonalSignAuth(this.setSignNodeConfig(confirm,signRu));
         }
         CertTypeEnum certTypeEnum = null ;
         OperateTypeEnum operateTypeEnum = null ;
@@ -1677,6 +2022,7 @@ public class RuBusinessService {
                 }
                 signOrderRequest.setUnionId(certTenantId);
                 signOrderRequest.setOperatorUnionId(certTenantId);
+                signOrderRequest.setClientUsername(currentUser.getUsername());
             }else if(tenantType.equals(TenantType.GROUP.getType())){
                 LoginUser loginUser = MySecurityUtils.getCurrentUser();
 
@@ -1685,6 +2031,7 @@ public class RuBusinessService {
                 String operatorUnionId = tenantUserService.getPersonalTenantUser(loginUser.getId()).getTenantId();
                 signOrderRequest.setUnionId(certTenantId);
                 signOrderRequest.setOperatorUnionId(operatorUnionId);
+                signOrderRequest.setClientUsername(loginUser.getUsername());
             }
             if(certTenantId == null || holderType == null){
                 throw new PaasException("业务线实例-证书不存在");
@@ -1762,19 +2109,7 @@ public class RuBusinessService {
         if(signRu == null){
             throw new PaasException("业务线实例不存在");
         }
-        //获取证书
-        String certTenantId = vo.getCertTenantId();
-        Integer certType = vo.getCertType();
-        Integer certHolderType = vo.getCertHolderType();
-//        CertificateProperty certificateProperty = null ;
-//        if(certType != null && certTenantId != null && certHolderType != null){
-//            CertTypeEnum certTypeEnum = CertTypeEnum.getByCode(certType);
-//            //准备证书数据
-//            certificateProperty = certBusinessService.findAndGenerateCertProperty(certTenantId, certTypeEnum,certHolderType);
-//            if(certificateProperty == null){
-//                throw new PaasException("业务线实例-证书不存在");
-//            }
-//        }
+        String personalSignAuthType = null;
 
         //获取签章
         byte[] sealByte = signFileService.getByteById(vo.getSealAnnexId());
@@ -1797,28 +2132,45 @@ public class RuBusinessService {
         if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode() || signRu.getCaSignType() == SignRuCaSignTypeEnum.SYSTEM_CA.getCode()){
             operateRecord = new SignRuOperateRecord();
             operateRecord.setSignRuId(signRu.getId());
-            //operateRecord.setCertId(certificateProperty.getCertificateInfoId());
             operateRecord.setConfirmOrderNo(vo.getSignConfirmOrderNo());
             operateRecord.setTaskId(vo.getTaskId());
             operateRecord.setAccountId(vo.getUserId());
             operateRecord.setTenantId(vo.getTenantId());
             operateRecord.setTenantUserId(vo.getTenantUserId());
+
             if(signTaskThreadlocalVO.getUserType() != null && signTaskThreadlocalVO.getUserType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()) {
                 operateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+                SignRuSigner signer = signerService.getById(signTaskThreadlocalVO.getUserTaskId());
+                // 获取签署人确认信息,并计算签署人的实名认证类型
+                if (signer != null){
+                    SignRuSignConfirm confirm = ruSignConfirmService.getByParam(signer.getId(),vo.getSignRuId());
+                    if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                        personalSignAuthType = this.setSignNodeConfig(confirm,signRu);
+                    }
+                }
             }else {
                 SignRuSender sender = senderService.getById(signTaskThreadlocalVO.getUserTaskId());
                 if(sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()){
                     operateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
                 }else {
+                    // SignRuSigner signer = signerService.getById(signTaskThreadlocalVO.getUserTaskId());
+                    // 获取签署人确认信息，,并计算签署人的实名认证类型
+                    if (sender != null && sender.getSenderType() != null && sender.getSenderType() != SenderTypeEnum.ENTERPRISE.getCode()){
+                        SignRuSignConfirm confirm = ruSignConfirmService.getByParam(sender.getId(),vo.getSignRuId());
+                        if(confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())){
+                            personalSignAuthType = this.setSignNodeConfig(confirm,signRu);
+                        }
+                    }
                     operateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
                 }
             }
+
             operateRecord.setActionType(SignRecordActionTypeEnum.SUBMIT_SIGN.getType());
             operateRecord.setIpAddr(ipAddr);
             operateRecord.setOperateTime(new Date());
         }
         //签署操作
-        operate(docControlList,signRu,operateTypeEnum,vo.getCertTenantId(),sealByte,operateRecord,SignTypeEnum.AUTH_SIGN.getCode());
+        operate(docControlList,signRu,operateTypeEnum,vo.getCertTenantId(),sealByte,operateRecord,SignTypeEnum.AUTH_SIGN.getCode(),personalSignAuthType);
         //签署完成，修改状态
         SignRuSignTemporary temporary = new SignRuSignTemporary();
         temporary.setId(temporaryId);
@@ -1839,7 +2191,7 @@ public class RuBusinessService {
      * @Param []
      * @return void
      **/
-    public void operate(List<SignRuDocControl> controlList,SignRu signRu,OperateTypeEnum operateTypeEnum, String certHolderTenantId, byte[] entSealByte, SignRuOperateRecord operateRecord,String signType) {
+    public void operate(List<SignRuDocControl> controlList,SignRu signRu,OperateTypeEnum operateTypeEnum, String certHolderTenantId, byte[] entSealByte, SignRuOperateRecord operateRecord,String signType,String personalSignAuthType) {
 
         if(OperateTypeEnum.WRITE.getCode().equals(operateTypeEnum.getCode())){
             //根据签约文件进行分组
@@ -1992,6 +2344,10 @@ public class RuBusinessService {
                     //如果是时间签章，则生成图片
                     int width = 180;
                     Integer height = 40;
+                    if(MyStringUtils.isNotBlank(signRuDocControl.getWidth()) && MyStringUtils.isNotBlank(signRuDocControl.getHeight())){
+                        width = Integer.valueOf(signRuDocControl.getWidth());
+                        height = Integer.valueOf(signRuDocControl.getHeight());
+                    }
                     signSeal = dateSealGenerateService.crateDateSeal(signRuDocControl.getValue(), width, height);
                 }else {
                     signSeal = entSealByte ;
@@ -2063,9 +2419,21 @@ public class RuBusinessService {
                 throw new PaasException("业务线实例-未开通开放签签署服务");
             }
 
-            // 执行签署
-            newDocFileByteMap = pdfSignService.signWithYundunHash(signRu.getId(),signAppInfoResponse.getAppName(),appId,newDocFileByteMap, entSealByte, orderNo, certHolderTenantId, signRu,yundunSignPositionArrayDatas,signType);
+            // 构建签署参数
+            PdfSignVoInfo pdfSignVoInfo = new PdfSignVoInfo();
+            pdfSignVoInfo.setSignRu(signRu);
+            pdfSignVoInfo.setAppName(signAppInfoResponse.getAppName());
+            pdfSignVoInfo.setAppId(appId);
+            pdfSignVoInfo.setNewDocFileByteMap(newDocFileByteMap);
+            pdfSignVoInfo.setEntSealByte(entSealByte);
+            pdfSignVoInfo.setOrderNo(orderNo);
+            pdfSignVoInfo.setCertHolderTenantId(certHolderTenantId);
+            pdfSignVoInfo.setYundunSignPositionArrayDatas(yundunSignPositionArrayDatas);
+            pdfSignVoInfo.setSignType(signType);
+            pdfSignVoInfo.setPersonalSignAuthType(personalSignAuthType);
 
+            // 执行签署
+            newDocFileByteMap = pdfSignService.signWithYundunHash(pdfSignVoInfo);
 
             if(newDocFileByteMap.size() == 0 || docOperateMap.size() == 0){
                 //签署失败回调
@@ -2096,22 +2464,6 @@ public class RuBusinessService {
             saveSignNewOperateFile(newDocFileByteMap,docOperateMap,operateRecord);
 
         }
-
-//        if(OperateTypeEnum.SIGN.getCode() == operateTypeEnum.getCode()){
-//            Integer eventCaUseModel = certBusinessService.getEventCaUseModel();
-//            if(eventCaUseModel == EventCaUseModelEnum.ONCE_USE.getCode()){
-//                if(certificateProperty.getTenantCertificateType() == CertTypeEnum.CA_TEST.getCode() || certificateProperty.getTenantCertificateType() == CertTypeEnum.CA_SHORT_TERM.getCode()){
-//                    //除放篡改证书之外的证书，在签署操作之后都要设置为失效
-//                    String certTenantId = certificateProperty.getTenantId();
-//                    Integer tenantCertificateType = certificateProperty.getTenantCertificateType();
-//                    List<Integer> certTypeList = new ArrayList<>();
-//                    certTypeList.add(tenantCertificateType);
-//                    //使证书失效
-//                    certBusinessService.unable(certTenantId,certTypeList);
-//                }
-//            }
-//        }
-
     }
 
     public void signFiledCallback(){
@@ -2337,6 +2689,22 @@ public class RuBusinessService {
             }
         }
         return signConfirmType ;
+    }
+
+    /**
+     * @Description #获取系统级个人签署节点实名认证配置
+     * @Param []
+     * @return java.lang.Boolean
+     **/
+    public String getSystemPersonalSignAuthType(){
+        String personalSignAuthTypeValue = null ;
+        SysConfig config = sysConfigService.getByType("personal_sign_auth");
+        if (config != null && MyStringUtils.isNotBlank(config.getValue())) {
+            personalSignAuthTypeValue = config.getValue();
+        }else {
+            personalSignAuthTypeValue = PersonalSignAuthTypeEnum.REQUIRED.getType();
+        }
+        return personalSignAuthTypeValue ;
     }
 
 
@@ -2571,5 +2939,55 @@ public class RuBusinessService {
         return sign ;
     }
 
+    /**
+     * 根据系统配置、签署实例、签署节点校验并设置签署节点配置
+     * @param confirm
+     * @param signRu
+     */
+    private String setSignNodeConfig(SignRuSignConfirm confirm,SignRu signRu){
+
+        // 获取平台个人实名认证节点配置
+        String personalSignAuth = this.getSystemPersonalSignAuthType();
+
+        // 默认设置为需实名
+        String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
+
+        // 获取平台级个人实名类型配置，如果配置了，则使用配置的，否则设置为需实名
+        if (MyStringUtils.isNotBlank(personalSignAuth)) {
+            // 如果平台配置为无须实名或需实名，则直接使用平台的配置
+            if (personalSignAuth.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                personalSignAuth.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                finalPersonalSignAuth = personalSignAuth;
+            }
+            // 如果平台配置为允许不实名认证，则判断签署实例的实名认证要求
+            else if (personalSignAuth.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                if (signRu != null && MyStringUtils.isNotBlank(signRu.getPersonalSignAuth())) {
+                    // 如果签署实例为无须实名或需实名，则直接签署实例的配置
+                    if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                        signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                        finalPersonalSignAuth = signRu.getPersonalSignAuth();
+                    }
+                    // 如果签署实例为允许不实名认证，则判断签署任务的实名认证要求
+                    else if (signRu.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                        // 判断签署任务的实名认证要求是否为空，为空则直接配置为需实名。
+                        if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                            // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                            if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                                confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                                finalPersonalSignAuth = confirm.getPersonalSignAuth();
+                            }
+                        }
+                    }
+                }else if (confirm != null && MyStringUtils.isNotBlank(confirm.getPersonalSignAuth())) {
+                    // 判断用户选择的实名认证要求,如果签署任务为无须实名或需实名，则直接使用签署任务的配置，否则直接配置为需实名
+                    if (confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.REQUIRED.getType()) ||
+                            confirm.getPersonalSignAuth().equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType())) {
+                        finalPersonalSignAuth = confirm.getPersonalSignAuth();
+                    }
+                }
+            }
+        }
+        return finalPersonalSignAuth;
+    }
 
 }

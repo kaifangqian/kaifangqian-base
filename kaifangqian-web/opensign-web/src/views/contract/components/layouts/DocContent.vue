@@ -224,7 +224,7 @@ export default defineComponent({
 			// }
   },
   setup(props,{emit}) {
-    console.log(props.nowDocument ,' 当前文档内容控件')
+    // console.log(props.nowDocument ,' 当前文档内容控件')
 
     watch(
       ()=>props.nowDocument.maxWidth,

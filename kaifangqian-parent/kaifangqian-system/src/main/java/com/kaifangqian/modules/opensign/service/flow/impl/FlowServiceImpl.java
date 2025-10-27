@@ -24,6 +24,7 @@ package com.kaifangqian.modules.opensign.service.flow.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.kaifangqian.modules.opensign.entity.*;
+import com.kaifangqian.modules.opensign.enums.OperateStatusEnum;
 import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.system.entity.SysAppInfo;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
@@ -152,11 +153,17 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         }
         SignTaskThreadlocalVO threadlocalVO = SignTaskInfo.THREAD_LOCAL.get();
         String taskType;
-        if (MyStringUtils.isNotBlank(signRuId)) {
+        if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && !operate.equals("signActivitiFlow") && !operate.equals("finishFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = OpensignFlowIntiConfig.taskMap.get(TaskTypeEnum.INITIATE_FLOW.getCode()).getType();
         } else if (MyStringUtils.isNotBlank(threadlocalVO.getTaskType())) {
             taskType = threadlocalVO.getTaskType();
+        } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("signActivitiFlow")) {
+            threadlocalVO.setSignRuId(signRuId);
+            taskType = TaskTypeEnum.B_SIGN_TASK.getCode();
+        } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("finishFlow")) {
+            threadlocalVO.setSignRuId(signRuId);
+            taskType = TaskTypeEnum.FINISH_FLOW.getCode();
         } else {
             throw new PaasException("驱动流程错误：节点未知");
         }
@@ -897,11 +904,13 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         if (MyStringUtils.isNotBlank(ruSenderId)) {
             jump = false;
         }
+
         if (CollUtil.isNotEmpty(signers)) {
             for (SignRuSigner s : signers) {
                 SignRuSender senderQuery = new SignRuSender();
                 senderQuery.setSignerId(s.getId());
                 List<SignRuSender> senders = signRuSenderService.getByEntity(senderQuery);
+
                 if (CollUtil.isNotEmpty(senders)) {
                     for (int i = 0; i < senders.size(); i++) {
                         SignRuSender sender = senders.get(i);
@@ -910,6 +919,13 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                             if (ruSenderId != null && ruSenderId.equals(sender.getId())) {
                                 continue;
                             }
+
+                            boolean isAddSignTask = isHaveSignTask(signRuId, sender.getId());
+
+                            if (isAddSignTask == false){
+                                continue;
+                            }
+
                             if (sender.getSenderSignType() == 1) {
                                 //创建签署任务
                                 addCompanyOutRuTask(signRuId, sender.getId(), s.getSignerName(), null, null, 2);
@@ -987,10 +1003,10 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                 }
             }
         } else {
-            SignRuTask tastQuery = new SignRuTask();
-            tastQuery.setSignRuId(signRuId);
-            tastQuery.setTaskStatus(1);
-            List<SignRuTask> tasks = signRuTaskService.getByEntity(tastQuery);
+            SignRuTask taskQuery = new SignRuTask();
+            taskQuery.setSignRuId(signRuId);
+            taskQuery.setTaskStatus(1);
+            List<SignRuTask> tasks = signRuTaskService.getByEntity(taskQuery);
             if (CollUtil.isEmpty(tasks)) {
                 //没有的话创建接下来的外部任务
                 SignRuSigner signerQuery = new SignRuSigner();
@@ -998,12 +1014,35 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                 List<SignRuSigner> signers = signRuSignerService.getByEntity(signerQuery);
                 if (CollUtil.isNotEmpty(signers)) {
                     SignRuSigner ruSigner = signers.get(0);
+
+                    boolean isAddSignTask = false;
                     for (SignRuSigner s : signers) {
                         if (s.getSignerType() != 1) {
-                            ruSigner = s;
+                            if(s.getSignerType() == 3){
+                                List<SignRuSender> outCompanySenders = new ArrayList<>();
+                                SignRuSender outCompanySenderQuery = new SignRuSender();
+                                outCompanySenderQuery.setSignerId(s.getId());
+                                outCompanySenders = signRuSenderService.getByEntity(outCompanySenderQuery);
+                                for (SignRuSender sender : outCompanySenders) {
+                                    isAddSignTask = isHaveSignTask(signRuId, sender.getId());
+                                    if(isAddSignTask == true){
+                                        ruSigner = s;
+                                        break;
+                                    }
+                                }
+                            }else if(s.getSignerType() == 2){
+                                isAddSignTask = isHaveSignTask(signRuId, s.getId());
+                                if(isAddSignTask == true){
+                                    ruSigner = s;
+                                    break;
+                                }
+                            }
+                        }
+                        if(isAddSignTask == true){
                             break;
                         }
                     }
+
                     if (ruSigner.getSignerType() == 1) {
                         //发起方:执行命令
                         TaskCmdInfo result = new TaskCmdInfo();
@@ -1078,13 +1117,17 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         SignRuSigner query = new SignRuSigner();
         query.setSignRuId(signRuId);
         query.setSignerType(1);
+        //查询发起方签署人
         List<SignRuSigner> signers = signRuSignerService.getByEntity(query);
+
         if (CollUtil.isNotEmpty(signers)) {
             SignRuSender senderQuery = new SignRuSender();
             senderQuery.setSignerId(signers.get(0).getId());
+            //查询发起方签署人的具体操作人
             List<SignRuSender> senders = signRuSenderService.getByEntity(senderQuery);
             if (CollUtil.isNotEmpty(senders)) {
                 String ruSenderId = null;
+                //如果有任务ID，则查询签署任务
                 if (MyStringUtils.isNotBlank(taskId)) {
                     SignRuTask currentTask = signRuTaskService.getById(taskId);
                     if (currentTask != null) {
@@ -1095,26 +1138,37 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                 if (MyStringUtils.isNotBlank(ruSenderId)) {
                     jump = false;
                 }
+
                 for (int i = 0; i < senders.size(); i++) {
                     SignRuSender sender = senders.get(i);
+                    //如果跳过，或者当前任务ID等于当前操作人ID
                     if (jump || ruSenderId.equals(sender.getId())) {
                         jump = true;
                         if (ruSenderId != null && ruSenderId.equals(sender.getId())) {
                             continue;
                         }
-                        if (sender.getSenderSignType() == 1) {
-                            //创建签署任务
-                            taskId = addRuTask(signRuId, sender.getId(), null, 2);
-                            //调用自动签署接口
-                            ruSignFlowService.autoSign(sender.getId(), 1);
-                            //修改实例-操作表状态
-                            updateRuOpetare(signRuId, sender.getId(), 1, 3);
-                        } else if (sender.getSenderSignType() == 2) {
-                            //创建签署任务
-                            taskId = addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), 1);
-                            //修改实例-操作表状态
-                            updateRuOpetare(signRuId, sender.getId(), 1, 2);
-                            break;
+
+                        boolean isAddSignTask = isHaveSignTask(signRuId, sender.getId());
+
+                        if (isAddSignTask == false){
+                            continue;
+                        }
+
+                        if(isAddSignTask){
+                            if (sender.getSenderSignType() == 1) {
+                                //创建签署任务
+                                taskId = addRuTask(signRuId, sender.getId(), null, 2);
+                                //调用自动签署接口
+                                ruSignFlowService.autoSign(sender.getId(), 1);
+                                //修改实例-操作表状态
+                                updateRuOpetare(signRuId, sender.getId(), 1, 3);
+                            } else if (sender.getSenderSignType() == 2) {
+                                //创建签署任务
+                                taskId = addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), 1);
+                                //修改实例-操作表状态
+                                updateRuOpetare(signRuId, sender.getId(), 1, 2);
+                                break;
+                            }
                         }
                     }
                 }
@@ -1633,6 +1687,7 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         }
     }
 
+    // 流程驱动过程中添加签署任务
     String addRuTask(String signRuId, String signRuSenderId, String tenantUserId, Integer taskStatus) {
         SignRuTask task = new SignRuTask();
         task.setSignRuId(signRuId);
@@ -1820,5 +1875,25 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
             }
         }
         return task.getId();
+    }
+
+    private Boolean isHaveSignTask(String signRuId,String senderId){
+        Boolean isAddSignTask = false;
+        SignRuOperator opqQuery = new SignRuOperator();
+        opqQuery.setSignRuId(signRuId);
+        opqQuery.setSignerId(senderId);
+        List<SignRuOperator> signRuOperators = signRuOperatorService.getByEntity(opqQuery);
+        if(CollUtil.isNotEmpty(signRuOperators)){
+            for(SignRuOperator ruOperator : signRuOperators){
+                //如果企业签署人还有代办任务，则不添加签署任务
+                if(ruOperator.getOperateStatus() == OperateStatusEnum.WAIT_TO_FINISH.getCode()){
+                    isAddSignTask = false;
+                    break;
+                }else if(ruOperator.getOperateStatus() == OperateStatusEnum.NOT_FINISHED.getCode()) {
+                    isAddSignTask = true;
+                }
+            }
+        }
+        return isAddSignTask;
     }
 }

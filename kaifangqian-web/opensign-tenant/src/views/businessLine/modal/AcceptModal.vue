@@ -85,6 +85,29 @@
                       @change="(val) => handleVerifyTypeChange(val, item)"
                     />
                   </a-space>
+                  <p v-show="personalSignAuth == 'allowed' && item.senderType === 1">
+                    <span>实名认证要求：</span>
+                    <a-radio-group v-model:value="item.personalSignAuth">
+                      <a-radio value="required">
+                        须实名认证
+                        <a-tooltip>
+                          <template #title>
+                            须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                          </template>
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                      <a-radio value="not_required">
+                        无需实名认证
+                        <a-tooltip>
+                          <template #title
+                            >无需实名认证：使用个人电子签章前，无需进行实名认证</template
+                          >
+                          <Icon icon="ant-design:question-circle-outlined" />
+                        </a-tooltip>
+                      </a-radio>
+                    </a-radio-group>
+                  </p>
                 </div>
               </div>
               <div class="signatory-action">
@@ -144,6 +167,7 @@
     confirmType?: number;
     verifyType?: Array<string>;
     agreeSkipWillingness?: number;
+    personalSignAuth?: string;
   }
 
   export default defineComponent({
@@ -159,6 +183,7 @@
       const signRuId = ref('');
       const signReId = ref('');
       const signConfirm = ref(false);
+      const personalSignAuth = ref('');
 
       const confirmOptions = ref([
         { label: '验证码', value: 'CAPTCHA' },
@@ -184,6 +209,7 @@
         signReId.value = data.record.data.signReId;
         signRuId.value = data.record.data.signRuId;
         signConfirm.value = data.record.signConfirm;
+        personalSignAuth.value = data.record.personalSignAuth || 'required';
         confirmOptions.value[3].disabled = !signConfirm.value;
         // senderList.value.map(item=>{
         //   item.edit = false;
@@ -257,6 +283,7 @@
           senderOrder: senderList.value.length + 1,
           senderName: type == 1 ? '经办人签字' : '组织签章',
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
+          personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
         });
       }
 
@@ -288,6 +315,7 @@
         handleAddEntNode,
         confirmOptions,
         handleVerifyTypeChange,
+        personalSignAuth,
       };
     },
   });
@@ -304,9 +332,12 @@
       .participants-item-content {
         display: flex;
         align-items: center;
-        background: #f2f2f25d;
+        background: #f7f8fb;
         padding: 10px 20px;
         justify-content: space-between;
+        margin-right: 20px;
+        border-radius: 5px;
+        border: 1px solid #ced2dc;
       }
       .participants-senderUserId-content {
         .participants-senderUserId-name {
@@ -328,5 +359,18 @@
     .participants-senderUserId-type {
       color: #797979;
     }
+  }
+
+  .signatory-action {
+    min-width: 100px;
+    cursor: pointer;
+    text-align: right;
+    :deep(.app-iconify){
+      margin: 0 10px;
+    }
+  }
+
+  :deep(.resrun-svg-icon){
+    margin: 0 10px;
   }
 </style>

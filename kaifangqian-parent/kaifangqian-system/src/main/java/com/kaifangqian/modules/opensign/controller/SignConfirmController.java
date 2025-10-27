@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 // @Api(tags = "业务线-签署意愿校验")
 public class SignConfirmController {
 
-
-
-
     @Autowired
     private RuBusinessService ruBusinessService ;
 
@@ -34,8 +31,6 @@ public class SignConfirmController {
     // @ApiOperation("获取系统级别签署意愿校验开关（目前只有人脸校验）")
     @RequestMapping(value = "/type", method = RequestMethod.GET)
     public Result<Boolean> getConfirmType(){
-
-
         return Result.OK(ruBusinessService.getSystemConfirmType()) ;
     }
 

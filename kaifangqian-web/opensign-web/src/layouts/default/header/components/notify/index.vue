@@ -87,7 +87,6 @@
 
       listenerRouteChange((route) => {
         if (route.name === REDIRECT_NAME) return;
-        console.log(route,'路由变哈了')
         initWebSocket()
       });
 
@@ -191,14 +190,14 @@
       }
 
       function initWebSocket() {
-        console.log('-----开始建立连接---')
-        console.log(storeUserInfo,'----用户信息-')
+        // console.log('-----开始建立连接---')
+        // console.log(storeUserInfo,'----用户信息-')
         // WebSocket与普通的请求所用协议有所不同，ws等同于http，wss等同于https
         // const websocketInfo =  window?.appInfo.websocket_info;
         const websocketInfo =  {
             url:location.origin
         }
-        console.log( window?.appInfo, websocketInfo,'websocket地址')
+        // console.log( window?.appInfo, websocketInfo,'websocket地址')
 
         var url = websocketInfo.url.replace("https://","wss://").replace("http://","ws://") +"/resrun-paas/websocket/"+storeUserInfo.id;
         console.log(url);
@@ -208,7 +207,7 @@
         websocket.value.onmessage = websocketOnmessage;
         websocket.value.onclose = websocketOnclose;
 
-        console.log(websocket,'--websocket实例-')
+        // console.log(websocket,'--websocket实例-')
        
       }
 

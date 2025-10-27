@@ -170,7 +170,6 @@ public class RuDataService {
     @Transactional(rollbackFor = Exception.class)
     public void createRuData(RuCreateData ruCreateData){
 
-
         //主数据
         SignRu ru = ruCreateData.getSignRu();
         ru.setDeleteFlag(false);
@@ -220,8 +219,8 @@ public class RuDataService {
                                     ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
                                 }
 
-                                //发起方
-                                ruSignConfirmService.save(ruSender.getId(),ruId,dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType());
+                                //发起方-保存签署意愿校验信息
+                                ruSignConfirmService.save(ruSender.getId(),ruId,dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
 //                                if(dataSender.getConfirmType() != null && dataSender.getConfirmType() == 1){
 //                                    //开启人脸识别
 //                                    ruSignConfirmService.save(ruSender.getId(),ruId,dataSinger.getSignerType());
@@ -232,7 +231,7 @@ public class RuDataService {
                     }
                 }else {
                     //个人接收方
-                    ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType());
+                    ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType(),dataSinger.getPersonalSignAuth());
 //                    if(dataSinger.getConfirmType() != null && dataSinger.getConfirmType() == 1){
 //                        //开启人脸识别
 //                        ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode());
@@ -590,7 +589,7 @@ public class RuDataService {
                     addSenderList(dataSigner.getAddSenderList(),ruId,SignerTypeEnum.RECEIVER_ENT.getCode(),ruSigner.getId());
                 }else {
                     //签署校验意愿
-                    ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSigner.getAgreeSkipWillingness(),dataSigner.getVerifyType());
+                    ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSigner.getAgreeSkipWillingness(),dataSigner.getVerifyType(),dataSigner.getPersonalSignAuth());
 //                    if(dataSigner.getConfirmType() != null && dataSigner.getConfirmType() == 1){
 //                        ruSignConfirmService.save(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode());
 //                    }
@@ -626,7 +625,7 @@ public class RuDataService {
                 }
                 else {
                     //签署校验意愿
-                    updateConfirm(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSigner.getConfirmType(),dataSigner.getAgreeSkipWillingness(),dataSigner.getVerifyType());
+                    updateConfirm(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSigner.getConfirmType(),dataSigner.getAgreeSkipWillingness(),dataSigner.getVerifyType(),dataSigner.getPersonalSignAuth());
 //                    if(dataSigner.getConfirmType() != null && dataSigner.getConfirmType() == 1){
 //                        //更新个人签署意愿
 //                        updateConfirm(ruSigner.getId(),ruId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSigner.getConfirmType());
@@ -672,7 +671,7 @@ public class RuDataService {
                 if(!b){
                     throw new PaasException("保存发起方" + sender.getSenderName() + "失败");
                 }
-                ruSignConfirmService.save(sender.getId(),ruId,signerType,dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType());
+                ruSignConfirmService.save(sender.getId(),ruId,signerType,dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
 //                if(dataSender.getConfirmType() != null && dataSender.getConfirmType() == 1){
 //                    ruSignConfirmService.save(sender.getId(),ruId,signerType);
 //                }
@@ -689,7 +688,7 @@ public class RuDataService {
                     throw new PaasException("保存企业接收方" + sender.getSenderName() + "失败");
                 }
                 //更新签署意愿
-                updateConfirm(sender.getId(),ruId,signerType,dataSender.getConfirmType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType());
+                updateConfirm(sender.getId(),ruId,signerType,dataSender.getConfirmType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
             }
         }
     }
@@ -740,7 +739,10 @@ public class RuDataService {
             throw new PaasException("发起失败-单号生成失败");
         }
         //先删除之前的操作人
-        ruOperatorService.deleteByRuId(ru.getId());
+        if(ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()){
+            ruOperatorService.deleteByRuId(ru.getId());
+        }
+
         //插入
         boolean saveBatchOperatorList = ruOperatorService.saveBatch(operatorList);
         if(!saveBatchOperatorList){
@@ -810,7 +812,7 @@ public class RuDataService {
     }
 
 
-    public void updateConfirm(String signerId,String signRuId,Integer signerType,Integer confirmType,Integer isFastSign,String verifyType){
+    public void updateConfirm(String signerId,String signRuId,Integer signerType,Integer confirmType,Integer isFastSign,String verifyType,String personalSignAuth){
 //        if(confirmType != null && confirmType == 1){
 //            SignRuSignConfirm ruSignConfirm = ruSignConfirmService.getByParam(signerId, signRuId);
 //            if(ruSignConfirm == null){
@@ -821,10 +823,11 @@ public class RuDataService {
 //        }
         SignRuSignConfirm ruSignConfirm = ruSignConfirmService.getByParam(signerId, signRuId);
         if(ruSignConfirm == null){
-            ruSignConfirmService.save(signerId,signRuId,signerType,isFastSign,verifyType);
+            ruSignConfirmService.save(signerId,signRuId,signerType,isFastSign,verifyType,personalSignAuth);
         }else{
             ruSignConfirm.setConfirmType(verifyType);
             ruSignConfirm.setAgreeSkipWillingness(isFastSign);
+            ruSignConfirm.setPersonalSignAuth(personalSignAuth);
             ruSignConfirmService.updateById(ruSignConfirm);
         }
     }

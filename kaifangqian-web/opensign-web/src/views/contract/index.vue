@@ -360,17 +360,20 @@
                               size="20"
                               v-if="index != 0"
                               @click="handleArrowUp(index)"
+                              style="margin: 0 10px"
                             />
                             <SvgIcon
                               name="down"
                               size="20"
                               v-if="index + 1 != signerList.length"
                               @click="handleArrowDown(index)"
+                              style="margin: 0 10px"
                             />
                             <Icon
                               icon="ant-design:delete-outlined"
                               size="20"
                               @click="handleDelete(index)"
+                              style="margin: 0 10px"
                             />
                           </div>
                         </div>
@@ -438,7 +441,7 @@
                                   "
                                 />
                               </p>
-                              <a-space>
+                              <a-space style="margin-bottom: 10px">
                                 <!-- <span>人脸识别校验：</span>
                                     <a-switch :checked-value="1" :un-checked-value="0" v-model:checked="item.confirmType" /> -->
                                 <span>签署意愿验证方式：</span>
@@ -460,6 +463,36 @@
                                   @change="(val) => handleVerifyTypeChange(val, item)"
                                 />
                               </a-space>
+                              <a-space
+                                class="flex items-center w-full"
+                                v-show="personalSignAuth == 'allowed'"
+                              >
+                                <span>实名认证要求：</span>
+                                <a-radio-group 
+                                  v-model:value="item.personalSignAuth" 
+                                  :disabled="
+                                      signRuInfo.baseVo && signRuInfo.baseVo.signerType === 2
+                                  ">
+                                  <a-radio value="required">
+                                    须实名认证
+                                    <a-tooltip>
+                                      <template #title>
+                                        须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                                      </template>
+                                      <Icon icon="ant-design:question-circle-outlined" />
+                                    </a-tooltip>
+                                  </a-radio>
+                                  <a-radio value="not_required">
+                                    无需实名认证
+                                    <a-tooltip>
+                                      <template #title
+                                        >无需实名认证：使用个人电子签章前，无需进行实名认证</template
+                                      >
+                                      <Icon icon="ant-design:question-circle-outlined" />
+                                    </a-tooltip>
+                                  </a-radio>
+                                </a-radio-group>
+                              </a-space>
                             </div>
                             <!-- <div v-else style="width:100%;height: 10px;"></div> -->
                           </div>
@@ -472,17 +505,20 @@
                               size="20"
                               v-if="index != 0"
                               @click="handleArrowUp(index)"
+                              style="margin: 0 10px"
                             />
                             <SvgIcon
                               name="down"
                               size="20"
                               v-if="index + 1 != signerList.length"
                               @click="handleArrowDown(index)"
+                              style="margin: 0 10px"
                             />
                             <Icon
                               icon="ant-design:delete-outlined"
                               size="20"
                               @click="handleDelete(index)"
+                              style="margin: 0 10px"
                             />
                           </div>
                         </div>
@@ -596,17 +632,20 @@
                               size="20"
                               v-if="index != 0"
                               @click="handleArrowUp(index)"
+                              style="margin: 0 10px"
                             />
                             <SvgIcon
                               name="down"
                               size="20"
                               v-if="index + 1 != signerList.length"
                               @click="handleArrowDown(index)"
+                              style="margin: 0 10px"
                             />
                             <Icon
                               icon="ant-design:delete-outlined"
                               size="20"
                               @click="handleDelete(index)"
+                              style="margin: 0 10px"
                             />
                           </div>
                         </div>
@@ -805,7 +844,7 @@
   import AcceptModal from '/@/views/contract/modal/AcceptModal.vue';
   import { lineBasicFormSchema, lineSignerFormSchema, approveFormSchema } from './data';
   import { isMobile, isEmail } from '/@/utils/validate';
-  import { getSignConfirm } from '/@/api/sys/common';
+  import { getSignConfirm, getPlatePersonalSignAuth } from '/@/api/sys/common';
   import { getUploadFileType, buildFileType } from '/@/api';
   import {
     saveBaseInfo,
@@ -883,12 +922,9 @@
       const signerList = ref<any>([]);
       const ccerList = ref<any>([]);
       const approveForm: any = ref({
-        initiateFlowName: '认识合同新版签署流程',
-        initiateFlowDesc:
-          '流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明',
-        signFlowName: '认识合同新版签署流程',
-        signFlowDesc:
-          '流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明流程说明',
+        initiateFlowName: '',
+        initiateFlowDesc: '',
+        signFlowDesc: '',
       });
       const startForm: any = ref({
         initiatorName: '',
@@ -910,7 +946,7 @@
       const query = route.query;
       const signReId = ref(route.query.signReId);
       const signRuId = ref(route.query.signRuId);
-      console.log(query, route, '发企业路由');
+      const personalSignAuth = ref('');
 
       const { VITE_GLOB_APP_CODE } = getAppEnvConfig();
 
@@ -1028,6 +1064,21 @@
         } else {
           result = await getBusinessReInfo({ signReId: route.query.signReId });
         }
+
+        // 添加平台和业务线个人签署认证要求的判断逻辑
+        let platePersonSignAuth = '';
+        const personalSignAuthRes = await getPlatePersonalSignAuth();
+        if (personalSignAuthRes.code == 200) {
+          platePersonSignAuth = personalSignAuthRes.result.personalSignAuthType || 'required';
+        }
+        if(!result.baseVo.personalSignAuth){
+          personalSignAuth.value = platePersonSignAuth;
+        }else{
+          personalSignAuth.value = result.baseVo.personalSignAuth;
+        }
+
+        console.log('personalSignAuth.value', personalSignAuth.value);
+
         if (result) {
           signRuInfo.value = result;
           if (!result.signerList) {
@@ -1041,6 +1092,20 @@
             handleAddInitiator();
           }
           signerList.value.map((item) => {
+            // 未设置认证要求数据时，设置默认数据
+            if (!item.personalSignAuth) {
+              item.personalSignAuth =
+                personalSignAuth.value === 'not_required' ? 'not_required' : 'required';
+            }
+            if (item.senderList && Array.isArray(item.senderList)) {
+              item.senderList.map((v) => {
+                // 未设置认证要求数据时，设置默认数据
+                if (!v.personalSignAuth) {
+                  v.personalSignAuth =
+                    personalSignAuth.value === 'not_required' ? 'not_required' : 'required';
+                }
+              });
+            }
             if (item.signerType == 1) {
               // item.senderList.map(v=>{
               //   if(v.senderType==4){
@@ -1060,6 +1125,7 @@
               }
               item.managePhone = (item.senderList && item.senderList[0].senderExternalValue) || '';
             }
+            
           });
           ccerList.value = result.ccerList;
           fileList.value = result.fileList;
@@ -1173,6 +1239,7 @@
             baseVo: signRuInfo.value.baseVo,
             signConfirm: signConfirm.value,
             signerType: signRuInfo.value.baseVo.signerType,
+            personalSignAuth: personalSignAuth.value,
           },
         });
       }
@@ -1200,7 +1267,7 @@
         console.log(list, '抄送人-----');
         ccerList.value = [...ccerList.value, ...list];
       }
-      //调整顺讯
+      //调整顺序
       function handleArrowDown(index) {
         if (index < signerList.value.length - 1) {
           // Swap the current item with the one below it
@@ -1287,6 +1354,8 @@
           signerOrder: signerList.value.length + 1,
           senderList: [],
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
+          personalSignAuth:
+            personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
         });
         setSignerOrder();
       }
@@ -1334,7 +1403,7 @@
               router.replace({
                 query: {
                   __full__: '',
-                  signReId: route.query.signReId,
+                  // signReId: route.query.signReId,
                   signRuId: res,
                 },
               });
@@ -1375,15 +1444,17 @@
       async function handleSaveBaseInfo(type?: string) {
         try {
           saveData().then((res) => {
+            compState.loading = false;
             if (res) {
-              compState.loading = false;
-              router.replace({
-                query: {
-                  __full__: '',
-                  signReId: route.query.signReId,
-                  signRuId: res,
-                },
-              });
+              if (!unref(signRuId)) {
+                router.replace({
+                  query: {
+                    __full__: '',
+                    signRuId: res as string,
+                  },
+                });
+              }
+              
               msg.success('保存成功');
               getContractReInfo();
             } else {
@@ -1407,7 +1478,7 @@
                 router.replace({
                   query: {
                     __full__: '',
-                    signReId: route.query.signReId,
+                    // signReId: route.query.signReId,
                     signRuId: res as string,
                   },
                 });
@@ -1625,6 +1696,7 @@
               expireDate: baseVo.expireDate
                 ? dayjs(baseVo.expireDate).endOf('day').format('YYYY-MM-DD HH:mm:ss')
                 : '',
+              personalSignAuth: personalSignAuth.value,
             },
             fileList: baseVo.fileList,
             signerList: cloneSignerList(),
@@ -1632,6 +1704,7 @@
             ccerList: ccerList.value,
           };
           compState.loading = true;
+          // console.log('params----', params);
           let result = await saveBaseInfo(params);
           if (result) {
             compState.loading = false;
@@ -1714,11 +1787,9 @@
             data: acceptItem,
             signConfirm: signConfirm.value,
             signerType: signRuInfo.value.baseVo.signerType,
-
-            // signReId: unref(signReId),
+            personalSignAuth: personalSignAuth.value,
           },
         });
-        // console.log("handleAcceptInitiator",senderList);
       }
       function cloneSignerList() {
         let newSignerList = JSON.parse(JSON.stringify(signerList.value));
@@ -1843,6 +1914,7 @@
         saveData,
         saveDataPre,
         handleVerifyTypeChange,
+        personalSignAuth,
       };
     },
   });
@@ -1989,12 +2061,14 @@
   }
 
   .initiator-info {
-    background: #f2f2f25d;
+    background: #f7f8fb;
     padding: 15px 20px;
     border-radius: 2px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
+    border-radius: 5px;
+    border: 1px solid #ced2dc;
     .initiator-left {
       flex: 1;
     }
@@ -2035,13 +2109,15 @@
     margin-bottom: 5px;
   }
   .signatory-item {
-    background: #f2f2f25d;
+    background: #f7f8fb;
     padding: 15px 20px;
     border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ced2dc;
     .signatory-form {
       display: flex;
       align-items: center;
@@ -2134,7 +2210,7 @@
   .approve-info {
     flex: 1;
     .approve-type {
-      background: #f2f2f25d;
+      background: #f7f8fb;
       padding: 15px 20px;
       border-radius: 2px;
       margin-bottom: 10px;
@@ -2234,4 +2310,15 @@
     color: #fe9500;
     border: #fe9500 1px solid;
   }
+  .signatory-action {
+    min-width: 120px;
+    // cursor: pointer;
+    // text-align: right;
+    // :deep(.app-iconify) {
+    //   margin: 0 10px;
+    // }
+  }
+  // :deep(.resrun-svg-icon) {
+  //   margin: 0 10px;
+  // }
 </style>

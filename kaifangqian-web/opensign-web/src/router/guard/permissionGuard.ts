@@ -74,7 +74,7 @@ if (shareToken) {
 export function createPermissionGuard(router: Router) {
     const permissionStore = usePermissionStoreWithOut();
 
-    console.log('路由拦截开始', (userStore.getToken))
+    // console.log('路由拦截开始', (userStore.getToken))
 
 
 
@@ -84,7 +84,7 @@ export function createPermissionGuard(router: Router) {
         if (defaultData && !(userStore.getToken)) {
             userStore.setToken(defaultData.token);
         }
-        console.log(userStore.getToken, '获取的新token')
+        // console.log(userStore.getToken, '获取的新token')
     }
     router.beforeEach(async (to, from, next) => {
       
@@ -113,7 +113,7 @@ export function createPermissionGuard(router: Router) {
 
 
         // Whitelist can be directly entered
-        console.log(whitePathList.includes(to.path as PageEnum), to.path, whitePathList, '白名单')
+        // console.log(whitePathList.includes(to.path as PageEnum), to.path, whitePathList, '白名单')
         if (whitePathList.includes(to.path as PageEnum)) {
             if (to.path === LOGIN_PATH && token) {
                 const isSessionTimeout = userStore.getSessionTimeout;
@@ -164,7 +164,7 @@ export function createPermissionGuard(router: Router) {
         // get userinfo while last fetch time is empty
         if (userStore.getLastUpdateTime === 0) {
             try {
-                console.log('请求用户信息----')
+                // console.log('请求用户信息----')
                 await userStore.getUserInfoAction();
                 await userStore.getTnantInfo();
             } catch (err) {
@@ -179,12 +179,12 @@ export function createPermissionGuard(router: Router) {
         }
 
         const routes = await permissionStore.buildRoutesAction();
-        console.log('请求接口路由---')
+        // console.log('请求接口路由---')
 
         routes.forEach((route) => {
             router.addRoute(route as unknown as RouteRecordRaw);
         });
-        console.log(routes, '最终渲染路由---')
+        // console.log(routes, '最终渲染路由---')
         router.addRoute(PAGE_NOT_FOUND_ROUTE as unknown as RouteRecordRaw);
 
         permissionStore.setDynamicAddedRoute(true);

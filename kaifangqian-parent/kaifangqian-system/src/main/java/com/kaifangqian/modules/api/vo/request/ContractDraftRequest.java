@@ -23,7 +23,6 @@ package com.kaifangqian.modules.api.vo.request;
 
 import com.kaifangqian.modules.api.base.ReqBaseVO;
 import com.kaifangqian.modules.api.vo.base.*;
-import com.kaifangqian.modules.api.vo.base.*;
 // import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -46,6 +45,10 @@ public class ContractDraftRequest extends ReqBaseVO implements Serializable {
     //基本信息
     // @ApiModelProperty("业务线id")
     private String signReId ;
+
+    //基本信息
+    // @ApiModelProperty("合同id")
+    private String contractId;
 
     // @ApiModelProperty("合同编号")
     private String sn ;
@@ -87,10 +90,14 @@ public class ContractDraftRequest extends ReqBaseVO implements Serializable {
 
     // @ApiModelProperty("经办人账号")
     private String operatorAccount;
+
     // @ApiModelProperty("发起方企业")
     private String enterpriseName;
 
+    //发起类型：api(接口发起)；app（应用发起）
+    private String sendType ;
 
-
+    // @ApiModelProperty("签署流程是否自动结束，0 否，1 是")
+    private Integer autoFinish = 1;
 
 }

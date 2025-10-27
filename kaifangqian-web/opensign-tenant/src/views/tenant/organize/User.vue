@@ -27,7 +27,7 @@
       title=""
       :toolbar="true"
       :checkable="false"
-       search
+      search
       :isRemoteSearch="true"
       :toggleSwitch="true"
       :fieldNames="{title:'deparCountName'}"
@@ -63,13 +63,13 @@
                       设置主管
                     </a>
                     <Divider type="vertical"/>
-                    <a href="javascript:;" @click="showDeptDrawerById" v-if="hasPermission(['dept:edit'])">
-                      <Icon icon="ant-design:setting-filled"/>
+                    <a href="javascript:;" @click="showDeptDrawerById" v-if="hasPermission(['dept:edit']) && parentId">
+                      <Icon icon="ant-design:edit-outlined"/>
                       编辑部门
                     </a>
-                    <Divider type="vertical"/>
+                    <Divider type="vertical" v-if = "parentId"/>
                     <a href="javascript:;" @click="showDeptDrawerAddChild" v-if="hasPermission(['dept:addchild'])">
-                      <Icon icon="ant-design:plus-square-filled"/>
+                      <Icon icon="ant-design:plus-outlined"/>
                       添加子部门
                     </a>
                 </div>  
@@ -217,6 +217,7 @@
       const treeData = ref<TreeItem[]>([]);
       const filterData = ref<ResultItem[]>([]);
       const currentDeptId = ref();  //当前选中的部门id
+      const parentId = ref();  //当前选中的部门的父id
       const treeDeptId = ref(); // 部门 tree 右键操作的id 
       const instance = getCurrentInstance();
       const { eventHub } = instance?.proxy;
@@ -235,8 +236,9 @@
           });
           // let currentUserList = await getUserList(params);
           // setTableData(currentUserList.records);
-          organizeName.value =  treeData.value[0].departName;
+          organizeName.value = treeData.value[0].departName;
           currentDeptId.value = treeData.value[0].id;
+          parentId.value = treeData.value[0].parentId;
 
         }
         
@@ -434,6 +436,7 @@
         console.log(keys,e)
         organizeName.value = e.node.departName;
         currentDeptId.value = e.node.id;
+        parentId.value = e.node.parentId;
         if(!keys.length) return;
         setProps({searchInfo:{id:keys[0]}});
         reload();
@@ -603,6 +606,7 @@
 
 
       function getRightMenuList(node: any): ContextMenuItem[] {
+        console.log(node,"node1212");
         
         return [
           {
@@ -618,6 +622,7 @@
                 isUpdate:true
               })
             },
+            disabled: node.parentId ? false : true,
             // icon: 'ant-design:edit-filled',
           },
           {
@@ -855,7 +860,8 @@
         registerRoleDrawer,
         showDeptDrawerAddChild,
         registerInviteModal,
-        handleInviteUser
+        handleInviteUser,
+        parentId,
       }
     },
   });

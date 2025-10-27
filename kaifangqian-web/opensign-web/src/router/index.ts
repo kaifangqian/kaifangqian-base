@@ -36,7 +36,7 @@ const getRouteNames = (array: any[]) =>
 getRouteNames(basicRoutes);
 
 
-console.log(basicRoutes,'基础路由')
+// console.log(basicRoutes,'基础路由')
 // app router
 export const router = createRouter({
   history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH),

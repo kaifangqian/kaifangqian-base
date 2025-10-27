@@ -456,4 +456,7 @@
       }
     }
   }
+  :deep(.ant-card-head){
+    background-color: #f7f8fb;
+  }
 </style>

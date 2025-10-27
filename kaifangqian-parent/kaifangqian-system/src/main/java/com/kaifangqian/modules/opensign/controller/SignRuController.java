@@ -884,13 +884,13 @@ public class SignRuController {
     // @ApiOperation("业务线实例-发起前-保存基本数据")
     @RequestMapping(value = "/start/save/base", method = RequestMethod.POST)
     @Limit(name = "保存业务线实例", prefix = "limit",limitType= LimitType.TOKEN, operateType = OperateType.ALL, count = 5,period=10,limitHandle = LimitHandleType.NONE)
-    public Result<?> startSaveBase(@RequestBody BaseVo request) {
-        if (request == null || request.getBaseVo() == null) {
+    public Result<?> startSaveBase(@RequestBody BaseVo requestBaseVo) {
+        if (requestBaseVo == null || requestBaseVo.getBaseVo() == null) {
             return Result.error("参数缺失");
         }
 
-        if (request.getSignerList() != null && request.getSignerList().size() > 0) {
-            for (DocSignerVo docSignerVo : request.getSignerList()) {
+        if (requestBaseVo.getSignerList() != null && requestBaseVo.getSignerList().size() > 0) {
+            for (DocSignerVo docSignerVo : requestBaseVo.getSignerList()) {
                 if (docSignerVo.getSignerType() == null) {
                     return Result.error("签署人类型-参数缺失");
                 }
@@ -917,15 +917,19 @@ public class SignRuController {
         if (currentUser == null || currentUser.getTenantUserId() == null || currentUser.getTenantUserId().length() == 0) {
             return Result.error("当前用户不存在");
         }
-        String signRuId = request.getBaseVo().getSignRuId();
+        String signRuId = requestBaseVo.getBaseVo().getSignRuId();
         if (signRuId != null && signRuId.length() > 0) {
             //如果reid为空字符串，则设置为null，不更新
-            if (request.getBaseVo().getSignReId() != null && request.getBaseVo().getSignReId().length() == 0) {
-                request.getBaseVo().setSignReId(null);
+            if (requestBaseVo.getBaseVo().getSignReId() != null && requestBaseVo.getBaseVo().getSignReId().length() == 0) {
+                requestBaseVo.getBaseVo().setSignReId(null);
             }
-            signRuId = ruSaveService.save(request);
+            signRuId = ruSaveService.save(requestBaseVo);
         } else {
-            signRuId = ruCreateService.create(request);
+            //设置数据发起类型为APP发起
+            requestBaseVo.getBaseVo().setSendType(ContractSendTypeEnum.APP.getType());
+            //设置自动完成类型为自动完成
+            requestBaseVo.getBaseVo().setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
+            signRuId = ruCreateService.create(requestBaseVo);
         }
 
         if (signRuId == null) {
@@ -1610,7 +1614,6 @@ public class SignRuController {
         TenantInfoDTO tenantInfoExt = tenantInfoExtendService.getTenantInfoExt(tenantId);
 
         //如果需要使用CA证书，则需要进行实名认证
-
         if (!certType.equals(CertTypeEnum.SYSTEM.getCode())) {
 
             if (tenantInfoExt == null || tenantInfoExt.getAuthStatus() != TenantAuthStatus.STATUS2.getStatus()) {
@@ -1651,6 +1654,13 @@ public class SignRuController {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String format = simpleDateFormat.format(certificateInfo.getTermOfValidityEndTime());
         return Result.OK("", format);
+    }
+
+    // 获取签署节点的配置信息，如是否需要实名，是否需要通知，是否需要签署意愿校验等
+    // Get the configuration information of the signing node, such as whether real-name authentication is required, whether notification is required, whether signing intention verification is required, etc.
+    @RequestMapping(value = "/run/sign/nodeConfig", method = RequestMethod.GET)
+    public Result<SignNodeConfigResponse> signNodeConfig() {
+        return Result.OK(ruBusinessService.getSignNodeConfig());
     }
 
     // @ApiOperation("业务线实例-运行中-是否需要签署意愿校验")

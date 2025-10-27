@@ -22,8 +22,14 @@
 
 <template>
   <div>
-    <BasicTable @register="registerTable" @fetch-success="onFetchSuccess" @row-click="onRowClick" @expand="handleExpand"
-    :rowSelection="{ type: 'checkbox', selectedRowKeys: checkedKeys, onChange: onSelectChange }">
+    <!-- <BasicTable @register="registerTable" @fetch-success="onFetchSuccess" @row-click="onRowClick" @expand="handleExpand"
+    :rowSelection="{ type: 'checkbox', selectedRowKeys: checkedKeys, onChange: onSelectChange }"> -->
+    <BasicTable
+      @register="registerTable"
+      @fetch-success="onFetchSuccess"
+      @row-click="onRowClick"
+      @expand="handleExpand"
+    >
       <template #toolbar>
           <a-button type="primary" @click="handleCreate" v-if="hasPermission(['dept:add'])">添加部门 </a-button>
           <a-button type="default" @click="handleBatchDelete" v-if="hasPermission(['dept:deletebatch'])">批量删除 </a-button>
@@ -34,7 +40,8 @@
             {
               label: '编辑部门信息',
               onClick: handleDeptMenu.bind(null, record,true),
-              auth:'dept:edit'
+              auth:'dept:edit',
+              disabled: record.parentId ? false : true,
             },
             {
               label: '设置部门主管',
@@ -57,7 +64,7 @@
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent,ref,reactive,unref } from 'vue';
+  import { defineComponent,ref,reactive,unref, nextTick } from 'vue';
   import { BasicTable, useTable, TableAction, EditRecordRow} from '/@/components/Table';
   import { deptColumns } from './data';
   import { useDrawer } from '/@/components/Drawer';
@@ -256,14 +263,19 @@
             closeModal()
           }
       }
-      async function handleExpand(expanded,record){
-        if(!expanded) return;
-        let result = await getDeptLevel({id:record.id})
-        if(result){
-          result.map(item=>{
-            item.children = item.childCount?[]:null;
-          })
-          record.children = result;
+      async function handleExpand(expanded, record) {
+        if (!expanded) return;
+        let result = await getDeptLevel({ id: record.id });
+        if (result) {
+          result.forEach((item) => {
+            item.children = item.childCount > 0 ? [] : null;
+          });
+          nextTick(() => {
+            record.children = result;
+          });
+
+          // console.log(result,'---result---',record)
+          // record.children = result;
         }
       }
 
@@ -293,6 +305,6 @@
 </script>
 <style lang="less" scoped>
 .resrun-basic-table{
-  margin-left:0;
+  margin-left:20px;
 }
 </style>

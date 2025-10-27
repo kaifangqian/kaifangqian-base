@@ -24,7 +24,7 @@
   <div class="doc-list-container">
     <div class="doc-content">
       <div class="doc-menu">
-        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart">
+        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart" style="width:160px;height:40px">
           <Icon icon="ant-design:plus-outlined" />发起签署</a-button>
         <!-- <a-button  v-if="tenantInfo.tenantType=='1' && userType == 'core'" type="primary" @click="handleStart">
         <Icon icon="ant-design:plus-outlined" />发起签署</a-button> -->
@@ -198,7 +198,7 @@ export default defineComponent({
       startTime:[],
       finishTime:[],
     });
-    const listTitle = ref('收件箱');
+    const listTitle = ref('待我处理');
     
     
     const allRef =  ref<any>();
@@ -220,8 +220,8 @@ export default defineComponent({
     const state = reactive({
       rootSubmenuKeys: ['sub1', 'sub2', 'sub4'],
       openKeys: ['sub2'],
-      selectedKeys: ['1'],
-      activeMenuKey:'1'
+      selectedKeys: ['7'],
+      activeMenuKey:'7'
     });
     const filterCount = ref(0);
     const pageinfo = ref({
@@ -237,10 +237,13 @@ export default defineComponent({
     const [registerModal,{openModal,closeModal}] = useModal();
     const { createMessage: msg, createConfirm } = useMessage();
     const { currentRoute } = router;
-    console.log(route.query.key,'----测试hi i----')
     if(route.query.key && route.query.key == '7'){
       state.selectedKeys = ['7'];
       listTitle.value = '待我处理'
+    }
+    if(route.query.key && route.query.key == '2' && tenantInfo.tenantType=='1' ){
+      state.selectedKeys = ['2'];
+      listTitle.value = '已发送'
     }
     const userType = userStore.userInfo?.sysType;
     watch(
@@ -289,8 +292,8 @@ export default defineComponent({
       //   pageNo = allRef.value.pageinfo.pageNo;
       //   pageSize = allRef.value.pageinfo.pageSize;
       // }
-      
-      (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key && route.query.key=='7'?7:1});
+      (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key && tenantInfo.tenantType=='1'?route.query.key:'7'});
+      console.log(state.activeMenuKey,'state.activeMenuKey')
       document.addEventListener("visibilitychange", function() {
         if(!document.hidden){
           (allRef.value as any)&&(allRef.value as any)?.loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey});
@@ -303,17 +306,19 @@ export default defineComponent({
 
     //菜单点击
     function handleMenuClick({ item, key, keyPath }){
-      if(route.query.key && route.query.key == '7'){
-        router.replace({
-          query:{
-
-          }
-        })
-      }
+      // if(route.query.key){
+      //   router.replace({
+      //     query:{
+      //       key:key
+      //     }
+      //   })
+      // }
       console.log(item,keyPath,keyPath,'当前点击菜单-')
       listTitle.value = item.title
       state.activeMenuKey = key;
+      console.log(key,'当前点击菜单-')
       if(allRef.value){
+        console.log(key,'当前点击菜单----');
         (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:key},true);
       }
 
@@ -601,6 +606,8 @@ export default defineComponent({
     color:#999;
     margin-top:2px;
     cursor:pointer;
+    font-size: 14px;
+    margin-left: 5px;
   }
 }
 .list-title{

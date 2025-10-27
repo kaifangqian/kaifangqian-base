@@ -182,7 +182,7 @@
                         </template>
                         <template v-else-if="element.format">
                             <div class="setting-sign-date">
-                                <span>{{ element.format }}</span>
+                                <span>{{ element.today }}</span>
                             </div>
                         </template>
                         <span v-else>{{ element.title }}</span>
@@ -248,6 +248,7 @@ import { getColor } from "../data/ReceiveColor"
 import { ControlType, isFillControl, CanvasZoom } from "../data/ControlData"
 import { moveRange, currentPosition, currentPositionReverse } from "../data/ControlerMoveRange"
 import { Notify } from 'vant';
+import { getTodayDateByFormat } from "@/utils/util"
 
 interface Action {
     text:string;
@@ -854,6 +855,7 @@ export default defineComponent({
             props.element.showModal = true;
         }
         function initData() {
+            console.log("initData----");
             if (props.element.disabled) {
                 cursorStyle.value = "cursor: not-allowed;";
             } else {
@@ -869,12 +871,15 @@ export default defineComponent({
                     // props.element.value = dayjs(props.element.value);
                 }
             }
-            console.log("initData:contr计算前:", props.element);
-            // props.element.position.top = currentPositionReverse(props.element.position.top, props.element.position.page);
-            console.log("initData:contr计算后:", props.element);
-            //import dayjs from 'dayjs';
-            //cursor: pointer;
+            // 签署日期控件格式处理
+            if (props.element.controlType == ControlType.SignDate && props.isSign) {
+                props.element.today = getTodayDateByFormat(props.element.format);
+            }
         }
+        // function setToday(){
+        //     console.log('setToday---')
+        //     props.element.today = getTodayDateByFormat(props.element.format);
+        // }
         function addSeal(seal: any) {
             //props.element.dataId = dataId;
             props.element.data = seal;
@@ -887,7 +892,7 @@ export default defineComponent({
                 element.error = false;
             }
         }
-        // initData();
+        initData();
         return {
             controlMovemousedown,
             inputBlur,

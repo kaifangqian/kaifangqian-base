@@ -25,10 +25,9 @@
     <p class="layout-side-title">
      <span> {{ title }} </span>
      <a-tooltip>
-      <template #title>可指定各个签署方在文件上签署的位置,拖拽签署方下面对应的签署控件到文档正文区域</template>
+      <template #title>通过拖拽每个签署方对应的控件到正文区域，即可为其设定专属签署位置。</template>
       <Icon icon="ant-design:question-circle-outlined" style="margin-left:10px;"/>
-    </a-tooltip>
-    
+     </a-tooltip>
     </p>
     <Scrollbar width="100%" height="100%" >
       <div class="side-left-content">

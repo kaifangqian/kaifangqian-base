@@ -34,13 +34,13 @@
             <a-col :span="6">
               <a-form-item label="印章名称" name="sealName"
                   :rules="[{ required: true, message: '请输入印章名称' }]" >
-                <a-input v-model:value="sealFrom.sealName"  size="middle" placeholder="请输入印章名" class="input-width" />
+                <a-input v-model:value="sealFrom.sealName"   placeholder="请输入印章名" class="input-width" />
               </a-form-item>
             </a-col>
             <a-col :span="6">
               <a-form-item label="印章类型" name="sealType"
                   :rules="[{ required: true, message: '请选择印章类型' }]" >
-                  <a-select v-model:value="sealFrom.sealType"  class="input-width"  size="middle" 
+                  <a-select v-model:value="sealFrom.sealType"  class="input-width"   
                     placeholder="请选择印章类型" :options="sealType">
                   </a-select>
               </a-form-item>
@@ -49,7 +49,7 @@
           <a-row style="width: 100%;padding-top: 0px;">
             <a-col :span="6">
               <a-form-item label="所属组织" name="sealOrg">
-                <a-input v-model:value="sealFrom.entpName" disabled size="middle" class="input-width" />
+                <a-input v-model:value="sealFrom.entpName" disabled  class="input-width" />
               </a-form-item>
             </a-col>
           </a-row>
@@ -62,7 +62,7 @@
                     <a-tag :closable="true" @close="tagHandleClose(1,item)" :key="item" v-for="(item,index) in sealFrom.managerList">{{item.authRelationName}}</a-tag>
                   </span>
                   
-                  <a-button type="link" @click="selectAdmin(1,'印章管理员')" >选择管理员</a-button>
+                  <a-button type="link" @click="selectAdmin(1,'印章管理员')" style="font-size: 12px">选择管理员</a-button>
               </a-form-item>
             </a-col>
           </a-row>
@@ -74,7 +74,7 @@
                   <span>
                     <a-tag :closable="true" @close="tagHandleClose(2,item)" :key="item" v-for="(item,index) in sealFrom.userList">{{item.authRelationName}}</a-tag>
                   </span>
-                  <a-button type="link" @click="selectAdmin(2,'印章使用者')" >选择使用者</a-button>
+                  <a-button type="link" @click="selectAdmin(2,'印章使用者')" style="font-size: 12px">选择使用者</a-button>
               </a-form-item>
             </a-col>
           </a-row>
@@ -85,7 +85,7 @@
                   <template  v-for="(item,index) in sealFrom.auditorList" :key="item">
                     <a-tag :closable="true" @close="tagHandleClose(3,item)">{{item.authRelationName}}</a-tag>
                   </template>
-                  <a-button type="link" @click="selectAdmin(3,'印章审计者')" >选择审计者</a-button>
+                  <a-button type="link" @click="selectAdmin(3,'印章审计者')" style="font-size: 12px">选择审计者</a-button>
               </a-form-item>
             </a-col>
           </a-row>
@@ -101,10 +101,10 @@
       </div>
     </div>
      
-    <div style="padding: 10px 0;"> 
+    <div class="fixed-bottom-buttons">
       <a-space :size="10">
-        <a-button type="primary" @click="editSealInfo">保存</a-button>
-        <a-button @click="backPage">取消</a-button>
+        <a-button @click="backPage" style="width: 100px">取消</a-button>
+        <a-button type="primary" @click="editSealInfo" style="width: 100px">保存</a-button>
       </a-space>
     </div>
   </div>
@@ -377,6 +377,7 @@
   }
   .input-width{
     // width:300px !important;
+    font-size: 12px;
   }
   .template-make{
     width:500px;
@@ -486,5 +487,17 @@
   }
   .pointer{
     cursor: pointer;
+  }
+
+  .fixed-bottom-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 0;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
   }
 </style>

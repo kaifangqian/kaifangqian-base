@@ -365,7 +365,7 @@ export const useUserStore = defineStore({
 
     async getUserInfoAction(): Promise<UserInfo | null> {
       if (!this.getToken) return null;
-      console.log(this.getToken,'本地应用token')
+      // console.log(this.getToken,'本地应用token')
       this.setPageToken(this.getToken);
       const userInfo = await getUserInfo();
       const { roles = [] } = userInfo;

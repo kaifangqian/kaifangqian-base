@@ -527,7 +527,12 @@ export default defineComponent({
           window.close()
         }else{
           if(isHome){
-            router.push("/contract/doc");
+            router.push({
+              path:'/contract/doc',
+              query:{
+                key:'2',
+              },
+            });
           }else{
             router.go(-1);
           }

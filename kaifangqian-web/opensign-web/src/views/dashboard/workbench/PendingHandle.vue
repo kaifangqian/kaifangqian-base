@@ -142,9 +142,9 @@
     router.push({
       path:'/contract/doc',
       // name:'文档管理',
-      query:{
-        key:'7',
-      }
+      // query:{
+      //   key:'7',
+      // }
     })
   }
   

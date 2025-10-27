@@ -22,6 +22,8 @@
 package com.kaifangqian.modules.opensign.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kaifangqian.modules.opensign.vo.request.*;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.modules.system.entity.SysTenantUser;
@@ -43,16 +45,14 @@ import com.kaifangqian.modules.opensign.utils.Base64;
 import com.kaifangqian.modules.opensign.vo.request.*;
 import com.kaifangqian.modules.opensign.vo.response.PersonSealListResponse;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
+import com.kaifangqian.modules.system.model.SysUserSearchModel;
 import com.kaifangqian.modules.system.service.ISysTenantInfoService;
 import com.kaifangqian.modules.system.service.ISysTenantUserService;
 // import io.swagger.annotations.Api;
 // import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -89,9 +89,12 @@ public class SignPersonSealController {
 
     // @ApiOperation("签名列表")
     @RequestMapping(value = "/list",method = RequestMethod.GET)
-    public Result<List<PersonSealListResponse>> list(){
+    public Result<IPage<PersonSealListResponse>> list(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize){
         List<PersonSealListResponse> responseList = new ArrayList<>();
         LoginUser currentUser = MySecurityUtils.getCurrentUser();
+
+        IPage<PersonSealListResponse> result = new Page<>(pageNo, pageSize);
 
         String tenantId = null ;
         //找到该租户的个人租户
@@ -106,15 +109,19 @@ public class SignPersonSealController {
         }
         if(tenantId == null || tenantId.length() == 0){
 //            return Result.error("个人租户不存在",null) ;
-            return Result.OK(new ArrayList<>()) ;
+            return Result.OK(result) ;
         }
         //查询条件
         QueryWrapper<SignPersonSeal> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(BaseEntity::getDeleteFlag,false);
         wrapper.lambda().eq(SignPersonSeal::getSysTenantId,tenantId);
-        List<SignPersonSeal> list = personSealService.list(wrapper);
-        if(list != null && list.size() > 0){
-            for(SignPersonSeal seal : list){
+        wrapper.lambda().orderByDesc(BaseEntity::getCreateTime);
+
+        Page<SignPersonSeal> page = personSealService.page(new Page<>(pageNo, pageSize), wrapper);
+
+        //List<SignPersonSeal> list = personSealService.list(page,wrapper);
+        if(page != null && page.getRecords() != null && page.getRecords().size() > 0){
+            for(SignPersonSeal seal : page.getRecords()){
                 PersonSealListResponse response = new PersonSealListResponse();
                 response.setSealId(seal.getId());
                 response.setSealName(seal.getSealName());
@@ -127,8 +134,13 @@ public class SignPersonSealController {
                 responseList.add(response);
             }
         }
+        result.setSize(page.getSize());
+        result.setPages(page.getPages());
+        result.setTotal(page.getTotal());
+        result.setCurrent(page.getCurrent());
+        result.setRecords(responseList);
 
-        return Result.OK(responseList) ;
+        return Result.OK(result) ;
     }
 
     // @ApiOperation("签名新增")

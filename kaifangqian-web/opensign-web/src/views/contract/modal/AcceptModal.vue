@@ -59,7 +59,7 @@
                           :disabled="signerType ===2"
                         />
                       </p>
-                      <a-space >
+                      <p>
                         <!-- <span>人脸识别校验：</span>
                             <a-switch :checked-value="1" :un-checked-value="0" v-model:checked="item.confirmType" /> -->
                         <span>签署意愿验证方式：</span>
@@ -68,6 +68,37 @@
                           <Icon icon="ant-design:question-circle-outlined"  style="margin-right: 10px;color: #888;"/>
                         </a-tooltip>
                         <a-checkbox-group :value="item.verifyType" :options="confirmOptions" :disabled="signerType ===2" @change="(val) => handleVerifyTypeChange(val, item)" />
+                      </p>
+                      <a-space
+                        class="flex items-center w-full"
+                        style="margin-bottom: 10px"
+                        v-if="item.senderType === 1"
+                        v-show="personalSignAuth == 'allowed'"
+                      >
+                        <span>实名认证要求：</span>
+                        <a-radio-group 
+                          v-model:value="item.personalSignAuth" 
+                          :disabled="signerType ===2"
+                          >
+                          <a-radio value="required">
+                            须实名认证
+                            <a-tooltip>
+                              <template #title>
+                                须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                              </template>
+                              <Icon icon="ant-design:question-circle-outlined" />
+                            </a-tooltip>
+                          </a-radio>
+                          <a-radio value="not_required">
+                            无需实名认证
+                            <a-tooltip>
+                              <template #title
+                                >无需实名认证：使用个人电子签章前，无需进行实名认证</template
+                              >
+                              <Icon icon="ant-design:question-circle-outlined" />
+                            </a-tooltip>
+                          </a-radio>
+                        </a-radio-group>
                       </a-space>
                       
                     </div>
@@ -123,6 +154,7 @@
     signerId:string;
     verifyType?: Array<string>;
     agreeSkipWillingness?: number;
+    personalSignAuth?: string;
   }
   
   export default defineComponent({
@@ -138,6 +170,7 @@
       const signReId = ref('')
       const signConfirm = ref(false);
       const signerType = ref(0);
+      const personalSignAuth = ref('');
 
       const confirmOptions = ref([
         { label: '验证码', value: 'CAPTCHA' },
@@ -164,6 +197,7 @@
         signRuId.value = data.record.data.signRuId;
         signConfirm.value = data.record.signConfirm;
         confirmOptions.value[3].disabled = !signConfirm.value;
+        personalSignAuth.value = data.record.personalSignAuth;
 
         // senderList.value.map(item=>{
         //   item.edit = false;
@@ -232,6 +266,7 @@
           senderOrder:senderList.value.length+1,
           senderName:type==1?'经办人签字':'组织签章',
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
+          personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
         })
       }
       
@@ -260,7 +295,8 @@
         loadLegalDisabled,signConfirm,
         canAddEbtNode,handleAddEntNode,signerType,
         confirmOptions,
-        handleVerifyTypeChange
+        handleVerifyTypeChange,
+        personalSignAuth,
        };
     }
   })
@@ -278,9 +314,12 @@
     .participants-item-content{
       display: flex;
       align-items: center;
-      background:#f2f2f25d;
+      background:#f7f8fb;
       padding:10px 20px;
       justify-content: space-between;
+      margin-right: 20px;
+      border-radius: 5px;
+      border: 1px solid #ced2dc;
     }
     .participants-senderUserId-content{
     
@@ -305,8 +344,17 @@
   }
   .participants-senderUserId-type{
     color:#797979;
-   
-
+  }
+  .signatory-action {
+    min-width: 120px;
+    cursor: pointer;
+    text-align: right;
+    :deep(.app-iconify) {
+      margin: 0 10px;
+    }
+  }
+  :deep(.resrun-svg-icon) {
+    margin: 0 10px;
   }
 }
  

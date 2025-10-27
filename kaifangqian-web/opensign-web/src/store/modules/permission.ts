@@ -266,7 +266,7 @@ export const usePermissionStore = defineStore({
 
       routes.push(ERROR_LOG_ROUTE);
       patchHomeAffix(routes);
-      console.log(routes, '最终路由')
+      // console.log(routes, '最终路由')
       return routes;
     },
   },

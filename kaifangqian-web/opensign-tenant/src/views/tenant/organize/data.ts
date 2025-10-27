@@ -86,12 +86,12 @@ export const deptColumns:BasicColumn[] = [
   {
     title:'部门名称',
     dataIndex:'departName',
-    width: 400,
+    width: 600,
   },
   {
     title:'成员数',
     dataIndex:'userCount',
-    width: 100,
+    width: 200,
   },
   // {
   //   title:'主管',

@@ -129,6 +129,15 @@ public class SysTenantInfoServiceImpl extends ServiceImpl<SysTenantInfoMapper, S
                     throw new RuntimeException(e);
                 }
                 l.setPhone(phone);
+
+                String email = l.getEmail();
+                try {
+                    email = RsaUtils.decryptByPrivateKey(SignCommonConstant.PRIVATEKEYSTRING, email);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                l.setEmail(email);
+
             });
             List<String> tenantIds = list.stream().map(SysTenantInfoRes::getId).collect(Collectors.toList());
             if (CollUtil.isNotEmpty(tenantIds)) {

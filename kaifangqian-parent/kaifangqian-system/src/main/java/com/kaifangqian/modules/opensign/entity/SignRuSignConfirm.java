@@ -62,5 +62,8 @@ public class SignRuSignConfirm implements Serializable {
     // @ApiModelProperty("校验类型")
     private String confirmType ;
 
+    //value字段值为：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）
+    private String personalSignAuth ;
+
 
 }

@@ -70,8 +70,8 @@
           <span>{{ record.phone || record.email }}</span>
         </template>
         <template #action="{record}">
-          <a-button type="link" :disabled="record.status != 0" @click="handlePass(record)">通过</a-button>
-          <a-button type="link" :disabled="record.status != 0" @click="handleReject(record)" danger>驳回</a-button>
+          <a-button type="link" :disabled="record.status != 0" @click="handlePass(record)" style="font-size: 12px;">通过</a-button>
+          <a-button type="link" :disabled="record.status != 0" @click="handleReject(record)" danger style="font-size: 12px;">驳回</a-button>
         </template>
       </BasicTable>
     </Card>
@@ -263,6 +263,11 @@
     }
   }
 }
+
+  :deep(.ant-pagination) {
+    position: absolute;
+    width: 100%;
+  }
 </style>
 
 <script lang="ts">

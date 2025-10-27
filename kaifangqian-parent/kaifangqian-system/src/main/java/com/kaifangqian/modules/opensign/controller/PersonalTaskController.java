@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/personal/task")
 @ResrunLogModule(name = "个人文档列表")
 // @Api(tags = "个人文档列表")
-public class personalTaskController {
+public class PersonalTaskController {
 
     @Autowired
     private IInstanceTaskService instanceTaskService;

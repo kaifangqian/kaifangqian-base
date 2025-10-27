@@ -94,6 +94,8 @@ public class CompanyTaskController {
                     result.setTaskId(tasks.get(0).getId());
                 }
             }
+            Boolean downloadFlag = signRuService.checkDownloadAuth(signRu.getId());
+            result.setDownloadFlag(downloadFlag);
             //}
         }
 

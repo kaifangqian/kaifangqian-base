@@ -25,13 +25,15 @@
     <a-alert type="info">
       <template #message>
         <h1>温馨提示</h1>
-        <ul style="padding-left: 20px;">
-          <li style="list-style: disc;">合同文件发起后，电子签章系统将根据签署顺序，发送短信通知接收方进行文件填写和签署，如需关闭接收方短信通知，请进行配置</li>
+        <ul style="padding-left: 20px">
+          <li style="list-style: disc"
+            >合同文件发起后，电子签章系统将根据签署顺序，发送短信/邮件通知接收方进行文件填写和签署，如需关闭接收方短信通知，请进行配置</li
+          >
         </ul>
       </template>
     </a-alert>
     <br/>
-    <a-card title="短信通知" size="small">
+    <a-card title="短信 / 邮件通知" size="small">
       <div class="notice-box">
         <div class="notice-item">
           <div class="item-text"><p>文件填写</p></div>
@@ -42,9 +44,9 @@
                 <a-switch v-model:checked="noticeItems.writeTaskFlagPhone" />
               </a-space>
             </li>
-            <li style="padding-left:20px ;">
+            <li style="padding-left: 40px">
               <a-space>
-                <spam>邮箱</spam>
+                <spam>邮件</spam>
                 <a-switch v-model:checked="noticeItems.writeTaskFlagEmail" />
               </a-space>
             </li>
@@ -60,9 +62,9 @@
                 <a-switch v-model:checked="noticeItems.signTaskInFlagPhone" />
               </a-space>
             </li>
-            <li style="padding-left:20px ;">
+            <li style="padding-left:40px ;">
               <a-space>
-                <spam>邮箱</spam>
+                <spam>邮件</spam>
                 <a-switch v-model:checked="noticeItems.signTaskInFlagEmail" />
               </a-space>
             </li>
@@ -78,9 +80,9 @@
                  <a-switch v-model:checked="noticeItems.signTaskOutFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <spam>邮件</spam>
                  <a-switch v-model:checked="noticeItems.signTaskOutFlagEmail" />
                </a-space>
              </li>
@@ -96,9 +98,9 @@
                  <a-switch v-model:checked="noticeItems.copyBeginFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <spam>邮件</spam>
                  <a-switch v-model:checked="noticeItems.copyBeginFlagEmail" />
                </a-space>
              </li>
@@ -114,9 +116,9 @@
                  <a-switch v-model:checked="noticeItems.copySignFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <spam>邮件</spam>
                  <a-switch v-model:checked="noticeItems.copySignFlagEmail" />
                </a-space>
              </li>
@@ -190,20 +192,28 @@
     height: 60px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     .item-switch{
-      padding-right: 10px;
+      padding-right: 30px;
       align-content: center;
       display: flex;
+      align-items: center;
     }
     .item-text{
       flex:1;
-      font-weight: 600;
+      // font-weight: 600;
       font-size: 14px;
       line-height: 60px;
-      padding-left: 10px;
+      padding-left: 30px;
       p{
         padding:0;
         margin: 0;
       }
     }
+  }
+
+  :deep(.ant-card-head){
+    background-color: #f7f8fb;
+  }
+  :deep(.ant-card-body) {
+    padding: 0;
   }
 </style>
