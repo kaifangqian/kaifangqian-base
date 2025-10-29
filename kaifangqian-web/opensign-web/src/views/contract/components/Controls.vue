@@ -23,8 +23,8 @@
 <template>
   <div class="doc-control-container">
     <ul>
-      <li v-for="(item, index) in signerList" :key="index">
-        <div v-if="item.signerType == 1">
+      <li v-for="(item, index) in signerList" :key="index" >
+        <div v-if="item.signerType == 1 && item.senderList && item.senderList.length>0">
           <div class="signer-name">
             <span class="sender-line"></span>
             <span>发起方：{{ item.signerName }}</span>
@@ -36,7 +36,7 @@
           >
             <div class="signer-head">
               <a-badge status="default" />
-              <span>{{
+              <span style="font-weight: 400;">{{
                 sendItem.senderName +
                 '  —  ' +
                 '[' +
@@ -77,7 +77,8 @@
                       <div
                         :class="['control-li control-move']"
                         :style="['borderColor:' + getColor(sendIndex, 'background'),
-                          'color:' + getColor(sendIndex, 'background'),]">
+                          'color:' + getColor(sendIndex, 'background'),]"
+                          >
                         <div>
                           <span>
                             <SvgIcon :name="element.icon" :size="18"
@@ -158,7 +159,7 @@
         <div v-if="item.signerType == 2">
           <div class="signer-name">
             <span class="sender-line" style="background-color: #e48523"></span>
-            <span>接收方{{ (hasSenderSigner ? (index == '0' ? index + 1 : index) : (index + 1))}}:{{ item.signerName }}</span>
+            <span>接收方{{ (hasSenderSigner ? (index == '0' ? index + 1 : index) : (index + 1))}}：{{ item.signerName }}</span>
           </div>
           <div class="signer-control">
             <draggable
@@ -171,7 +172,7 @@
               chosen-class="chosenClass"
               animation="300"
               drag-class="drag-control"
-              @end="(e)=>controlsDragOver(e,{colorIndex:Number(senderLength + index) - 1})"
+              @end="(e)=>controlsDragOver(e,{colorIndex:hasSenderSigner?Number(senderLength + index) - 1:Number(senderLength + index)})"
               @start="controlsDragStart"
               :group="group"
               :fallback-class="false"
@@ -186,8 +187,8 @@
                   <div
                     :class="['control-li control-move']"
                     :style="[
-                      'borderColor:' + getColor(Number(senderLength + index) - 1, 'background'),
-                      'color:' + getColor(Number(senderLength + index) - 1, 'background'),
+                      'borderColor:' + getColor(hasSenderSigner?Number(senderLength + index) - 1:Number(senderLength + index), 'background'),
+                      'color:' + getColor(hasSenderSigner?Number(senderLength + index) - 1:Number(senderLength + index), 'background'),
                     ]"
                   >
                     <div>
@@ -249,7 +250,7 @@
         <div v-if="item.signerType == 3">
           <div class="signer-name">
             <span class="sender-line" style="background-color: #48b931"></span>
-            <span>接收方{{ (hasSenderSigner ? (index == '0' ? index + 1 : index) : (index + 1)) }}:{{ item.signerName }}</span>
+            <span>接收方{{ (hasSenderSigner ? (index == '0' ? index + 1 : index) : (index + 1)) }}：{{ item.signerName }}</span>
           </div>
           <div
             v-for="(sendItem, sendIndex) in item.senderList"
@@ -258,7 +259,7 @@
           >
             <div class="signer-head">
               <a-badge status="default" />
-              <span>{{
+              <span style="font-weight: 400;">{{
                 (sendItem.senderType == 1 ? '经办人签字' : '组织签章') +
                 '  —  ' +
                 '[' +
@@ -699,6 +700,11 @@ export default defineComponent({
   -ms-user-select: none; /* Internet Explorer */
   user-select: none; /* 标准语法 */
   cursor: grab;
+}
+.signer-name {
+  margin-top:10px;
+  // border-top: 1px solid #e1e8ed;
+  // padding: 40px 0;
 }
 </style>
 

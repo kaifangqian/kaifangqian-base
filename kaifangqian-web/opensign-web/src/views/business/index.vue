@@ -357,7 +357,7 @@
 
     .search-form-container {
       background: linear-gradient(135deg, #ffffff 0%, #e4eaf96e 100%);
-      border-radius: 12px;
+      // border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
       padding: 20px;
       margin-bottom: 10px;
@@ -380,11 +380,11 @@
         }
 
         :deep(.ant-input) {
-          border-radius: 6px;
+          // border-radius: 6px;
         }
 
         :deep(.ant-select) {
-          border-radius: 6px;
+          // border-radius: 6px;
         }
       }
     }
@@ -401,7 +401,7 @@
     .card-item {
       position: relative;
       background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
-      border-radius: 12px;
+      // border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
       padding: 24px;
       width: calc(33.33% - 66px);
@@ -419,14 +419,15 @@
         font-size: 12px;
         font-weight: bold;
         padding: 4px 12px;
-        border-bottom-left-radius: 8px;
+        // border-bottom-left-radius: 8px;
         color: white;
         width: 60px; /* 固定宽度 */
         text-align: center; /* 文字居中 */
         z-index: 2; /* 提高 z-index 确保覆盖 */
 
         &.active {
-          background: linear-gradient(to right, rgb(9, 130, 69), rgb(38, 233, 47));
+          // background: linear-gradient(to right, rgb(9, 130, 69), rgb(38, 233, 47));
+          background:  rgb(9, 130, 69);
         }
 
         &.inactive {
@@ -488,11 +489,11 @@
         display: flex;
         justify-content: center;
         align-items: center; /* 垂直居中 */
-        border-radius: 8px;
+        // border-radius: 8px;
       }
 
       .ant-btn-primary {
-        border-radius: 8px;
+        // border-radius: 8px;
         width: 60%;
         height: 40px;
         margin-top: 16px;
@@ -516,7 +517,7 @@
       justify-content: center;
       // background-color: #f5faff;
       padding: 10px 0;
-      border-radius: 8px;
+      // border-radius: 8px;
     }
 
 
@@ -568,7 +569,7 @@
 
   .business-scrollbar {
     background: linear-gradient(135deg, #ffffff 0%, #e4eaf96e 100%);
-    border-radius: 12px;
+    // border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     border: 1px solid #e8e8e8;
     padding: 20px;

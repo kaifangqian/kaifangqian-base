@@ -148,7 +148,7 @@
                     </a-radio-group>
                   </p>
                 </div>
-                <div class="org-seal" v-else>
+                <div class="org-seal" v-else-if="item.senderType == 2 || item.senderType == 3">
                   <p>
                     <span
                       >签字人：
@@ -210,6 +210,27 @@
                     </a-radio-group>
                   </p>
                 </div>
+                <div class="org-seal" v-else-if="item.senderType == 5">
+                  <p>
+                    <span
+                      >审批人：
+                      <a-tag
+                        v-if="item.senderUserId.length"
+                        closable
+                        @close="handleDeletesenderUserId(item)"
+                      >
+                        {{ item.senderUserName }}</a-tag
+                      >
+                    </span>
+                    <a-button
+                      type="link"
+                      v-if="!item.senderUserId.length"
+                      @click="handleAddUser(item)"
+                    >
+                      <Icon icon="ant-design:plus-outlined" />添加</a-button
+                    >
+                  </p>
+                </div>
               </div>
               <div class="signatory-action">
                 <SvgIcon name="up" size="20" v-if="index != 0" @click="handleArrowUp(index)" />
@@ -227,7 +248,7 @@
         <div class="senderUserId-action">
           <a-dropdown :trigger="['click']">
             <a-button type="link"
-              ><Icon icon="ant-design:plus-circle-outlined" />添加内部签署节点</a-button
+              ><Icon icon="ant-design:plus-outlined" />添加内部签署/审批节点</a-button
             >
             <template #overlay>
               <a-menu @click="handleAddInitiator">
@@ -237,11 +258,14 @@
                 <a-menu-item :key="1" :disabled="loadManagerDisabled()">
                   <a href="javascript:;">经办人签字</a>
                 </a-menu-item>
-                <a-menu-item :key="2" :disabled="loadLegalDisabled()">
-                  <a href="javascript:;">法人签字</a>
-                </a-menu-item>
                 <a-menu-item :key="3">
                   <a href="javascript:;">个人签字</a>
+                </a-menu-item>
+                <a-menu-item :key="5">
+                  <a href="javascript:;">个人审批</a>
+                </a-menu-item>
+                <a-menu-item :key="2" :disabled="loadLegalDisabled()">
+                  <a href="javascript:;">法人签字</a>
                 </a-menu-item>
               </a-menu>
             </template>
@@ -442,7 +466,7 @@
         } else {
           openModal(true, {
             isupDate: false,
-            title: '添加签署人',
+            title: item.senderType == 5 ? '添加审批人' : '添加签署人',
             tabs: [
               {
                 title: '根据组织选人',
@@ -665,16 +689,20 @@
               }
               if (item.senderSignType == 2 && !item.senderUserId) {
                 canSubmit = false;
-                msg.warning('请指定签署人');
+                msg.warning('请指定印章签署人');
                 break;
               }
               //自动盖章
               if (item.senderSignType == 1) {
                 item.senderUserId = '';
               }
-            } else if (item.senderType != 1 && !item.senderUserId) {
+            } else if ((item.senderType == 2 || item.senderType == 3) && !item.senderUserId) {
               canSubmit = false;
               msg.warning('请指定签字人');
+              break;
+            }else if (item.senderType == 5 && !item.senderUserId) {
+              canSubmit = false;
+              msg.warning('请指定审批节点对应的审批人');
               break;
             }
           }
@@ -769,7 +797,7 @@
         padding: 10px 20px;
         justify-content: space-between;
         margin-right: 20px;
-        border-radius: 5px;
+        // border-radius: 5px;
         border: 1px solid #ced2dc;
       }
       .participants-senderUserId-content {

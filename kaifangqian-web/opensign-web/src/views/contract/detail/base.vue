@@ -111,7 +111,7 @@
                   <span class="w-24 flex-shrink-0">截止时间：</span>
                   <span class="text-gray-900">{{contractInfo.expireDate || '未设置'}}</span>
                 </div>
-                <div class="flex items-center text-gray-600" v-if="taskType == 'write' || taskType == 'sign'">
+                <div class="flex items-center text-gray-600" v-if="taskType == 'write' || taskType == 'sign' || taskType == 'approval'">
                   <span class="w-24 flex-shrink-0">{{ contractTitle }}状态：</span>
                   <a-tag>{{ taskStatusText }}</a-tag>
                 </div>
@@ -214,7 +214,19 @@
           } else if (contractInfo.value.taskStatus === 1) {
             return '未签署';
           }
+        } else if (taskType.value == 'approval') {
+          if (contractInfo.value.taskStatus === 2 && contractInfo.value.checkMenuType == 'approve') {
+            return '审批通过';
+          } else if (
+            contractInfo.value.taskStatus === 2 &&
+            contractInfo.value.checkMenuType == 'reject'
+          ) {
+            return '审批不通过';
+          } else if (contractInfo.value.taskStatus === 1) {
+            return '未审批';
+          }
         }
+
         return '未知状态';
       });
 
@@ -223,6 +235,8 @@
           return contractInfo.value.signStatus === 5 && contractInfo.value.taskStatus === 1 ? '立即填写' : '查看详情';
         } else if (taskType.value == 'sign') {
           return contractInfo.value.signStatus === 7 && contractInfo.value.taskStatus === 1 ? '立即签署' : '查看详情';
+        }else if (taskType.value == 'approval') {
+          return contractInfo.value.signStatus === 7 && contractInfo.value.taskStatus === 1 ? '立即审批' : '查看详情';
         }
         return '查看详情';
       });
@@ -285,6 +299,9 @@
         }
         if (taskType == 'copy') {
           contractTitle.value = '抄送';
+        }
+        if (taskType == 'approval') {
+          contractTitle.value = '审批';
         }
       }
 
@@ -372,6 +389,23 @@
         }
         if (taskType.value == 'sign') {
           redirectPath = '/#/contract/sign';
+          paramsStr =
+            '__full__&signRuId=' +
+            signRuId.value +
+            '&partyName=' +
+            partyName.value +
+            '&taskId=' +
+            taskId.value +
+            '&callbackPage=' +
+            encodeURIComponent(callbackPage) +
+            '&' +
+            accountType +
+            '=' +
+            accountValue +
+            '&from=list';
+        }
+        if (taskType.value == 'approval') {
+          redirectPath = '/#/contract/approval';
           paramsStr =
             '__full__&signRuId=' +
             signRuId.value +

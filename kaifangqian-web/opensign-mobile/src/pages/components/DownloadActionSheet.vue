@@ -27,7 +27,7 @@
 		<div>
 			<van-checkbox-group v-model="checked" shape="square">
 			  <van-cell-group inset>
-			    <div class="file-content">
+			    <div class="file-content" v-show="actionSheet.fileList.length >1">
 					<div class="title">签约文件</div>
 					<div class="list" v-for="(item, index) in actionSheet.fileList" >
 						<div class="filename" @click="selectFile(item)">{{item.name}}</div>
@@ -36,16 +36,16 @@
 						</div>
 					</div>
 				</div>
-				<van-field label="邮箱" label-align="left" label-width="3em" v-model="email" name="emailValidator"
+				<van-field label="接收邮箱" label-align="left" label-width="4em" v-model="email" name="emailValidator"
 				 placeholder="填写，下载到邮箱，不填，下载到本地" :border="true" />
 				<!-- <p class="email-tips">填写，则下载到邮箱，不填，则下载到本地</p> -->
-				 <van-field label-width="3em"
+				 <van-field label-width="4em"
 				    v-model="message"
 				    rows="2"
 					maxlength="50"
-				    label="留言"
+				    label="邮件留言"
 				    type="textarea"
-				    placeholder="请输入留言"
+				    placeholder="留言信息会显示在邮件正文中"
 					show-word-limit
 					border
 				  />

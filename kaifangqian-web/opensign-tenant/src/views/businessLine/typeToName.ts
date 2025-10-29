@@ -30,6 +30,8 @@ export function loadInitiatorSignerType(type){
       return '个人签字';
     case 4:
       return '组织签章';
+    case 5:
+      return '个人审批';
     default:
       return '';
   }

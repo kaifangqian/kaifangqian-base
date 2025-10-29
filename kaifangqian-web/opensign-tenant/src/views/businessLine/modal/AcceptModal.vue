@@ -124,8 +124,10 @@
           </li>
         </ul>
         <div class="senderUserId-action">
-          <a-dropdown trigger="hover">
-            <a-button type="link"> <Icon icon="ant-design:plus-outlined" />添加</a-button>
+          <a-dropdown trigger="hover" v-if="canAddEbtNode(1) || canAddEbtNode(4)">
+            <a-button type="link">
+              <Icon icon="ant-design:plus-outlined" />添加内部签署节点</a-button
+            >
             <template #overlay>
               <a-menu>
                 <a-menu-item :disabled="!canAddEbtNode(1)">
@@ -336,7 +338,7 @@
         padding: 10px 20px;
         justify-content: space-between;
         margin-right: 20px;
-        border-radius: 5px;
+        // border-radius: 5px;
         border: 1px solid #ced2dc;
       }
       .participants-senderUserId-content {

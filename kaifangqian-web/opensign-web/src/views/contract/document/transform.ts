@@ -133,3 +133,39 @@ export function loadSignStatus(status){
     
   }
 }
+
+  export function loadApprovalColor(status){
+  switch(status){
+    case 0:
+      return '#726464';
+    case 1:
+      return '#726464';
+    case 2:
+      return '#b55f0a';
+    case 3:
+      return '#7ab140';
+    case 4:
+      return '#eb620f';
+    default:
+        return '#108ee9';
+    
+  }
+}
+
+export function loadApprovalStatus(status){
+  switch(status){
+    case 0:
+      return '无需审批';
+    case 1:
+      return '未审批';
+    case 2:
+      return '待审批';
+    case 3:
+      return '审批通过';
+    case 4:
+      return '审批不通过';
+    default:
+        return '';
+    
+  }
+}

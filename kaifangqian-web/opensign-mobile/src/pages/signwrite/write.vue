@@ -46,28 +46,35 @@
         </div>
         <!-- <a href='javascript:;' @click="handleWrite" v-if="!isDetail">快捷填写</a> -->
       </div>
-      <!-- 快捷填写icon -->
-      <van-button
-        class="custom-button-primary-write"
-        type="primary"
-        @click="handleWrite"
-        size="small"
-        :disabled="isDetail"
-      >
-        <SvgIcon name="contract-write" size="24" />
-      </van-button>
       <!-- 文档切换icon -->
       <div class="sign-document-update" v-show="documentList.length > 1"> 
         <van-button
-        class="custom-button-primary-document-update"
+        class="custom-buttons"
         type="primary"
         @click="quickHandleDocChange"
         size="small"
         >
-        <SvgIcon name="doc-update" size="28" />
+        <SvgIcon name="doc-update" size="28" style="text-align: center;display: flex;align-items: center;justify-content: center;"  />
+        <!-- 文档数量气泡 -->
+        <van-badge :content="documentList.length" class="document-count-badge" />
         </van-button>
-        <div class="doc-count-container">
-          <span class="doc-footer-operation-text">共 {{ documentList.length }} 份文档</span>
+        <div class="doc-footer-operation">
+          <span class="doc-footer-operation-text">文档切换</span>
+        </div>
+      </div>
+      <!-- 快捷填写icon -->
+       <div class="sign-contract-write"> 
+        <van-button
+          class="custom-buttons"
+          type="primary"
+          @click="handleWrite"
+          size="small"
+          :disabled="isDetail"
+        >
+          <SvgIcon name="contract-write" size="24" style="text-align: center;display: flex;align-items: center;justify-content: center;" />
+        </van-button>
+        <div class="doc-footer-operation">
+          <span class="doc-footer-operation-text">文档填写</span>
         </div>
       </div>
       <div class="footer-write-action">
@@ -857,6 +864,8 @@
           Dialog.confirm({
             title: '提交填写确认',
             message: confirmMessage,
+            confirmButtonText: '已确认，提交签署',
+            cancelButtonText: '检查填写项'
           })
             .then(async () => {
               let paramsControl = formatSubmitControl();
@@ -889,6 +898,8 @@
             .catch(() => {
               // on cancel
               loading.value = false;
+              // 关闭弹窗并触发handleWrite方法
+              handleWrite();
             });
         });
       }
@@ -1429,33 +1440,24 @@
     font-size: 0.4rem;
     color: #ee0a24;
   }
-
-  .custom-button-primary-write {
+  .sign-contract-write { 
     position: fixed;
     left: 50px;
     bottom: 20%;
     z-index: 200;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    font-size: 18px;
-    font-weight: 600;
-    height: 70px;
+    height: 110px;
     width: 70px;
-    // padding: 0px;
-    transition: box-shadow 0.2s, background 0.2s;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: linear-gradient(90deg, #0084ff, #6ebeff);
-    box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
+    justify-content: space-between;  
   }
   .sign-document-update{
     position: fixed;
     left: 50px;
-    bottom: 26%;
+    bottom: 28%;
     z-index: 200;
-    height: 100px;
+    height: 110px;
     width: 70px;
     display: flex;
     flex-direction: column;
@@ -1465,7 +1467,14 @@
     // padding: 10px 0;
   }
 
-  .custom-button-primary-document-update {
+   // 添加文档数量气泡样式
+  .document-count-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+  }
+
+  .custom-buttons {
     position: fixed;
     margin-bottom: 10px;
     // right: 32px;
@@ -1483,12 +1492,13 @@
     // display: flex;
     // align-items: center;
     justify-content: center;
-    background: linear-gradient(90deg, #0084ff, #6ebeff);
+    background: white;
+    // background: linear-gradient(90deg, #0084ff, #6ebeff);
     box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
   }
 
-  .doc-count-container {
-    margin-top: 0.9rem;
+  .doc-footer-operation {
+    margin-top: 1rem;
     // margin-bottom: 0;
     text-align: center;
     // z-index: 999;
