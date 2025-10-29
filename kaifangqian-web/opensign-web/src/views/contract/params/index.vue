@@ -529,9 +529,9 @@ export default defineComponent({
           if(isHome){
             router.push({
               path:'/contract/doc',
-              query:{
-                key:'2',
-              },
+              // query:{
+              //   key:'2',
+              // },
             });
           }else{
             router.go(-1);

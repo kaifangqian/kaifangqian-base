@@ -144,12 +144,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 800px;
+  // width: 100%;
+  // max-width: 1000px;
+  width: 1000px;
   height: 300px;
   margin: 0 auto;
-  border: 2px dashed rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  // border-radius: 12px;
   // background-color: #f9fbfc;
   background: linear-gradient(135deg, #f8fafc 80%, #eaf7ff 100%);
   transition: all 0.3s ease-in-out;
@@ -159,7 +160,7 @@
 
 
 .upload-area:hover {
-  border-color: #1890ff;
+  // border-color: #1890ff;
   background: linear-gradient(135deg, #eaf7ff 80%, #f8fafc 100%);
 }
 

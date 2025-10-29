@@ -682,7 +682,7 @@ export default defineComponent({
                     }
 
                 } else if (row.status == 7) {
-                    if (result.taskId) {
+                    if (result.taskId && result.taskType == 'sign_task') {
                         router.push({
                             path: '/signContract',
                             query: {
@@ -690,7 +690,15 @@ export default defineComponent({
                                 taskId: result.taskId
                             }
                         });
-                    } else {
+                    } else if(result.taskId && result.taskType == 'approve_task'){
+                        router.push({
+                            path: '/approval',
+                            query: {
+                                signRuId: row.signRuId,
+                                taskId: result.taskId
+                            }
+                        });
+                    }else {
                         router.push({
                             path: '/detail',
                             query: {

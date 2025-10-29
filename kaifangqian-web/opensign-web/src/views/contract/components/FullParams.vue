@@ -47,8 +47,8 @@
                   <div :class="['params-header',item.focus?'control-focus-header':'']">
                       <a-tooltip>
                         <template #title>点击后，定位到该参数所在文档位置</template>
-                        <SvgIcon name="location"  v-if="!item.focus" :size="24" class="control-pos" @click="handleControlPos(docItem,item)"></SvgIcon>
-                        <SvgIcon name="location-focus" v-if="item.focus" :size="24" class="control-pos" @click="handleControlPos(docItem,item)"></SvgIcon>
+                        <SvgIcon name="location"  v-if="!item.focus" :size="20" class="control-pos" @click="handleControlPos(docItem,item)"></SvgIcon>
+                        <SvgIcon name="location-focus" v-if="item.focus" :size="20" class="control-pos" @click="handleControlPos(docItem,item)"></SvgIcon>
                       </a-tooltip>
                       <span class="params-name">  <SvgIcon v-if="item.isRequired == 1" name="required" :size="16" class="control-pos"></SvgIcon>{{ item.name }}</span>
                     </div>

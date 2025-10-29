@@ -1059,10 +1059,10 @@
   }
 
   .ant-btn-primary {
-    background: linear-gradient(90deg, #1890ff, #40a9ff);
+    // background: linear-gradient(90deg, #1890ff, #40a9ff);
     border-color: transparent;
     min-width: 120px;
     // height: 30px;
-    border-radius: 4px;
+    // border-radius: 4px;
   }
 </style>

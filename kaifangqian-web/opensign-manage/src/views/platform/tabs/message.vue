@@ -194,6 +194,12 @@
       type: 'mes_template_signTaskIn',
       title: '文件签署通知',
     },
+    {
+      content:
+        '${sender}给您发送了一份文件《${contract}》待您审批，请访问 home.kaifangqian.com/#/contract/detail/base?code=${code} 完成审批',
+      type: 'mes_template_approvalTask',
+      title: '文件审批通知',
+    },
     // {
     //   content:
     //     '${sender}给您发送了一份文件《${contract}》，请访问 home.kaifangqian.com/#/contract/detail/base?code=${code} 完成签署',
@@ -246,6 +252,7 @@
     'mes_template_copySign',
     'mes_template_signTaskOut',
     'mes_template_signTaskIn',
+    'mes_template_approvalTask',
   ];
 
   async function saveConfig() {
@@ -254,6 +261,17 @@
       configData.value.forEach((item: any) => {
         item.value = formState[item.type];
       });
+      // 将抄送（发起时抄送）和抄送（签署时抄送）的配置合并
+      // 将签署（发起方）和签署（接收方）的配置合并
+      configData.value.forEach((item: any) => {
+        if (item.type === 'mes_template_copySign') {
+          item.value = formState['mes_template_copyBegin'];
+        }
+        if (item.type === 'mes_template_signTaskOut') {
+          item.value = formState['mes_template_signTaskIn'];
+        }
+      });
+      console.log(configData.value, 'configData.value-------');
       const result = await setSafeConfig({ sysConfigs: configData.value });
       if (result.success) {
         message.success('保存成功');

@@ -79,7 +79,17 @@ export const layoutRoutes: Array<RouteRecordRaw> = [
       leftArrow: true,
       keepAlive: true,
     },
-    component: () => import('@/pages/contract/SignContract.vue'),
+    component: () => import('@/pages/contract/SignContract-bei.vue'),
+  },
+  {
+    path: '/approval/:signRuId?',
+    name: '审批',
+    meta: {
+      title: '审批',
+      leftArrow: true,
+      keepAlive: true,
+    },
+    component: () => import('@/pages/contract/approval.vue'),
   },
   {
     path: '/wishCheck',

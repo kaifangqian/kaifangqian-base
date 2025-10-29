@@ -27,26 +27,6 @@
     <div class="workbench-area workbench-area1">
     <div :class="[userInfo.loginTenantType=='1'?'ent-card':'']" v-if="userInfo.loginTenantType=='1'">
       <div title="" size="small" class="ent-statistics">
-        <!-- <div class="account-info">
-          <CropperAvatar
-              :uploadApi="(uploadAvatarApi as any)"
-              :value="userInfo.avatarImg"
-              btnText=""
-              :showBtn="false"
-              :btnProps="{ preIcon: 'ant-design:cloud-upload-outlined' }"
-              @change="updateAvatar"
-              width="80"
-            />
-            <div class="user-info">
-              <div>
-                <a-tooltip>
-                  <template #title>{{  tenantInfo.name }}</template>
-                  <span class="user-name">{{ tenantInfo.name }}</span>
-                </a-tooltip>
-                <a-tag :color="loadCertificationStatus(tenantInfo.authStatus)" >{{loadCertificationText(tenantInfo.authStatus)}}</a-tag>
-              </div>
-            </div>
-          </div> -->
         <div class="statistics-info">
           <ul>
             <!-- <span class="statistics-tag">我发起的</span> -->
@@ -137,55 +117,7 @@
           <Icon icon="ant-design:plus-outlined"/>发起签署</a-button>
       </a-tooltip> -->
     </card>
-    <PendingHandle v-if="userInfo.loginTenantType=='1'"/>
-    <!-- <Card title="待办事项" size="small">
-        <template #extra> 
-          <a-button type="link" size="small" @click="handleMore">更多</a-button>
-        </template>
-        <a-tabs @change="handleTabChange" v-model:activeKey="activeTabKey" :tabBarGutter="70">
-          <a-tab-pane key="1" >
-            <template #tab>
-              <span>
-                <a-badge :count="upsignCount" :offset="[20,0]">
-                  待我签署
-                </a-badge>
-              </span>
-            </template>
-          </a-tab-pane>
-          <a-tab-pane key="2">
-            <template #tab>
-              <span>
-                <a-badge :count="upwriteCount" :offset="[20,0]">
-                  待我填写
-                </a-badge>
-              </span>
-            </template>
-          </a-tab-pane>
-        </a-tabs>
-        <div class="upcoming-list">
-          <ul>
-            <li v-for="(item,index) in  upcomingList" :key="index" v-if="upcomingList&&upcomingList.length">
-              <div class="upcoming-info doc-"> 
-                <p class="upcoming-title"  @click="handleSign(item)">{{ item.subject}}</p>
-                <div class="upsign-info">
-                  <span class="signatory-line">签署方：{{item.participateNames}}</span>
-                  <span>{{ loadRuStatus(item.status) }}</span>
-                  <span>由 {{ item.fromTenantName }} 于 {{ item.createTime}} 发起</span>
-                </div>
-              </div>
-            </li>
-            <div v-else>
-              <p class="no-data">
-                  <img src="~@/assets/images/no-data.png" alt="">
-              </p>
-            </div>
-
-          </ul>
-
-        </div>
-
-    </Card> -->
-    <BusinessLineModal @register="registerLineModal" @success="handleStart"/>
+    <PendingHandle v-if="userInfo.loginTenantType=='1'" :tenantInfo="tenantInfo"/>
   </div>
 </div>
 </template>
@@ -206,7 +138,6 @@ import  { getMyStastics, getListMyFillInJob } from '/@/api/contract';
 // import { companyAuthApi,personAuthApi } from '/@/api/auth/userAuth';
 import { useGo } from '/@/hooks/web/usePage';
 import { useRouter } from 'vue-router';
-import BusinessLineModal from '/@/layouts/default/header/components/sign/modal/BusinessLineModal.vue';
 import { getBusinessLine } from '/@/api/contract';
 import PersonIndex from "./PersonIndex.vue";
 import PendingHandle from "./PendingHandle.vue"
@@ -223,7 +154,6 @@ export default defineComponent({
     // Invitation,
     PendingHandle,
     Card,PersonIndex,
-    BusinessLineModal
   },
   setup() {
     
@@ -362,9 +292,9 @@ export default defineComponent({
       router.push({
         path:'/contract/doc',
         // name:'文档管理',
-        query:{
-          key:'7',
-        }
+        // query:{
+        //   key:'7',
+        // }
       })
     }
     function handleDoc(){
@@ -756,12 +686,12 @@ export default defineComponent({
     color: #d4380d;
     background: linear-gradient(135deg, #fff1f0 70%, #ffe6e6 100%);
     border-left: 5px solid #ff7875;
-    border-radius: 8px;
+    // border-radius: 8px;
     box-shadow: 0 4px 18px rgba(255, 122, 122, 0.08), 0 1.5px 6px rgba(0,0,0,0.04);
     letter-spacing: 0.5px;
     position: relative;
     z-index: 2;
-    animation: alert-flash 1.8s infinite alternate;
+    // animation: alert-flash 1.8s infinite alternate;
   }
 
   @keyframes alert-flash {

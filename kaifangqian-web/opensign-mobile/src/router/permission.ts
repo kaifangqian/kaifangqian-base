@@ -66,7 +66,7 @@ export function setupRouterGuard(router: Router) {
         return;
       }
       if (token === null || token === '') {
-        Notify({ type: 'warning', message: '暂无登录信息', duration: 1000 });
+        // Notify({ type: 'warning', message: '暂无登录信息', duration: 1000 });
         next('/login');
       } else {
         next();

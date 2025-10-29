@@ -24,7 +24,7 @@
   <div class="sign-status-container">
       <ul>
         <li v-for="(item,index) in signerSignList" :key="index">
-          <div v-if="item.signerType==1">
+          <div v-if="item.signerType==1 && item.senderList && item.senderList.length>0">
             <div class="signer-name sender-type">
               <span class="sender-line"></span>
               <span>发起方：{{item.signerName}}</span>
@@ -35,7 +35,8 @@
                   <a-badge status="default" />
                   <span>{{ sendItem.senderName +'  —  ' + '[' + (sendItem.senderSignType==1? '自动盖章': sendItem.senderUserName) + ']' }}</span>
                 </div>
-                <a-tag class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{ loadSignStatus(sendItem.signStatus) }}</a-tag>
+                <a-tag v-if="sendItem.senderType != 5" class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{ loadSignStatus(sendItem.signStatus) }}</a-tag>
+                <a-tag v-if="sendItem.senderType == 5" class="sign-status" :color="loadApprovalColor(sendItem.signStatus)">{{ loadApprovalStatus(sendItem.signStatus) }}</a-tag>
               </div>
             </div>
           </div>
@@ -78,7 +79,7 @@
 import {ref, unref, defineComponent, onMounted} from "vue";
 import { getOperator, getOperatorStatus } from '/@/api/contract';
 import { useRouter } from 'vue-router';
-import { loadSignStatus, loadSignColor } from '../document/transform';
+import { loadSignStatus, loadSignColor,loadApprovalColor,loadApprovalStatus } from '../document/transform';
 
 export default defineComponent({
   name:"SignStatus",
@@ -125,7 +126,9 @@ export default defineComponent({
     return {
          signerSignList,
          loadSignColor,
-         loadSignStatus  
+         loadSignStatus,
+         loadApprovalColor,
+         loadApprovalStatus,
     }
   }
 })
@@ -147,8 +150,12 @@ export default defineComponent({
     padding:2px 15px;
   }
 }
+
+.sign-status{
+    color: white;
+  }
 .sender-line{
-    width:8px;
+    width:4px;
     height:20px;
     border-radius: 2px;
     margin-right:10px;
@@ -172,13 +179,19 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   .operater-name{
-    margin:0 20px 0 5px;
+    margin:0 20px 0 0px;
   }
 }
 .signer-head{
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin:15px 0;
+  font-weight: 400;
+  span{
+    font-weight: 400;
+    // color: white;
+  }
 }
 </style>

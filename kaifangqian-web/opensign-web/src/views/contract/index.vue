@@ -31,8 +31,8 @@
       </div>
       <div class="contract-header-title"></div>
       <div class="contract-header-action">
-        <a-button type="default" @click="handleSaveBaseInfo">保存</a-button>
         <a-button type="primary" danger v-if="signRuId" @click="handelDeleteRu">删除</a-button>
+        <a-button type="default" @click="handleSaveBaseInfo">保存</a-button>
         <a-button type="primary" @click="handleSetPositionAndParams">下一步</a-button>
         <!-- <a-button type="link"  @click="handleWriteParams" v-if="isWrite" :disabled="!signRuId">填写文档参数</a-button>
         <a-button type="primary" @click="handleStart">发起</a-button> -->
@@ -153,11 +153,11 @@
                     >
                       <li v-for="(item, index) in fileList" :key="index">
                         <div class="file-icon">
-                          <a-tag
+                          <!-- <a-tag
                             class="file-tag"
                             :color="item.docType == 1 ? '#0079FE' : '#FE9500'"
                             >{{ item.docType == 1 ? '本地文件' : '在线模板' }}</a-tag
-                          >
+                          > -->
                           <Icon
                             icon="ant-design:close-circle-outlined"
                             color="#ed5220"
@@ -328,6 +328,9 @@
                                       </div>
                                       <div v-else-if="signderItem.senderType == 1">
                                         <p>签署人：文档签署的发起人签字 </p>
+                                      </div>
+                                      <div v-else-if="signderItem.senderType == 5">
+                                        <p>审批人：{{ signderItem.senderUserName }} </p>
                                       </div>
                                       <div v-else>
                                         <p>签署人：{{ signderItem.senderUserName }}</p>
@@ -1395,29 +1398,49 @@
       function handleDeleteEntNode(row, index) {
         row.senderList.splice(index, 1);
       }
+
       //指定位置和参数路由
       function handleSetPositionAndParams() {
         saveData().then((res: string) => {
           if (res) {
-            if (!unref(signRuId)) {
-              router.replace({
-                query: {
-                  __full__: '',
-                  // signReId: route.query.signReId,
-                  signRuId: res,
-                },
-              });
-            }
-            getContractReInfo();
-            setTimeout(() => {
+            // 使用Promise包装路由替换操作，确保路由更新完成后再执行后续操作
+            const routeUpdatePromise = new Promise<void>((resolve, reject) => {
+              if (!unref(signRuId)) {
+                router.replace({
+                  query: {
+                    __full__: '',
+                    signRuId: res,
+                  },
+                }).then(() => {
+                  // 路由更新成功后，更新signRuId的值
+                  signRuId.value = res;
+                  resolve();
+                }).catch((error) => {
+                  console.error('路由替换失败:', error);
+                  reject(error);
+                });
+              } else {
+                resolve();
+              }
+            });
+
+            // 等待路由更新完成后再跳转
+            routeUpdatePromise.then(() => {
               window.open(
-                '/#/contract/position?__full__&signReId=' + unref(signReId) + '&signRuId=' + res,
+                '/#/contract/position?__full__&signRuId=' + res,
                 '_self',
               );
-            }, 1000);
+            }).catch((error) => {
+              msg.error('操作失败: ' + error.message);
+            });
           }
+        }).catch((error) => {
+          // 添加错误处理
+          console.error('保存数据失败:', error);
+          msg.error('保存数据失败');
         });
       }
+
       //参数填写
       function handleWriteParams() {
         window.open(
@@ -1487,7 +1510,7 @@
               let result = await startContract({ signRuId: signRuId.value });
               if (result) {
                 compState.loading = false;
-                msg.success('发起成功');
+                msg.success('发起成功',5000);
                 setTimeout(() => {
                   window.close();
                 }, 1000);
@@ -1931,7 +1954,7 @@
     width: 520px;
     height: 64px;
     border: 1px dashed #276ef9;
-    border-radius: 4px;
+    // border-radius: 4px;
     :deep(.app-iconify) {
       color: #127fd2;
     }
@@ -2046,7 +2069,7 @@
         }
         .file-name {
           font-size: 14px;
-          font-weight: 550;
+          // font-weight: 550;
           white-space: nowrap;
           width: 140px;
           margin: 0 auto;
@@ -2054,7 +2077,7 @@
           overflow: hidden;
           text-overflow: ellipsis;
           margin-bottom: 0;
-          color: #333;
+          color: #666;
         }
       }
     }
@@ -2063,11 +2086,10 @@
   .initiator-info {
     background: #f7f8fb;
     padding: 15px 20px;
-    border-radius: 2px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
-    border-radius: 5px;
+    // border-radius: 5px;
     border: 1px solid #ced2dc;
     .initiator-left {
       flex: 1;
@@ -2111,12 +2133,11 @@
   .signatory-item {
     background: #f7f8fb;
     padding: 15px 20px;
-    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
-    border-radius: 5px;
+    // border-radius: 5px;
     border: 1px solid #ced2dc;
     .signatory-form {
       display: flex;
@@ -2276,7 +2297,7 @@
     margin-bottom: 10px;
     left: 2px;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;
@@ -2289,7 +2310,7 @@
     margin-bottom: 10px;
     left: 2px;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;
@@ -2302,7 +2323,7 @@
     margin-bottom: 10px;
     left: 2px;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;
@@ -2318,7 +2339,8 @@
     //   margin: 0 10px;
     // }
   }
-  // :deep(.resrun-svg-icon) {
-  //   margin: 0 10px;
-  // }
+  :deep(.resrun-svg-icon) {
+    // margin: 0 10px;
+    color: #666;
+  }
 </style>

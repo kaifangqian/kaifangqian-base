@@ -402,6 +402,11 @@
               if(item.signerType==1 || item.signerType==3){
                 item.senderList =  item.senderList.sort((a, b) => a.senderOrder - b.senderOrder)
               }
+              // 发起方企业且为审批节点时，从发起方企业内部节点中移除
+              if(item.signerType == 1 && Array.isArray(item.senderList)) {
+                  // 过滤掉senderType为5的项
+                  item.senderList = item.senderList.filter(sender => sender.senderType != 5)
+              }
             })
             signerList.value.map((v,index)=>{
                   if(v.signerType==1){
@@ -1508,22 +1513,13 @@
                     if(result){
                       signLoading.value = false;
                         Modal.destroyAll();
-                        setTimeout(()=>{
-                          // router.push("/contract/doc");
-                          // 指定跳转到“已发送”tab
-                          router.push({
-                            path:'/contract/doc',
-                            query:{
-                              key:'2',
-                            },
-                          });
-                          return;
-                          // if(window.opener){
-                          //   window.close();
-                          // }else{
-                          //   router.push("/contract/doc")
-                          // }
-                        })
+                        // 指定跳转到“已发送”tab
+                        router.push({
+                          path:'/contract/doc',
+                          // query:{
+                          //   key:'2',
+                          // },
+                        });
                     }else{
                       setTimeout(() => {
                         signLoading.value = false;

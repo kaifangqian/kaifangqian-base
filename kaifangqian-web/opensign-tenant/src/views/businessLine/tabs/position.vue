@@ -356,7 +356,14 @@ export default defineComponent({
                     if (item.signerType == 1 || item.signerType == 3) {
                         item.senderList = item.senderList.sort((a, b) => a.senderOrder - b.senderOrder)
                     }
+                    // 发起方企业且为审批节点时，从发起方企业内部节点中移除
+                    if(item.signerType == 1 && Array.isArray(item.senderList)) {
+                        // 过滤掉senderType为5的项
+                        item.senderList = item.senderList.filter(sender => sender.senderType != 5)
+                    }
                 })
+                console.log(signerList.value,'this.signerList-----');
+            
             }
 
         }

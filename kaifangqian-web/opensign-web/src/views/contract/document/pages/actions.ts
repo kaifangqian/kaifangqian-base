@@ -116,7 +116,6 @@ export function deleteComplete(params){
   })
 }
 export  function editRow(params,router) {
-  // window.open('/#/contract/start?__full__&signReId='+'&signRuId=' + params.signRuId )
   router.push({
     path:"/contract/start",
     query:{
@@ -138,7 +137,6 @@ export  async function recover(params) {
   }
 }
 export  function write(params,router) {
-  // window.open('/#/contract/params?__full__&signReId='+'&signRuId=' + params.signRuId + '&，=' + params.result.taskId + '&type='+ (params.result.startFlag?'':'receive')  + '&from=list')
   router.push({
     path:"/contract/params",
     query:{
@@ -151,8 +149,7 @@ export  function write(params,router) {
   })
   
 } 
-export  function sign (params,router) {
-  // window.open('/#/contract/sign?__full__&signReId='+'&signRuId=' + params.signRuId + '&taskId=' + params.result.taskId  + '&from=list')
+export function sign (params,router) {
   router.push({
     path:"/contract/sign",
     query:{
@@ -162,7 +159,17 @@ export  function sign (params,router) {
       from:'list'
     }
   })
-  
+}
+export function approval (params,router) {
+  router.push({
+    path:"/contract/approval",
+    query:{
+      __full__:"",
+      signRuId:params.signRuId,
+      taskId:params.result.taskId,
+      from:'list'
+    }
+  })
 }
 
 export const actions: Action[] = [
@@ -200,6 +207,12 @@ export const actions: Action[] = [
     key:'sign',
     name:'签署',
     callback:sign,
+    params:{}
+  },
+  {
+    key:'approval',
+    name:'审批',
+    callback:approval,
     params:{}
   },
   {
@@ -277,14 +290,18 @@ export function formatAction (row,result): Action[] {
   //签署中
   if(row.status==7){
     if(result.startFlag){
-      if(result.taskId){
+      if(result.taskId && result.taskType == 'sign_task'){
         actionResult = mapActions(['sign','revoke']);
+      }else if(result.taskId && result.taskType == 'approve_task'){
+        actionResult = mapActions(['approval','revoke']);
       }else{
         actionResult = mapActions(['revoke']);
       }
     }else{
-      if(result.taskId){
+      if(result.taskId && result.taskType == 'sign_task'){
         actionResult = mapActions(['sign']);
+      }else if(result.taskId && result.taskType == 'approve_task'){
+        actionResult = mapActions(['approval']);
       }else{
         actionResult = mapActions([]);
       }

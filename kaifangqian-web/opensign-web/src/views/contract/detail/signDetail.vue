@@ -56,6 +56,7 @@
           <img
             class="sign-detail-status-img"
             :src="getAssetsFile('sign-' + signRuInfo.baseVo.status + '.png')"
+            v-if="signRuInfo.baseVo.status"
           />
           <ul>
             <li>
@@ -164,7 +165,7 @@
           <div>
             <div>
               <div v-for="(item, index) in operatorList" :key="index">
-                <div v-if="item.signerType == 1">
+                <div v-if="item.signerType == 1 && item.senderList && item.senderList.length > 0" >
                   <div class="signer-name sender-type">
                     <span>发起方</span>
                   </div>
@@ -197,7 +198,10 @@
                           }}</span>
                         </div>
                         <!-- <a-tag class="sign-status" :color="loadSignColor(sendItem.writeStatus)">{{ loadWriteStatus(sendItem.writeStatus) }}</a-tag> -->
-                        <a-tag class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{
+                        <a-tag v-if="sendItem.senderType == 5" class="sign-status" :color="loadApprovalColor(sendItem.signStatus)">{{
+                          loadApprovalStatus(sendItem.signStatus)
+                        }}</a-tag>
+                        <a-tag v-if="sendItem.senderType != 5" class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{
                           loadSignStatus(sendItem.signStatus)
                         }}</a-tag>
                         <a-tooltip>
@@ -221,6 +225,9 @@
                     </div>
                   </div>
                 </div>
+                <!-- <div v-if="item.signerType == 1 && (!item.senderList || item.senderList.length == 0)">
+                  <p>由 {{ item.signerName }} 下 {{ item.singerUserName }} 发起 </p>
+                </div> -->
                 <div v-if="item.signerType == 2">
                   <div class="signer-name receive-type">
                     <span
@@ -435,6 +442,8 @@
     loadSignColor,
     loadSignStatus,
     loadWriteStatus,
+    loadApprovalColor,
+    loadApprovalStatus,
   } from '/@/views/contract/document/transform';
   import { Card, Divider } from 'ant-design-vue';
   import { Icon, SvgIcon } from '/@/components/Icon';
@@ -527,14 +536,14 @@
       const taskId = route.query?.taskId;
       const ls = createLocalStorage();
       const actions = ref(<ButtonItem[]>[
-        {
-          type: 'default',
-          text: '下载签约文件',
-          callBack: handleDownloadFiles,
-          show: false,
-          svgIcon: 'download',
-          disabled: false,
-        },
+        // {
+        //   type: 'default',
+        //   text: '下载签约文件',
+        //   callBack: handleDownloadFiles,
+        //   show: false,
+        //   svgIcon: 'download',
+        //   disabled: false,
+        // },
         // {
         //   type:'primary',
         //   text:'下载签署记录报告',
@@ -554,11 +563,12 @@
       });
 
       async function recordCheck() {
-        let result = 0;
+        let result;
         if (signRuInfo.value.baseVo.caSignType == 1 && signRuInfo.value.baseVo.status == 11) {
           result = await getRecordExist({ signRuId: signRuId });
         }
-        if (result == 1) {
+        // console.log('result-------', result.result);
+        if (result && result.result == 1) {
           actions.value = [
             {
               type: 'default',
@@ -578,6 +588,7 @@
             },
           ];
         } else {
+          // console.log('下载签约文件-------', signRuInfo.value.baseVo.downloadFileType);
           actions.value = [
             {
               type: 'default',
@@ -678,7 +689,7 @@
         if (result) {
           actionTaskId.value = result.taskId;
           confirmTaskId.value = result.confirmTaskId;
-          if (status == 5 && actionTaskId.value) {
+          if (status == 5 && actionTaskId.value && result.taskType == 'write_task') {
             actions.value = [
               {
                 type: 'primary',
@@ -691,12 +702,25 @@
               ...actions.value,
             ];
           }
-          if (status == 7 && actionTaskId.value) {
+          if (status == 7 && actionTaskId.value && result.taskType == 'sign_task') {
             actions.value = [
               {
                 type: 'primary',
                 text: '签署',
                 callBack: handleSign,
+                show: true,
+                svgIcon: 'sign-action',
+                disabled: false,
+              },
+              ...actions.value,
+            ];
+          }
+          if (status == 7 && actionTaskId.value && result.taskType == 'approve_task') {
+            actions.value = [
+              {
+                type: 'primary',
+                text: '审批',
+                callBack: handleApproval,
                 show: true,
                 svgIcon: 'sign-action',
                 disabled: false,
@@ -780,6 +804,20 @@
       function handleSign() {
         router.push({
           path: '/contract/sign',
+          query: {
+            __full__: '',
+            signRuId: signRuInfo.value.baseVo.signRuId,
+            isDetail: 'false',
+            type: 'receive',
+            taskId: actionTaskId.value,
+            from: 'list',
+          },
+        });
+      }
+
+      function handleApproval() {
+        router.push({
+          path: '/contract/approval',
           query: {
             __full__: '',
             signRuId: signRuInfo.value.baseVo.signRuId,
@@ -1006,7 +1044,24 @@
               ' 填写。';
           }
           if (row.signStatus == 2) {
-            linkStr =
+            if(row.senderType && row.senderType == 5){
+              linkStr =
+              signRuInfo.value.startUserName +
+              '给您发送了一份文件《' +
+              signRuInfo.value.baseVo.subject +
+              '》待您审批，请访问 ' +
+              appSignInfo.url +
+              '/#/contract/detail/base?taskType=approval&signRuId=' +
+              signRuId +
+              '&' +
+              type +
+              '=' +
+              typeValue +
+              '&taskId=' +
+              result.taskId +
+              ' 完成审批。';
+            } else {
+              linkStr =
               signRuInfo.value.startUserName +
               '给您发送了一份文件《' +
               signRuInfo.value.baseVo.subject +
@@ -1021,7 +1076,10 @@
               '&taskId=' +
               result.taskId +
               ' 完成签署。';
+            } 
           }
+
+          
           
           // 使用改进的复制方法
           const copyResult = await copyToClipboard(linkStr);
@@ -1121,6 +1179,8 @@
         expireDate,
         handleSetSignDate,
         handleSaveExpireDate,
+        loadApprovalColor,
+        loadApprovalStatus,
       };
     },
   });
@@ -1164,15 +1224,14 @@
     }
   }
   .receive-name {
-    min-width: 200px;
+    min-width: 160px;
   }
   .signer-area {
     padding: 10px 20px;
     margin-bottom: 10px;
     background: #f7f8fb;
-    border-radius: 2px;
     align-items: center;
-    border-radius: 5px;
+    // border-radius: 5px;
     border: 1px solid #ced2dc;
     .sender-name {
       display: flex;
@@ -1183,7 +1242,7 @@
         min-width: 200px;
       }
       :deep(.ant-tag) {
-        margin-left: 20px;
+        // margin-left: 20px;
       }
     }
   }
@@ -1196,7 +1255,7 @@
     display: flex;
     margin-bottom: 20px;
     :deep(.ant-tag) {
-      margin-left: 20px;
+      // margin-left: 20px;
     }
     .sender-status-item {
       min-width: 200px;
@@ -1324,7 +1383,7 @@
     margin-bottom: 10px;
     left: 2px;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;
@@ -1338,7 +1397,7 @@
     margin-right: 40px;
     left: 2px !important;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;
@@ -1351,7 +1410,7 @@
     margin-bottom: 10px;
     left: 2px;
     top: 0;
-    border-bottom-left-radius: 8px;
+    // border-bottom-left-radius: 8px;
     // padding: 0 20px;
     width: 60px;
     text-align: center;

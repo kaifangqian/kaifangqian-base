@@ -120,7 +120,7 @@
                   <span class="base-info-label">截止时间：</span>
                   <span class="base-info-value">{{detailInfo.expireDate || '未设置'}}</span>
                 </div>
-                <div class="base-info-item" v-if="taskType == 'write' || taskType == 'sign'">
+                <div class="base-info-item" v-if="taskType == 'write' || taskType == 'sign' || taskType == 'approval'">
                   <span class="base-info-label">{{ contractTitle }}状态：</span>
                   <div class="base-info-value">
                     <span>{{ taskStatusText }}</span>
@@ -325,6 +325,17 @@
           } else if (detailInfo.value.taskStatus === 1) {
             return '未签署';
           }
+        } else if (taskType.value == 'approval') {
+          if (detailInfo.value.taskStatus === 2 && detailInfo.value.checkMenuType == 'approve') {
+            return '审批通过';
+          } else if (
+            detailInfo.value.taskStatus === 2 &&
+            detailInfo.value.checkMenuType == 'reject'
+          ) {
+            return '审批不通过';
+          } else if (detailInfo.value.taskStatus === 1) {
+            return '未审批';
+          }
         }
         return '未知状态';
       });
@@ -337,6 +348,10 @@
         } else if (taskType.value == 'sign') {
           return detailInfo.value.signStatus === 7 && detailInfo.value.taskStatus === 1
             ? '立即签署'
+            : '查看详情';
+        } else if (taskType.value == 'approval') {
+          return detailInfo.value.signStatus === 7 && detailInfo.value.taskStatus === 1
+            ? '立即审批'
             : '查看详情';
         }
         return '查看详情';
@@ -458,6 +473,9 @@
         if (taskType == 'sign') {
           contractTitle.value = '签署';
         }
+        if (taskType == 'approval') {
+          contractTitle.value = '审批';
+        }
         if (taskType == 'copy') {
           contractTitle.value = '抄送';
         }
@@ -470,6 +488,9 @@
         if (taskType.value == 'sign') {
           redirectPath.value = '/signContract';
         }
+        if (taskType.value == 'approval') {
+          redirectPath.value = '/approval';
+        }
         if (taskType.value == 'copy') {
           redirectPath.value = '/detail';
         }
@@ -481,14 +502,6 @@
         if (selectDepart.value.depts.length > 1) {
           selectDepart.value.show = true;
         } else {
-          // router.push({
-          //     path: redirectPath.value,
-          //     query: {
-          //         taskId: unref(taskId),
-          //         signRuId: unref(signRuId),
-          //         callbackPage:callbackPage
-          //     }
-          // })
           router.push(
             `${redirectPath.value}?taskId=${unref(taskId)}&signRuId=${unref(
               signRuId

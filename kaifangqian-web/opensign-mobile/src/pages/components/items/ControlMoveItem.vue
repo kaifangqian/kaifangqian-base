@@ -871,8 +871,10 @@ export default defineComponent({
                     // props.element.value = dayjs(props.element.value);
                 }
             }
+            console.log('签署日期控件格式处理-----',props.element.controlType,props.isSign);
             // 签署日期控件格式处理
             if (props.element.controlType == ControlType.SignDate && props.isSign) {
+                
                 props.element.today = getTodayDateByFormat(props.element.format);
             }
         }
