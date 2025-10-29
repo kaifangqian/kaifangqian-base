@@ -44,6 +44,7 @@ public enum SignCallbackTypeEnum {
     EXPIRED("EXPIRED","合同过期"),
     SIGN_FAILED("SIGN_FAILED","签署失败"),
     DOCUMENT_DELAY("DOCUMENT_DELAY","修改签署截止时间"),
+    ADD_SIGN_NODE("ADD_SIGN_NODE","添加签署节点"),
 
 
 
@@ -94,6 +95,7 @@ public enum SignCallbackTypeEnum {
         list.add(SignCallbackTypeEnum.COMPLETE.getType());
         list.add(SignCallbackTypeEnum.EXPIRED.getType());
         list.add(SignCallbackTypeEnum.DOCUMENT_DELAY.getType());
+        list.add(SignCallbackTypeEnum.ADD_SIGN_NODE.getType());
         return list ;
     }
 

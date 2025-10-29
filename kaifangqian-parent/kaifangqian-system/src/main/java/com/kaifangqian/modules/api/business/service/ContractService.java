@@ -138,6 +138,9 @@ public class ContractService {
     protected RuBusinessService ruBusinessService ;
 
     @Autowired
+    protected SignRuSignConfirmService ruSignConfirmService;
+
+    @Autowired
     protected IApiDeveloperManageService apiDeveloperManageService ;
     @Autowired
     protected ISysUserService sysUserService ;

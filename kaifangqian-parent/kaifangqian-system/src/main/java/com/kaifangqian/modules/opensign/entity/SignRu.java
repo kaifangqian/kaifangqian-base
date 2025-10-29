@@ -132,5 +132,8 @@ public class SignRu extends BaseAuthEntity implements Serializable {
     //发起类型：api(接口发起)；app（应用发起）
     private String sendType;
 
+    //签署实例结束类型：0:手动结束；1:自动结束；
+    private Integer autoFinish;
+
 
 }

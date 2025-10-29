@@ -1,5 +1,5 @@
 /**
- * @description API接口合同操作人
+ * @description 申请错误枚举类
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,36 +19,36 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.api.vo.base;
-
-// import io.swagger.annotations.ApiModel;
-// import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
-import java.io.Serializable;
+package com.kaifangqian.modules.opensign.enums;
 
 /**
- * @Description: ContractUser
- * @Package: com.kaifangqian.modules.api.vo.base
- * @ClassName: ContractUser
+ * @Description: ApplyErrorEnum
+ * @Package: com.kaifangqian.modules.opensign.enums
+ * @ClassName: ApplyErrorEnum
  * @author: FengLai_Gong
- * @Date: 2024/03/19
  */
-@Data
-// @ApiModel("操作人")
-public class ContractUser implements Serializable {
+public enum SignFinishTypeEnum {
 
-    private static final long serialVersionUID = 862003493609163515L;
+    MANUAL_FINISH(0,"手动结束"),
+    AUTO_FINISH(1,"自动结束"),
 
-//    @NotNull(message = "NotNull",groups = ValidationSorts.SortA1.class)
-//    @NotBlank(message = "NotBlank",groups = ValidationSorts.SortA1.class)
-    // @ApiModelProperty("姓名")
+    ;
+
+    private Integer code  ;
+
     private String name ;
 
-    // @ApiModelProperty("联系类型")
-    private String contactType ;
+    SignFinishTypeEnum(Integer code, String name){
+        this.code = code ;
+        this.name = name;
+    }
 
-    // @ApiModelProperty("联系方式")
-    private String contact ;
 
+    public Integer getCode(){
+        return this.code;
+    }
+
+    public String getName(){
+        return this.name ;
+    }
 }

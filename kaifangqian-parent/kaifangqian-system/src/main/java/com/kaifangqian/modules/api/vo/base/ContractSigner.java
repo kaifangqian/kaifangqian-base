@@ -48,7 +48,6 @@ public class ContractSigner implements Serializable {
     // @ApiModelProperty("签署顺序（业务线设置的顺序）")
     private String signerOrder ;
 
-
     // @ApiModelProperty("内部签署节点")
     private List<ContractInternalNode> internalNodeList ;
 

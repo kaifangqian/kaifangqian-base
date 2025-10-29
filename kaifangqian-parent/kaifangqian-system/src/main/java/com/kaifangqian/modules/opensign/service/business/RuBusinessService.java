@@ -21,14 +21,17 @@
  */
 package com.kaifangqian.modules.opensign.service.business;
 
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.kaifangqian.common.constant.ApiCode;
 import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.external.sign.request.SignOrderRequest;
 import com.kaifangqian.external.sign.response.SignAppInfoResponse;
 import com.kaifangqian.external.sign.response.SignServiceOpenInfoResponse;
 import com.kaifangqian.external.sign.service.SignServiceExternal;
 import com.kaifangqian.external.sign.service.SignServiceManageExternal;
+import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.cert.enums.CertHolderTypeEnum;
 import com.kaifangqian.modules.cert.enums.CertTypeEnum;
 import com.kaifangqian.modules.cert.service.CertBusinessService;
@@ -85,6 +88,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.mvel2.ast.Sign;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1113,21 +1117,6 @@ public class RuBusinessService {
         if(ru == null){
             throw new PaasException("业务线实例不存在");
         }
-//        SignRe re = reService.getById(ru.getSignReId());
-//        if(re == null){
-//            throw new PaasException("业务线配置不存在");
-//        }
-//        if(re.getSubjectType() != null && re.getSubjectType().equals(SignReRuleGenerateEnum.RULE.getCode())){
-//            //单号生成
-//            ru.setCode(reBusinessService.generateCode(re.getId(),singerList));
-//            ru.setSubject(reBusinessService.generateSubject(re.getId(),singerList));
-//
-//        }else {
-//            if(ru.getSubject() == null || ru.getSubject().length() == 0){
-//                ru.setSubject(System.currentTimeMillis() + "-" + re.getName());
-//            }
-//
-//        }
 
         //根据发起人、接受人、控件列表计算操作人
         List<SignRuOperator> operatorList = new ArrayList<>();
@@ -1292,18 +1281,309 @@ public class RuBusinessService {
                 operatorList.add(signerWriteOperator);
             }
         }
-        if(operatorList.size() == 0){
+        if((ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()) && operatorList.size() == 0){
             throw new PaasException("操作人为空");
         }
 
-        ruDataService.saveStartData(operatorList,relationList,ru);
+        if (operatorList.size() > 0) {
+            ruDataService.saveStartData(operatorList,relationList,ru);
+        }
 
         return ruId ;
     }
 
+    public void saveRuSignerForApi(RuCreateData ruCreateData){
+        //签署人
+        List<RuDataSigner> singerListByApi = ruCreateData.getSignerList();
 
+        //获取签署人列表
+        List<SignRuSigner> singerList = new ArrayList<SignRuSigner>();
 
+        //企业内部签署人列表
+        List<SignRuSender> senderList = new ArrayList<SignRuSender>();
 
+        //单号生成
+        SignRu ru = ruService.getById(ruCreateData.getRuId());
+        if(ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务线实例不存在");
+        }
+
+        if(ru.getStatus() == SignRuStatusEnum.DONE.getCode()){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"合同已经完成签署，不能继续追加签署人");
+        }
+
+        if(singerListByApi.size() > 0){
+            for(RuDataSigner dataSinger : singerListByApi){
+
+                if(SignerTypeEnum.SENDER.getCode().equals(dataSinger.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getCode().equals(dataSinger.getSignerType())){
+
+                    //查询当前用户
+                    SignRuSigner query = new SignRuSigner();
+                    query.setSignRuId(ruCreateData.getRuId());
+                    query.setSignerName(dataSinger.getRuSigner().getSignerName());
+
+                    List<SignRuSigner> ruSigners = signerService.getByEntityForApi(query);
+                    if(CollUtil.isNotEmpty(ruSigners)){
+
+                        for (int i = 0; i < ruSigners.size(); i++){
+                            boolean isAddSigner = false;
+                            if(ru.getSignOrderType() == SignOrderTypeEnum.NO_ORDER.getCode()){
+                                isAddSigner = true;
+                            }else if(ru.getSignOrderType() == SignOrderTypeEnum.ORDER.getCode()){
+                                // 获取企业签署人的签署方列表
+                                SignRuSigner nextSignerQuery = new SignRuSigner();
+                                nextSignerQuery.setSignRuId(ruCreateData.getRuId());
+                                nextSignerQuery.setSignerOrder(ruSigners.get(i).getSignerOrder()+1);
+                                // 查询下一个签署人
+                                List<SignRuSigner> ruNextSigners = signerService.getByEntityForApi(nextSignerQuery);
+
+                                if (CollUtil.isNotEmpty(ruNextSigners)){
+                                    for(SignRuSigner ruNextSigner : ruNextSigners){
+                                        if(ruNextSigner.getSignerType() == SignerTypeEnum.RECEIVER_ENT.getCode() || ruNextSigner.getSignerType() == SignerTypeEnum.SENDER.getCode()){
+                                            List<SignRuSender> senderOfNextEntList = senderService.listBySignerId(ruNextSigner.getId());
+                                            if(CollUtil.isNotEmpty(senderOfNextEntList)){
+                                                for (SignRuSender senderOfEnt : senderOfNextEntList){
+                                                    SignRuOperator opqQuery = new SignRuOperator();
+                                                    opqQuery.setSignRuId(ruNextSigner.getSignRuId());
+                                                    opqQuery.setSignerId(senderOfEnt.getId());
+                                                    List<SignRuOperator> signRuOperators = ruOperatorService.getByEntity(opqQuery);
+                                                    if(CollUtil.isNotEmpty(signRuOperators)){
+                                                        for(SignRuOperator ruOperator : signRuOperators){
+                                                            //如果企业签署人还有未完成和代办操作，则可以继续添加签署人
+                                                            if(ruOperator.getOperateStatus() == OperateStatusEnum.WAIT_TO_FINISH.getCode()|| ruOperator.getOperateStatus() == OperateStatusEnum.FINISHED.getCode()){
+                                                                isAddSigner = false;
+                                                                break;
+                                                            }
+                                                            isAddSigner = true;
+                                                        }
+                                                    }
+                                                    if(isAddSigner == false){
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }else if(ruNextSigner.getSignerType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()){
+                                            SignRuOperator opqQuery = new SignRuOperator();
+                                            opqQuery.setSignRuId(ruNextSigner.getSignRuId());
+                                            opqQuery.setSignerId(ruNextSigner.getId());
+                                            List<SignRuOperator> signRuOperators = ruOperatorService.getByEntity(opqQuery);
+                                            if(CollUtil.isNotEmpty(signRuOperators)){
+                                                for(SignRuOperator ruOperator : signRuOperators){
+                                                    //如果企业签署人还有未完成和代办操作，则可以继续添加签署人
+                                                    if(ruOperator.getOperateStatus() == OperateStatusEnum.WAIT_TO_FINISH.getCode() || ruOperator.getOperateStatus() == OperateStatusEnum.FINISHED.getCode()){
+                                                        isAddSigner = false;
+                                                        break;
+                                                    }
+                                                    isAddSigner = true;
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }else{
+                                    isAddSigner = true;
+                                }
+                            }
+                            // 如果有待完成或者未完成操作，则可以添加签署人
+                            if(isAddSigner){
+                                //发起方
+                                List<RuDataSender> addSenderList = dataSinger.getAddSenderList();
+                                if(addSenderList.size() > 0){
+                                    for(RuDataSender dataSender : addSenderList){
+                                        SignRuSender ruSender = dataSender.getRuSender();
+                                        if(ruSender != null){
+                                            ruSender.setSignerId(ruSigners.get(i).getId());
+                                            ruSender.setDeleteFlag(false);
+                                            boolean b = senderService.save(ruSender);
+                                            if(!b){
+                                                throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                            }
+                                            if(dataSender.getReSenderId() != null){
+                                                //关联关系
+                                                ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
+                                            }
+                                            //保存企业签署人信息
+                                            senderList.add(ruSender);
+                                            //发起方-保存签署意愿校验信息
+                                            ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                        }
+                                    }
+                                }
+                                singerList.add(ruSigners.get(i));
+                            }else{
+                                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署人" + ruSigners.get(i).getSignerName() + "已完成签署任务，不能继续追加签署人。");
+                            }
+                        }
+                    }else{
+                        SignRuSigner ruSigner = dataSinger.getRuSigner();
+                        ruSigner.setSignRuId(ruCreateData.getRuId());
+                        ruSigner.setDeleteFlag(false);
+                        boolean saveSigner = signerService.save(ruSigner);
+                        if(!saveSigner){
+                            //异常处理
+                            throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                        }
+                        if(dataSinger.getReSignerId() != null){
+                            //关联关系
+                            ruCreateData.getReSigner2RuSingerMap().put(dataSinger.getReSignerId(),ruSigner.getId());
+                        }
+
+                        //发起方
+                        List<RuDataSender> addSenderList = dataSinger.getAddSenderList();
+                        if(addSenderList.size() > 0){
+                            for(RuDataSender dataSender : addSenderList){
+                                SignRuSender ruSender = dataSender.getRuSender();
+                                if(ruSender != null){
+                                    ruSender.setSignerId(ruSigner.getId());
+                                    ruSender.setDeleteFlag(false);
+                                    boolean b = senderService.save(ruSender);
+                                    if(!b){
+                                        throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                    }
+                                    if(dataSender.getReSenderId() != null){
+                                        //关联关系
+                                        ruCreateData.getReSigner2RuSingerMap().put(dataSender.getReSenderId(),ruSender.getId());
+                                    }
+                                    //保存企业签署人信息
+                                    senderList.add(ruSender);
+                                    //发起方-保存签署意愿校验信息
+                                    ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                }
+                            }
+                        }
+                        singerList.add(ruSigner);
+                    }
+                } else {
+                    SignRuSigner ruSigner = dataSinger.getRuSigner();
+                    ruSigner.setSignRuId(ruCreateData.getRuId());
+                    ruSigner.setDeleteFlag(false);
+                    boolean saveSigner = signerService.save(ruSigner);
+                    if(!saveSigner){
+                        //异常处理
+                        throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                    }
+                    if(dataSinger.getReSignerId() != null){
+                        //关联关系
+                        ruCreateData.getReSigner2RuSingerMap().put(dataSinger.getReSignerId(),ruSigner.getId());
+                    }
+                    //个人接收方
+                    ruSignConfirmService.save(ruSigner.getId(),ruCreateData.getRuId(),SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType(),dataSinger.getPersonalSignAuth());
+
+                    singerList.add(ruSigner);
+                }
+            }
+        }
+
+        // = signerService.listByRuId(ruCreateData.getRuId());
+        if(singerList == null || singerList.size() == 0){
+            throw new PaasException("签署人为空");
+        }
+
+        //根据发起人、接受人、控件列表计算操作人
+        List<SignRuOperator> operatorList = new ArrayList<>();
+        //实例关联人
+        List<SignRuRelation> relationList = new ArrayList<>();
+
+        //获取控件列表
+        ControlQueryVo controlQueryVo = new ControlQueryVo();
+        controlQueryVo.setSignRuId(ru.getId());
+        List<SignRuDocControl> controlList = ruDocControlService.listByParam(controlQueryVo);
+
+        for(SignRuSigner signer : singerList){
+            if(signer.getSignerType().equals(SignerTypeEnum.SENDER.getCode())){
+                //获取发起人
+                //List<SignRuSender> senderList = senderService.listBySignerId(signer.getId());
+                if(senderList != null && senderList.size() > 0){
+                    for(SignRuSender sender : senderList){
+                        if(sender.getSignerId().equals(signer.getId())){
+                            if(sender.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                                //必须设定签章
+                                if(sender.getSenderSealId() == null || sender.getSenderSealId().length() == 0){
+                                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"组织签章未指定签章");
+                                }
+                                //如果没有指定签署人，则为自动盖章，必须有相关的签章
+                                if(sender.getSenderSignType().equals(SenderSignTypeEnum.AUTO.getCode())){
+                                    boolean enterpriseControlFlag = true;
+                                    for(SignRuDocControl signRuDocControl : controlList){
+                                        //必须是企业签章
+                                        if(signRuDocControl.getSignerId() != null && signRuDocControl.getSignerId().equals(sender.getId()) && ControlTypeEnum.SEAL.getName().equals(signRuDocControl.getControlType())){
+                                            enterpriseControlFlag = false ;
+                                        }
+                                    }
+                                    if(enterpriseControlFlag){
+                                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"自动盖章的签署节点未指定签署位置");
+
+                                    }
+                                }
+                            }
+                            //发起方签署操作人
+                            SignRuOperator senderSignOperator = new SignRuOperator();
+                            BeanUtils.copyProperties(sender,senderSignOperator);
+                            senderSignOperator.setOperateName(sender.getSenderName());
+                            senderSignOperator.setSignRuId(ru.getId());
+                            senderSignOperator.setOperateOrder(sender.getSenderOrder());
+                            senderSignOperator.setSignerType(SignerTypeEnum.SENDER.getCode());
+                            senderSignOperator.setSignerId(sender.getId());
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                            senderSignOperator.setOperateUserId(sender.getSenderUserId());
+                            senderSignOperator.setDeleteFlag(false);
+                            senderSignOperator.setId(null);
+                            senderSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+                            operatorList.add(senderSignOperator);
+                        }
+                    }
+                }
+            }else if(signer.getSignerType().equals(SignerTypeEnum.RECEIVER_PERSONAL.getCode())){
+                //接收方签署操作人
+                SignRuOperator signerSignOperator = new SignRuOperator();
+                BeanUtils.copyProperties(signer,signerSignOperator);
+                signerSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                signerSignOperator.setOperateName(signer.getSignerName());
+                signerSignOperator.setSignRuId(ru.getId());
+                signerSignOperator.setOperateOrder(signer.getSignerOrder());
+                signerSignOperator.setSignerId(signer.getId());
+                signerSignOperator.setSignerType(SignerTypeEnum.RECEIVER_PERSONAL.getCode());
+                signerSignOperator.setOperateUserId(signer.getSignerUserId());
+                signerSignOperator.setOperateExternalType(signer.getSignerExternalType());
+                signerSignOperator.setOperateExternalValue(signer.getSignerExternalValue());
+                signerSignOperator.setDeleteFlag(false);
+                signerSignOperator.setId(null);
+                signerSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+                operatorList.add(signerSignOperator);
+            }else if(signer.getSignerType().equals(SignerTypeEnum.RECEIVER_ENT.getCode())){
+                //获取企业接收方
+                if(senderList != null && senderList.size() > 0){
+                    for(SignRuSender sender : senderList){
+                        if(sender.getSignerId().equals(signer.getId())){
+                            //发起方签署操作人
+                            SignRuOperator senderSignOperator = new SignRuOperator();
+                            BeanUtils.copyProperties(sender,senderSignOperator);
+                            senderSignOperator.setOperateName(sender.getSenderName());
+                            senderSignOperator.setSignRuId(ru.getId());
+                            senderSignOperator.setOperateOrder(sender.getSenderOrder());
+                            senderSignOperator.setSignerType(SignerTypeEnum.RECEIVER_ENT.getCode());
+                            senderSignOperator.setSignerId(sender.getId());
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                            senderSignOperator.setOperateUserId(sender.getSenderUserId());
+                            senderSignOperator.setDeleteFlag(false);
+                            senderSignOperator.setId(null);
+                            senderSignOperator.setOperateStatus(OperateStatusEnum.NOT_FINISHED.getCode());
+
+                            //添加租户名称
+                            senderSignOperator.setTenantName(signer.getSignerName());
+                            senderSignOperator.setOperateExternalType(sender.getSenderExternalType());
+                            senderSignOperator.setOperateExternalValue(sender.getSenderExternalValue());
+                            operatorList.add(senderSignOperator);
+                        }
+                    }
+                }
+            }
+        }
+        if(operatorList.size() == 0){
+            throw new PaasException("操作人为空");
+        }
+        ruDataService.saveStartData(operatorList,relationList,ru);
+    }
 
     /**
      * @Description #业务线实例整体填写
@@ -2064,6 +2344,10 @@ public class RuBusinessService {
                     //如果是时间签章，则生成图片
                     int width = 180;
                     Integer height = 40;
+                    if(MyStringUtils.isNotBlank(signRuDocControl.getWidth()) && MyStringUtils.isNotBlank(signRuDocControl.getHeight())){
+                        width = Integer.valueOf(signRuDocControl.getWidth());
+                        height = Integer.valueOf(signRuDocControl.getHeight());
+                    }
                     signSeal = dateSealGenerateService.crateDateSeal(signRuDocControl.getValue(), width, height);
                 }else {
                     signSeal = entSealByte ;
