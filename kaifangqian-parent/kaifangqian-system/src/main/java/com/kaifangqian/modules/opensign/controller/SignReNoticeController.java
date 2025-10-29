@@ -69,7 +69,8 @@ public class SignReNoticeController {
         result.setSignTaskOutFlagEmail(signReNoticeService.getByReIdAndType(singReId, ReNoticeTypeEnum.SIGN_TASK_OUT_EMAIL.getType()));
         result.setCopyBeginFlagEmail(signReNoticeService.getByReIdAndType(singReId, ReNoticeTypeEnum.COPY_BEGIN_EMAIL.getType()));
         result.setCopySignFlagEmail(signReNoticeService.getByReIdAndType(singReId, ReNoticeTypeEnum.COPY_SIGN_EMAIL.getType()));
-
+        result.setApprovalTaskFlagPhone(signReNoticeService.getByReIdAndType(singReId, ReNoticeTypeEnum.APPROVE_TASK_IN_PHONE.getType()));
+        result.setApprovalTaskFlagEmail(signReNoticeService.getByReIdAndType(singReId, ReNoticeTypeEnum.APPROVE_TASK_IN_EMAIL.getType()));
         return Result.OK("ok", result);
     }
 
@@ -109,6 +110,12 @@ public class SignReNoticeController {
         }
         if (vo.getCopySignFlagEmail() != null) {
             signReNoticeService.updateByReIdAndType(vo.getSignReId(), ReNoticeTypeEnum.COPY_SIGN_EMAIL.getType(), vo.getCopySignFlagEmail());
+        }
+        if (vo.getApprovalTaskFlagPhone() != null) {
+            signReNoticeService.updateByReIdAndType(vo.getSignReId(), ReNoticeTypeEnum.APPROVE_TASK_IN_PHONE.getType(), vo.getApprovalTaskFlagPhone());
+        }
+        if (vo.getApprovalTaskFlagEmail() != null) {
+            signReNoticeService.updateByReIdAndType(vo.getSignReId(), ReNoticeTypeEnum.APPROVE_TASK_IN_EMAIL.getType(), vo.getApprovalTaskFlagEmail());
         }
 
         return Result.OK();

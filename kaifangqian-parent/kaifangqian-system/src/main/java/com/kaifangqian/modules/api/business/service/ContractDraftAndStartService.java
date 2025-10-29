@@ -189,7 +189,7 @@ public class ContractDraftAndStartService extends ContractService {
 
         //驱动
         iFlowService.complete(ru.getId(), "signActivitiFlow");
-        ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
+        //ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
 
     }
 
@@ -1024,6 +1024,10 @@ public class ContractDraftAndStartService extends ContractService {
                     ruSender.setSenderType(SenderTypeEnum.PERSONAL.getCode());
                     ruSender.setSenderName(SenderTypeEnum.PERSONAL.getName());
                     ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                }else if(node.getNodeType().equals("APPROVER_CHECK")){
+                    ruSender.setSenderType(SenderTypeEnum.APPROVER.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.APPROVER.getName());
+                    ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
                 }
 
                 //非自动签署需要指定签署人
@@ -1506,6 +1510,8 @@ public class ContractDraftAndStartService extends ContractService {
                 signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
             }else if (request.getAutoFinish().equals(SignFinishTypeEnum.MANUAL_FINISH.getCode())){
                 signRu.setAutoFinish(SignFinishTypeEnum.MANUAL_FINISH.getCode());
+            }else {
+                signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
             }
         }else {
             signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());

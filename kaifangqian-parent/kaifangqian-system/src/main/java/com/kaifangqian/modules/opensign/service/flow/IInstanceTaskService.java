@@ -63,6 +63,8 @@ public interface IInstanceTaskService {
 
     IPage<TaskListInfoRes> listMySignJob(Page<TaskListInfoRes> page, TaskListInfoReq req);
 
+    IPage<TaskListInfoRes> listMyApproveJob(Page<TaskListInfoRes> page, TaskListInfoReq req);
+
     IPage<TaskListInfoRes> listMyFillInJob(Page<TaskListInfoRes> page, TaskListInfoReq req);
 
     CompanyStasticsVO myStastics();

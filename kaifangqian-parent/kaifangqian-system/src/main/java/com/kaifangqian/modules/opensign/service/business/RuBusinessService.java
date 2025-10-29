@@ -445,6 +445,8 @@ public class RuBusinessService {
                                             senderVo.setWriteStatus(operator.getOperateStatus());
                                         }else if(operator.getOperateType().equals(OperateTypeEnum.SIGN.getCode())){
                                             senderVo.setSignStatus(operator.getOperateStatus());
+                                        }else if(operator.getOperateType().equals(OperateTypeEnum.APPROVE.getCode())){
+                                            senderVo.setSignStatus(operator.getOperateStatus());
                                         }
                                     }
                                 }
@@ -483,6 +485,8 @@ public class RuBusinessService {
                             if(operator.getOperateType().equals(OperateTypeEnum.WRITE.getCode())){
                                 signerVo.setWriteStatus(operator.getOperateStatus());
                             }else if(operator.getOperateType().equals(OperateTypeEnum.SIGN.getCode())){
+                                signerVo.setSignStatus(operator.getOperateStatus());
+                            }else if(operator.getOperateType().equals(OperateTypeEnum.APPROVE.getCode())){
                                 signerVo.setSignStatus(operator.getOperateStatus());
                             }
                         }
@@ -917,7 +921,11 @@ public class RuBusinessService {
                         senderSignOperator.setOperateOrder(sender.getSenderOrder());
                         senderSignOperator.setSignerType(SignerTypeEnum.SENDER.getCode());
                         senderSignOperator.setSignerId(sender.getId());
-                        senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                        if (sender.getSenderType().equals(SenderTypeEnum.APPROVER.getCode())){
+                            senderSignOperator.setOperateType(OperateTypeEnum.APPROVE.getCode());
+                        }else{
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                        }
                         senderSignOperator.setOperateUserId(sender.getSenderUserId());
                         senderSignOperator.setDeleteFlag(false);
                         senderSignOperator.setId(null);
@@ -1181,7 +1189,11 @@ public class RuBusinessService {
                         senderSignOperator.setOperateOrder(sender.getSenderOrder());
                         senderSignOperator.setSignerType(SignerTypeEnum.SENDER.getCode());
                         senderSignOperator.setSignerId(sender.getId());
-                        senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                        if (sender.getSenderType().equals(SenderTypeEnum.APPROVER.getCode())){
+                            senderSignOperator.setOperateType(OperateTypeEnum.APPROVE.getCode());
+                        } else{
+                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                        }
                         senderSignOperator.setOperateUserId(sender.getSenderUserId());
                         senderSignOperator.setDeleteFlag(false);
                         senderSignOperator.setId(null);
@@ -1524,7 +1536,12 @@ public class RuBusinessService {
                             senderSignOperator.setOperateOrder(sender.getSenderOrder());
                             senderSignOperator.setSignerType(SignerTypeEnum.SENDER.getCode());
                             senderSignOperator.setSignerId(sender.getId());
-                            senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+
+                            if (sender.getSenderType().equals(SenderTypeEnum.APPROVER.getCode())){
+                                senderSignOperator.setOperateType(OperateTypeEnum.APPROVE.getCode());
+                            } else{
+                                senderSignOperator.setOperateType(OperateTypeEnum.SIGN.getCode());
+                            }
                             senderSignOperator.setOperateUserId(sender.getSenderUserId());
                             senderSignOperator.setDeleteFlag(false);
                             senderSignOperator.setId(null);

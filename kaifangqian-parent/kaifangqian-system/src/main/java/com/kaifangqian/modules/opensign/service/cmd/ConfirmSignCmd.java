@@ -22,6 +22,7 @@
 package com.kaifangqian.modules.opensign.service.cmd;
 
 import cn.hutool.core.collection.CollUtil;
+import com.kaifangqian.modules.opensign.enums.OperateTypeEnum;
 import com.kaifangqian.modules.opensign.enums.SignFinishTypeEnum;
 import com.kaifangqian.modules.opensign.interceptor.SignCommand;
 import com.kaifangqian.modules.opensign.interceptor.SignCommandContext;
@@ -70,7 +71,11 @@ public class ConfirmSignCmd implements SignCommand<TaskCmdInfo> {
         //修改实例-用户操作表任务状态
         SignRuOperator query = new SignRuOperator();
         query.setSignRuId(signCommandContext.getSignRuId());
-        query.setOperateType(2);
+        if (signRuTask.getTaskType() == TaskTypeEnum.SIGN_TASK.getCode()) {
+            query.setOperateType(OperateTypeEnum.SIGN.getCode());
+        }else if(signRuTask.getTaskType() == TaskTypeEnum.APPROVE_TASK.getCode()){
+            query.setOperateType(OperateTypeEnum.APPROVE.getCode());
+        }
         query.setSignerType(signCommandContext.getUserType());
         query.setSignerId(signCommandContext.getUserTaskId());
         List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);

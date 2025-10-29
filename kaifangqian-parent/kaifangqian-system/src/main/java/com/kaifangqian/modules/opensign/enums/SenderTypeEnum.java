@@ -34,6 +34,7 @@ public enum SenderTypeEnum {
     LEGAL_PERSON(2,"法人签字","LEGAL_PERSON_SIGN"),
     PERSONAL(3,"个人签字","PERSONAL_SIGN"),
     ENTERPRISE(4,"组织签章","ENTERPRISE_SEAL"),
+    APPROVER(5,"审批人审批","APPROVER_CHECK"),
 
     ;
     private Integer code  ;

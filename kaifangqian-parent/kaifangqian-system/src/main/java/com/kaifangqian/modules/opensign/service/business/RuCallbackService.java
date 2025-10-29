@@ -177,6 +177,8 @@ public class RuCallbackService {
                         nodeType = "PERSONAL_SIGN";
                     }else if(ruSender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()){
                         nodeType = "ENTERPRISE_SEAL";
+                    }else if(ruSender.getSenderType() == SenderTypeEnum.APPROVER.getCode()){
+                        nodeType = "APPROVER_CHECK";
                     }
                     callbackVo.setNodeType(nodeType);
                 }
