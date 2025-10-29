@@ -335,22 +335,22 @@ public class SysUserController {
      *
      * @return
      */
-    @GetMapping("/getAllUsers")
-    @ResrunLogMethod(name = "查询所有账号列表", operateType = OperateLogType.OPERATE_TYPE_1)
-    public Result<List<SysUserDepVo>> getAllUsers() {
-        List<SysUser> sysUsers = sysUserService.listAll();
-        List<SysUserDepVo> sysUserDepVos = new ArrayList<>();
-        if (CollUtil.isNotEmpty(sysUsers)) {
-            sysUsers.forEach(u -> {
-                SysUserDepVo vo = new SysUserDepVo();
-                vo.setUserId(u.getId());
-                vo.setUsername(u.getUsername());
-                vo.setRealname(u.getRealname());
-
-                sysUserDepVos.add(vo);
-            });
-        }
-
-        return Result.OK(sysUserDepVos);
-    }
+//    @GetMapping("/getAllUsers")
+//    @ResrunLogMethod(name = "查询所有账号列表", operateType = OperateLogType.OPERATE_TYPE_1)
+//    public Result<List<SysUserDepVo>> getAllUsers() {
+//        List<SysUser> sysUsers = sysUserService.listAll();
+//        List<SysUserDepVo> sysUserDepVos = new ArrayList<>();
+//        if (CollUtil.isNotEmpty(sysUsers)) {
+//            sysUsers.forEach(u -> {
+//                SysUserDepVo vo = new SysUserDepVo();
+//                vo.setUserId(u.getId());
+//                vo.setUsername(u.getUsername());
+//                vo.setRealname(u.getRealname());
+//
+//                sysUserDepVos.add(vo);
+//            });
+//        }
+//
+//        return Result.OK(sysUserDepVos);
+//    }
 }

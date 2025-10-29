@@ -220,6 +220,9 @@ public class VerifySign {
                 }
             }
             pdfSignInfo.setSignatureDetails(signatureDetails);
+            if(signatureDetails.size()==0){
+                pdfSignInfo.setPdfSingResult(SignStatus.SIGN_STATUS_NOSIGNATURE.getCode());
+            }
         }catch (Exception e){
 //            e.printStackTrace();
             pdfSignInfo.setPdfSingResult(SignStatus.SIGN_STATUS_ERROR.getCode());
