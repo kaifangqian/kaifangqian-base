@@ -31,7 +31,7 @@
               v-model:value="searchForm.name" 
               placeholder="请输入业务线名称" 
               allow-clear
-              style="width: 320px"
+              class="media-input"
               @pressEnter="handleSearch"
             />
           </a-form-item>
@@ -40,7 +40,8 @@
               v-model:value="searchForm.status" 
               placeholder="请选择状态" 
               allow-clear
-              style="width: 220px;font-size: 12px;"
+              style="font-size: 12px;"
+              class="media-input"
               @change="handleSearch"
             >
               <a-select-option :value="1">启用</a-select-option>
@@ -48,14 +49,15 @@
             </a-select>
           </a-form-item>
           <a-form-item>
-            <a-button type="primary" style="margin-left: 18px; width:160px " @click="handleSearch">查询</a-button>
-            <a-button style="margin-left: 18px; width:160px" @click="handleReset">重置</a-button>
+            <a-button type="primary" style="margin-left: 18px; padding: 0 40px; " @click="handleSearch">查询</a-button>
+            <a-button style="margin-left: 18px; padding: 0 40px;" @click="handleReset">重置</a-button>
           </a-form-item>
         </a-form>
       </div>
     </div>
     <!-- 滚动容器 -->
-    <Scrollbar width="100%" height="100%" :native="true" :noresize="true" :class="{ 'business-scrollbar': showSearchForm }">
+    <Scrollbar width="100%" :native="true" :noresize="true" class="business-scrollbar"
+    style="height: calc(100% - 70px - 55px);min-height: 500px;">
       <!-- 加载中状态 -->
       <div v-if="loading" class="loading-state">加载中...</div>
 
@@ -327,16 +329,38 @@
 
   .business-container {
     width: 100%;
-    max-width: 1506px;
+    // max-width: 1506px;
     margin: 0 auto;
     padding: 20px;
+    height: calc(100vh - 83px);
+    @media (min-width: 0px) and (max-width: 1280px){
+      width: 1000px;
+      .card-item {
+        width: calc(50% - 12px) !important;
+      }
+      .media-input{
+        width: 200px;
+      }
+    }
+    @media (min-width: 1280px) and (max-width: 1536px){
+      width: 1200px;
+      .media-input{
+        width: 200px;
+      }
+    }
+    @media (min-width: 1536px){
+      width: 1506px;
+      .media-input{
+        width: 280px;
+      }
+    }
 
     .search-form-container {
       background: linear-gradient(135deg, #ffffff 0%, #e4eaf96e 100%);
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       border: 1px solid #e8e8e8;
       // max-width: 1000px; 
       margin-left: auto;
@@ -487,7 +511,7 @@
 
     // 分页样式
     .pagination-wrapper {
-      margin-top: 30px;
+      // margin-top: 30px;
       display: flex;
       justify-content: center;
       // background-color: #f5faff;
@@ -514,16 +538,14 @@
     }
 
   // 响应式适配
-  @media (max-width: 1200px) {
-    .business-container .card-item {
-      width: calc(50% - 12px);
-    }
-  }
-
+  // @media (max-width: 1200px) and  {
+  //   .business-container .card-item {
+  //     width: calc(50% - 12px);
+  //   }
+  // }
+ 
   @media (max-width: 768px) {
-    .business-container .card-item {
-      width: 100%;
-    }
+    
 
     .card-field {
       flex-direction: column;

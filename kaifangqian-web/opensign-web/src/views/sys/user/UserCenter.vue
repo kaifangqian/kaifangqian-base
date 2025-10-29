@@ -149,8 +149,29 @@
 </script>
 
 <style lang="less" scoped>
+    .user-list-container{
+      // @media (min-width: 0px) and (max-width: 1280px){
+      //   width: 1000px;
+      // }
+      // @media (min-width: 1280px) and (max-width: 1536px){
+      //   width: 1200px;
+      // }
+      // @media (min-width: 1536px){
+      //   width: 1506px;
+      // }
+    }
   .user-content {
-    width: 1506px;
+    // width: 1506px;
+    @media (min-width: 0px) and (max-width: 1280px){
+      width: 1000px;
+    }
+    @media (min-width: 1280px) and (max-width: 1536px){
+      width: 1200px;
+    }
+    @media (min-width: 1536px){
+      width: 1506px;
+    }
+
     margin: 0 auto;
     display: flex;
     .user-menu {
@@ -205,7 +226,8 @@
       }
     }
     .user-list {
-      width: 1280px;
+      // width: 1280px;
+      flex: 1;
       // margin-left:10px;
       .seal-signature {
         // margin:0 10px;

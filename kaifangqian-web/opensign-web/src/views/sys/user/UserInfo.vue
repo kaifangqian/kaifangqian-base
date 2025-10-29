@@ -926,12 +926,12 @@
 </script>
 <style lang="less" scoped>
   .content-info {
-    height: calc(100vh - 350px);
-    overflow: auto;
+    height: calc(100vh - 300px);
+    // overflow: auto;
   }
 
   .main-center {
-    width: 1286px;
+    width: 100%;
     margin: 0 auto;
   }
   .info-list.left {
