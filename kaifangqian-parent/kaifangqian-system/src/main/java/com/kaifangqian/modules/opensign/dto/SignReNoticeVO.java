@@ -53,4 +53,10 @@ public class SignReNoticeVO {
     private Boolean copyBeginFlagEmail;
     //文件抄送（外部）标识邮件
     private Boolean copySignFlagEmail;
+    //文件审批标识短信
+    private Boolean approvalTaskFlagPhone;
+    //文件审批标识邮件
+    private Boolean  approvalTaskFlagEmail;
+
+
 }

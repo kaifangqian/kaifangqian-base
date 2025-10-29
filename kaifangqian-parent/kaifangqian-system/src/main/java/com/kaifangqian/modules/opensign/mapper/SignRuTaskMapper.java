@@ -52,6 +52,8 @@ public interface SignRuTaskMapper extends BaseMapper<SignRuTask> {
 
     IPage<TaskListInfoRes> listMyJobSignUsers(Page page, @Param("req") TaskListInfoReq req);
 
+    IPage<TaskListInfoRes> listMyJobApproveUsers(Page page, @Param("req") TaskListInfoReq req);
+
     IPage<TaskListInfoRes> listCompanyOtherJob(Page page, @Param("req") TaskListInfoReq req);
 
     IPage<TaskListInfoRes> listPersonalOtherJob(Page page, @Param("req") TaskListInfoReq req);

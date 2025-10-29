@@ -22,9 +22,6 @@
 package com.kaifangqian.modules.opensign.service.cmd;
 
 import cn.hutool.core.collection.CollUtil;
-import com.kaifangqian.modules.opensign.enums.OperateTypeEnum;
-import com.kaifangqian.modules.opensign.interceptor.SignCommand;
-import com.kaifangqian.modules.opensign.interceptor.SignCommandContext;
 import com.kaifangqian.common.system.vo.LoginUser;
 import com.kaifangqian.common.util.MySecurityUtils;
 import com.kaifangqian.dto.MailDto;
@@ -34,7 +31,10 @@ import com.kaifangqian.modules.opensign.dto.TaskCmdInfo;
 import com.kaifangqian.modules.opensign.entity.SignRu;
 import com.kaifangqian.modules.opensign.entity.SignRuOperator;
 import com.kaifangqian.modules.opensign.entity.SignRuTask;
+import com.kaifangqian.modules.opensign.enums.OperateTypeEnum;
 import com.kaifangqian.modules.opensign.enums.SignRuStatusEnum;
+import com.kaifangqian.modules.opensign.interceptor.SignCommand;
+import com.kaifangqian.modules.opensign.interceptor.SignCommandContext;
 import com.kaifangqian.modules.opensign.service.ru.SignRuOperatorService;
 import com.kaifangqian.modules.opensign.service.ru.SignRuService;
 import com.kaifangqian.modules.opensign.service.ru.SignRuTaskService;
@@ -44,10 +44,10 @@ import java.util.*;
 
 /**
  * @author : zhenghuihan
- * create at:  2023/11/8  15:55
- * @description: 拒绝签署命令
+ * create at:  2025/10/28  12:11
+ * @description: 签署审批未通过命令
  */
-public class RefuseSignCmd implements SignCommand<TaskCmdInfo> {
+public class RefuseCheckCmd implements SignCommand<TaskCmdInfo> {
 
     @Override
     public TaskCmdInfo execute(SignCommandContext signCommandContext) {
@@ -72,7 +72,7 @@ public class RefuseSignCmd implements SignCommand<TaskCmdInfo> {
         //修改实例-用户操作表任务状态
         SignRuOperator query = new SignRuOperator();
         query.setSignRuId(signCommandContext.getSignRuId());
-        query.setOperateType(OperateTypeEnum.SIGN.getCode());
+        query.setOperateType(OperateTypeEnum.APPROVE.getCode());
         query.setSignerType(signCommandContext.getUserType());
         query.setSignerId(signCommandContext.getUserTaskId());
         List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);
@@ -94,7 +94,7 @@ public class RefuseSignCmd implements SignCommand<TaskCmdInfo> {
         userMap.put(MesAuthType.USER, userIds);
         mailDto.setReceivers(userMap);
 
-        mailDto.setTemplateCode("opensign_sign_reject");
+        mailDto.setTemplateCode("opensign_approval_reject");
 
         Map<String, String> titleParaMap = new HashMap<>();
         titleParaMap.put("contract", signRu.getSubject());
@@ -114,7 +114,7 @@ public class RefuseSignCmd implements SignCommand<TaskCmdInfo> {
         para.put("signRuId", signRu.getId());
         para.put("type", "");
         para.put("from", "list");
-        buttonParaMap.put("sign_reject", para);
+        buttonParaMap.put("approval_reject", para);
         mailDto.setButtonParaMap(buttonParaMap);
 
         //发送通知
