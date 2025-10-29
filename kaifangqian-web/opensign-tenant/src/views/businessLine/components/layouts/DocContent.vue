@@ -50,6 +50,7 @@
                               'transform: translate('+ '-50%,'+(item.target.transformHeight + (item.page+1) * 16)+'px);',
                               'width:' + item.target.width+'px;',
                               'height' + item.target.height+'px;',
+                              'border:' + '1px solid #f0f0f0',
 
                             ]">
                             <img style="width: 100%;" v-lazy="baseUrl + '/file/downloadFileStream/' + item.annexId" />

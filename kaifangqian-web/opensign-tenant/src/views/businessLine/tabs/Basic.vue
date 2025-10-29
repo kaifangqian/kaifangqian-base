@@ -296,6 +296,9 @@
                               <div v-else-if="signderItem.senderType == 1">
                                 <p>签署人：文档签署的发起人签字 </p>
                               </div>
+                              <div v-else-if="signderItem.senderType == 5">
+                                <p>审批人：{{ signderItem.senderUserName }} </p>
+                              </div>
                               <div v-else>
                                 <p>签署人：{{ signderItem.senderUserName }}</p>
                               </div>
@@ -517,13 +520,13 @@
         <div class="signer-set" v-if="basicInfo.signerType == '2'">
           <div class="set-action">
             <a-button type="link" @click="handleAddInitiator" v-if="isShowInitiatorBtn()">
-              <Icon icon="ant-design:plus-circle-outlined" />添加发起方
+              <Icon icon="ant-design:plus-outlined" />添加发起方
             </a-button>
             <a-button type="link" @click="handleAddPersonal">
-              <Icon icon="ant-design:plus-circle-outlined" />添加个人
+              <Icon icon="ant-design:plus-outlined" />添加个人
             </a-button>
             <a-button type="link" @click="handleAddEnt">
-              <Icon icon="ant-design:plus-circle-outlined" />添加企业
+              <Icon icon="ant-design:plus-outlined" />添加企业
             </a-button>
           </div>
           <a-radio-group v-model:value="basicInfo.signOrderType" class="sign-config">
@@ -1276,6 +1279,7 @@
           if (res.code == 200) {
             signConfirm.value = res.result;
           }
+          confirmOptions.value[3].disabled = !signConfirm.value;
           console.log('signConfirmRes', signConfirm.value);
           emit('change', {
             name: basicInfo.value.name,
@@ -2074,7 +2078,7 @@
 
         .item-li-info {
           padding: 6px 10px;
-          border-radius: 4px;
+          // border-radius: 4px;
           border: 1px solid #e4e4e4;
           width: 700px;
           margin-left: 10px;
@@ -2114,12 +2118,11 @@
     .signatory-item {
       background: #f7f8fb;
       padding: 15px 20px;
-      border-radius: 2px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
-      border-radius: 5px;
+      // border-radius: 5px;
       border: 1px solid #ced2dc;
       .signatory-form {
         display: flex;
@@ -2143,11 +2146,10 @@
     .initiator-info {
       background: #f7f8fb;
       padding: 15px 20px;
-      border-radius: 2px;
       margin-bottom: 20px;
       display: flex;
       align-items: center;
-      border-radius: 5px;
+      // border-radius: 5px;
       border: 1px solid #ced2dc;
       .initiator-left {
         flex: 1;
@@ -2342,7 +2344,7 @@
             }
             .file-tag {
               position: absolute;
-              left: 2px;
+              left: 0px;
               top: 0;
             }
             .file-img {

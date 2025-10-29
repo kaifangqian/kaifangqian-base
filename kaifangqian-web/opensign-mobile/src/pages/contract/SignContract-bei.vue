@@ -402,10 +402,16 @@
       @confirm="handleSetSignature" @cancel="handleSignatureCancel">
       <div class="signature-pad" v-if="showPad">
         <!-- 居中提示文字 -->
-        <div class="signature-context" v-show="!hasSignature">请在此区域签名</div>
+        <!-- <div class="signature-context" v-show="!hasSignature">请在此区域签名</div> -->
         <VueSignaturePad class="signature-canvas" :width="signaturePadConfig.width + 'px'"
           :height="signaturePadConfig.height + 'px'" ref="signaturePad" :options="options"
           :style="{ border: '1px solid #e4e4e4', transform: 'translate(50px, 2px)' }" />
+          <!-- 添加动态姓名文本引导 -->
+        <div class="signature-name-guide" v-if="userFullName">
+          <template v-for="(char, index) in userFullName.split('')" :key="index">
+            <span class="signature-block" >{{ char }}</span>
+          </template>
+        </div>
       </div>
       <div class="signature-footer" :style="{ width: signaturePadConfig.height - 40 + 'px' }">
         <div v-if="clientHeight >= 700">
@@ -884,6 +890,15 @@ export default defineComponent({
       }
     };
 
+    const userFullName = ref('');
+    const signatureNameGuideClass = computed(() => {
+      const length = userFullName.value.length;
+      if (length === 2) return 'two-char';
+      if (length === 3) return 'three-char';
+      if (length === 4) return 'four-char';
+      return '';
+    });
+
     onActivated(() => {
       getSignerInfo();
       console.log(fromPath.value, '路由信息');
@@ -897,6 +912,7 @@ export default defineComponent({
       checkStatus();
       generateOrderNo();
       getSignNodeInfo();
+      userFullName.value = '胡鑫';
     });
     // onBeforeRouteUpdate(() => {
     //     getFromPath()
@@ -4402,6 +4418,8 @@ export default defineComponent({
       currentLocationIndex,
       clientHeight,
       personalSignAuth,
+      userFullName,
+      signatureNameGuideClass,
     };
   },
 });
@@ -5221,6 +5239,66 @@ export default defineComponent({
     font-size: 16px;
     color: #333;
     white-space: nowrap;
+  }
+
+  .signature-name-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    // transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 2;
+    pointer-events: none; /* 确保不影响签名操作 */
+    user-select: none; /* 防止选中文本 */
+    letter-spacing: 10px;
+    transform: rotate(90deg) translate(0%, 100%);
+  }
+
+  /* 基础签字块样式 */
+  .signature-name-guide .signature-block {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 0 5px;
+    // background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    line-height: 80px;
+    font-size: 36px;
+    font-weight: normal;
+    transition: all 0.3s ease;
+  }
+
+  /* 鼠标悬停效果 */
+.signature-name-guide .signature-block:hover {
+  border-color: #999;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 两个字的姓名 */
+.signature-name-guide.two-char {
+  width: 670px;
+}
+
+/* 三个字的姓名 */
+.signature-name-guide.three-char {
+  width: 260px;
+}
+
+/* 四个字的姓名 */
+.signature-name-guide.four-char {
+  width: 350px;
+}
+
+  /* 确保签名画布在最上层 */
+  .signature-canvas {
+    z-index: 1;
   }
 
 </style>

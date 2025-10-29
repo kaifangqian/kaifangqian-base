@@ -12,7 +12,6 @@
     <div class="position-params-body">
       <DocLeft title="签署方">
         <SignStatus :signerList="signerList">
-
         </SignStatus>
         <SignControls
             v-if="!isDetail"

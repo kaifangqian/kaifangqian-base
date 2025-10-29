@@ -128,7 +128,7 @@
   /* margin-top: 20px; */
   width: 200px;
   height: 40px;
-  background: linear-gradient(to right, #1890ff, #40a9ff);
+  /* background: linear-gradient(to right, #1890ff, #40a9ff); */
   border-color: transparent;
   /* font-size: 16px; */
   text-align: center;

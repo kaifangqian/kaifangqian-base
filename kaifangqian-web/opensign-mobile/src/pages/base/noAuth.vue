@@ -186,6 +186,10 @@ export default defineComponent({
                 // redirectPath = '/#/signContract?&signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
 				redirectPath = "/sign";
             }
+            if (taskType.value == 'approval') {
+                // redirectPath = '/#/signContract?&signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
+				redirectPath = "/approval";
+            }
             if (taskType.value == 'copy' || taskType.value == 'detail') {
                 // redirectPath = '/#/detail?signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
 				redirectPath = "/detail";
@@ -312,7 +316,7 @@ export default defineComponent({
     .sign-noauth-body {
         margin-top: 180px;
         // box-shadow: 0 4px 9px 2px #eee;
-        background: #fff;
+        // background: #fff;
         padding: 40px 30px;
     }
 

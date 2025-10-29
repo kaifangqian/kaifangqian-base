@@ -36,7 +36,16 @@
               </span>
             </template>
           </a-tab-pane>
-          <a-tab-pane key="2">
+          <a-tab-pane key="2" v-if="props.tenantInfo.tenantType=='1'">
+            <template #tab>
+              <span>
+                <a-badge :count="upapprovalCount" :offset="[20,0]">
+                  待我审批
+                </a-badge>
+              </span>
+            </template>
+          </a-tab-pane>
+          <a-tab-pane key="3">
             <template #tab>
               <span>
                 <a-badge :count="upwriteCount" :offset="[20,0]">
@@ -86,7 +95,6 @@
                   </span>
                 </div>
               </div>
-              <!-- <a-button type="link" @click="handleSign(item)">{{activeTabKey=='1'?'签署':'填写'}}</a-button> -->
             </li>
             <div v-else>
               <p class="no-data">
@@ -106,11 +114,21 @@
   import {ref,defineComponent, onMounted, unref} from "vue"
   import { Tag, Tabs, Card } from 'ant-design-vue';
   import { useRouter } from 'vue-router';
-  import  { getMyStastics, getListMySignJob, getListMyFillInJob } from '/@/api/contract';
+  import  { getMyStastics, getListMySignJob, getListMyFillInJob, getListMyApprovalJob } from '/@/api/contract';
   import { loadRuStatus } from '/@/views/contract/document/transform';
   import { SvgIcon } from '/@/components/Icon';
   import ContractListStatus from "/@/views/contract/components/ContractListStatus.vue";
   import { Scrollbar } from '/@/components/Scrollbar';
+
+  // 定义 props
+  interface Props {
+    tenantInfo?: any;
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    tenantInfo: () => ({}),
+  });
+
   interface UpcomingItem{
     fromTenantName:string;
     participateNames:string;
@@ -124,15 +142,24 @@
   const activeTabKey = ref('1')
   const upsignCount = ref(0)
   const upwriteCount = ref(0)
+  const upapprovalCount = ref(0)
   const upcomingList = ref(<UpcomingItem[]>[])
   
   onMounted(()=>{
     handleTabChange('1');
-    getWriteCount()
+    // console.log('props.tenantInfo',props.tenantInfo)
+    if(props.tenantInfo.tenantType=='1'){
+      getApprovalCount();
+    }
+    getWriteCount();
+    
     document.addEventListener("visibilitychange", function() {
         if(!document.hidden){
             handleTabChange('1');
-            getWriteCount()
+            if(props.tenantInfo.tenantType=='1'){
+              getApprovalCount();
+            }
+            getApprovalCount();
         }
       })
   })
@@ -154,6 +181,9 @@
     if(val==1){
       result = await getListMySignJob({});
       upsignCount.value = result.total;
+    }else if(val==2){
+      result = await getListMyApprovalJob({});
+      upapprovalCount.value = result.total;
     }else{
       result = await getListMyFillInJob({});
       upwriteCount.value = result.total;
@@ -171,13 +201,31 @@
       upwriteCount.value = result.total;
     }
   }
+
+  //获取审批数量
+  async function getApprovalCount(){
+    let result  = await getListMyApprovalJob({});
+    if(result){
+      upapprovalCount.value = result.total;
+    }
+  }
   
   
   function handleSign(row){
     if(activeTabKey.value=='1'){
-      // window.open('/#/contract/sign?__full__&signReId='+'&signRuId=' + row.signRuId + '&taskId=' + row.taskId + '&from=list')
       router.push({
         path:'/contract/sign',
+        query:{
+           __full__:"",
+          signRuId:row.signRuId,
+          taskId:row.taskId,
+          from:'list'
+        }
+      })
+      
+    }else if(activeTabKey.value=='2'){
+      router.push({
+        path:'/contract/approval',
         query:{
            __full__:"",
           signRuId:row.signRuId,
@@ -197,7 +245,6 @@
           type:'receive'
         }
       })
-      // window.open('/#/contract/params?__full__&signReId='+'&signRuId=' + row.signRuId + '&taskId=' + row.taskId +'&type=receive' + '&from=list')
     }
   }
   

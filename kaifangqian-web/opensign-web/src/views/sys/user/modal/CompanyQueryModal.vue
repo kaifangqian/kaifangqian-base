@@ -213,7 +213,7 @@
     // background: #f7fafd;
     // background: linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
     //   linear-gradient(135deg, #eff6ff -4%, #ffffff 100%);
-    border-radius: 10px;
+    // border-radius: 10px;
     padding: 12px 24px 12px 24px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   }
@@ -231,7 +231,7 @@
   :deep(.ant-upload-select) {
     width: 100%;
     height: 200px;
-    border-radius: 5px;
+    // border-radius: 5px;
   }
   .query-company-header {
     margin-top: -10px;
@@ -239,7 +239,7 @@
     font-size: 13px;
     color: #888;
     background: #f0f5ff;
-    border-radius: 6px;
+    // border-radius: 6px;
     padding: 10px 16px;
     p {
       margin-bottom: 0;
@@ -254,7 +254,7 @@
     font-size: 13px;
     color: #888;
     background: #f6f6f6;
-    border-radius: 6px;
+    // border-radius: 6px;
     padding: 10px 16px;
     text-align: center;
     a {
@@ -270,12 +270,12 @@
   }
   :deep(.ant-btn) {
     font-size: 15px;
-    border-radius: 6px;
+    // border-radius: 6px;
     min-width: 90px;
   }
 
   :deep(.ant-input-affix-wrapper){
-    border-radius: 4px;
+    // border-radius: 4px;
     border-color: #d9e3f0;
     height: 40px;
     &:hover {
@@ -289,17 +289,17 @@
   }
   :deep(.ant-btn-primary) {
     // font-size: 16px;
-    border-radius: 8px;
+    // border-radius: 8px;
     min-width: 100px;
     height: 32px;
-    background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+    // background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
     border: none;
     color: #fff;
     // font-weight: 600;
     box-shadow: 0 2px 8px rgba(24,144,255,0.10);
     transition: background 0.2s, box-shadow 0.2s;
     &:hover, &:focus {
-      background: linear-gradient(90deg, #127fd2 0%, #1890ff 100%);
+      // background: linear-gradient(90deg, #127fd2 0%, #1890ff 100%);
       color: #fff;
       box-shadow: 0 4px 16px rgba(24,144,255,0.18);
     }

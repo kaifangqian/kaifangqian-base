@@ -469,7 +469,7 @@ import { json } from 'stream/consumers';
 
 <style lang="less" scoped>
   .sign-control-container {
-    border-top: 1px solid #f9f9f9;
+    border-top: 1px solid #e1e8ed;
     padding: 20px 0;
   }
   .disabled-control {

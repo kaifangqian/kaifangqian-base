@@ -253,7 +253,7 @@
     // min-width: 280px;
     // max-width: 320px;
     border: 1px solid #e5e5e5;
-    border-radius: 8px;
+    // border-radius: 8px;
     background-color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
@@ -306,7 +306,7 @@
     text-align: center;
     background-color: #f8f9fa;
     border-bottom: 1px solid #e5e5e5;
-    border-radius: 8px 8px 0 0;
+    // border-radius: 8px 8px 0 0;
   }
 
   .preview-img {
@@ -368,7 +368,7 @@
   color: #ff4d4f;
   font-size: 14px;
   padding: 8px 16px;
-  border-radius: 4px;
+  // border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
 }

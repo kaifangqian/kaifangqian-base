@@ -184,6 +184,9 @@ export default defineComponent({
         if(taskType.value=='sign'){
           redirectPath = '/#/contract/sign?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
         }
+        if(taskType.value=='approval'){
+          redirectPath = '/#/contract/approval?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
+        }
         if(taskType.value=='copy' || taskType.value =='detail' ){
           redirectPath = '/#/contract/detail/sign?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
         }
@@ -263,20 +266,6 @@ export default defineComponent({
           companyName: tipInfo.value.targetTenantName,
         });
       }
-      // async function handleJoinSubmitCall(data:any){ 
-      //       // 这里处理 handleJoinSubmit 的回调逻辑
-      //       // 加入成功，刷新租户列表，切换到目标身份下
-      //       if (data.result === 1) {
-      //           let tenantList = await getMyTenantDeparts();
-      //           let matchDepart:any = tenantList.filter((u:any)=>u.tenantName == tipInfo.value.targetTenantName);
-      //           if((matchDepart&&matchDepart.length && tipInfo.value.targetTenantName)){
-      //            handleMenuClick(matchDepart[0])
-      //           }
-      //       } else {
-      //           console.log("已申请加入，管理员开启了申请加入审核流程，请耐心等待或联系管理员及时审核");
-      //       }
-            
-      //   }
 
     return {
       tipInfo,
