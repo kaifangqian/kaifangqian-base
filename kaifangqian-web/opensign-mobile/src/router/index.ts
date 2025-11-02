@@ -79,7 +79,7 @@ export const layoutRoutes: Array<RouteRecordRaw> = [
       leftArrow: true,
       keepAlive: true,
     },
-    component: () => import('@/pages/contract/SignContract-bei.vue'),
+    component: () => import('@/pages/contract/SignContract.vue'),
   },
   {
     path: '/approval/:signRuId?',

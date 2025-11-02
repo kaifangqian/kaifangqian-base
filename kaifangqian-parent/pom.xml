@@ -47,6 +47,7 @@
         <powerjob.version>4.0.1</powerjob.version>
         <h2.db.version>1.4.200</h2.db.version>
         <bcpkix.version>1.81</bcpkix.version>
+        <ofd.version>2.3.6</ofd.version>
     </properties>
 
     <modules>

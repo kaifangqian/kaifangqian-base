@@ -85,11 +85,11 @@
           }
         } else {
           if (unref(isSetState)) {
-            isSetState.value = false;                       
-            const { menuMode, menuCollapsed, menuType, menuSplit } = appStore.getBeforeMiniInfo;
+            isSetState.value = false;
+            const { menuMode, menuCollapsed, menuSplit } = appStore.getBeforeMiniInfo;
             appStore.setProjectConfig({
               menuSetting: {
-                type: menuType,
+                type: MenuTypeEnum.MIX,
                 mode: menuMode,
                 collapsed: menuCollapsed,
                 split: menuSplit,

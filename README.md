@@ -64,6 +64,11 @@ kaifangqian-base/
                    
 ```
 
+[开发指南请查看wiki](https://gitee.com/kaifangqian/kaifangqian-base/wikis/%E5%BC%80%E6%94%BE%E7%AD%BE%E7%94%B5%E5%AD%90%E7%AD%BE%E7%AB%A0%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97)
+
+## 本地运行
+### [启动后端](./kaifangqian-parent/README.md)
+### [启动前端](./kaifangqian-web/README.md)
 
 # 功能截图
 ![输入图片说明](doc/shouyeimage.png)
@@ -98,7 +103,7 @@ kaifangqian-base/
 请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。  
 点击“star”的用户，优先审核加入官方社群。
 
-![输入图片说明](doc/image.png)
+![输入图片说明](doc/%E7%A4%BE%E5%8C%BA%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%A4%BE%E5%8C%BA%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png)
 
 # 许可证
 本项目基于 [AGPLv3](https://www.gnu.org/licenses/agpl-3.0) 协议开源。
@@ -114,3 +119,4 @@ kaifangqian-base/
 - [Apache PDFBox](https://pdfbox.apache.org/)
 - [Apache Shiro](https://shiro.apache.org/)
 - [Redisson](https://redisson.org/)
+

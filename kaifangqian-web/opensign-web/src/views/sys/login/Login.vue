@@ -21,7 +21,7 @@
 -->
 
 <template>
-  <div :class="prefixCls" class="relative w-full h-full flex items-center justify-center min-h-screen p-8" style="background: linear-gradient(135deg, #F5F7FA 0%, #FFFFFF 100%);">
+  <div :class="prefixCls" class="relative w-full h-full flex items-center justify-center min-h-screen px-8 py-10" style="background: linear-gradient(135deg, #F5F7FA 0%, #FFFFFF 100%);">
     <div class="absolute top-8 left-8 z-50"> 
       <div class="flex items-center space-x-3">
         <img :src="logoBase64" alt="" class="w-auto h-16" />
@@ -85,8 +85,8 @@
       </div>
     </div>
   
-    <div class="copyright-footer fixed bottom-4 left-0 w-full flex justify-center items-center">
-      <p v-html="webCopyRight"></p>
+    <div class="copyright-footer absolute bottom-0 left-0 w-full flex justify-center items-center">
+      <p v-html="webCopyRight" class="leading-10 m-0"></p>
     </div>
   </div>
 </template>
