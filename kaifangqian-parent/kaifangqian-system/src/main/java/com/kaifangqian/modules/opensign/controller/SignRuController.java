@@ -2421,10 +2421,6 @@ public class SignRuController {
         iFlowService.complete(null, RuFlowEnum.REJECT.getName());
         //拒签
         ruCallbackService.callback(signRuId, taskId, SignCallbackTypeEnum.SUBMIT_REFUSAL);
-//        SignRuTask ruTask = ruTaskService.getById(taskId);
-//        if (ruTask != null && ruTask.getTaskStatus() != null && ruTask.getTaskStatus() == 2) {
-//
-//        }
 
         return Result.OK();
     }

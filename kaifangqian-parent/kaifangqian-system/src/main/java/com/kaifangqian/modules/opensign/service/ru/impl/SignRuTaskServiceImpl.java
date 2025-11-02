@@ -85,7 +85,15 @@ public class SignRuTaskServiceImpl extends ServiceImpl<SignRuTaskMapper, SignRuT
     @Override
     public List<SignRuTask> getByEntity(SignRuTask query) {
         LambdaQueryWrapper<SignRuTask> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MyStringUtils.isNotBlank(query.getSignRuId()), SignRuTask::getSignRuId, query.getSignRuId()).eq(MyStringUtils.isNotBlank(query.getTaskType()), SignRuTask::getTaskType, query.getTaskType()).eq(query.getTaskStatus() != null, SignRuTask::getTaskStatus, query.getTaskStatus()).eq(MyStringUtils.isNotBlank(query.getTenantUserId()), SignRuTask::getTenantUserId, query.getTenantUserId()).eq(MyStringUtils.isNotBlank(query.getUserId()), SignRuTask::getUserId, query.getUserId()).eq(MyStringUtils.isNotBlank(query.getPhone()), SignRuTask::getPhone, query.getPhone()).eq(MyStringUtils.isNotBlank(query.getEmail()), SignRuTask::getEmail, query.getEmail()).eq(SignRuTask::getDeleteFlag, false);
+        queryWrapper
+                .eq(MyStringUtils.isNotBlank(query.getSignRuId()), SignRuTask::getSignRuId, query.getSignRuId())
+                .eq(MyStringUtils.isNotBlank(query.getTaskType()), SignRuTask::getTaskType, query.getTaskType())
+                .eq(query.getTaskStatus() != null, SignRuTask::getTaskStatus, query.getTaskStatus())
+                .eq(MyStringUtils.isNotBlank(query.getTenantUserId()), SignRuTask::getTenantUserId, query.getTenantUserId())
+                .eq(MyStringUtils.isNotBlank(query.getUserId()), SignRuTask::getUserId, query.getUserId())
+                .eq(MyStringUtils.isNotBlank(query.getPhone()), SignRuTask::getPhone, query.getPhone())
+                .eq(MyStringUtils.isNotBlank(query.getEmail()), SignRuTask::getEmail, query.getEmail())
+                .eq(SignRuTask::getDeleteFlag, false);
         return this.list(queryWrapper);
     }
 

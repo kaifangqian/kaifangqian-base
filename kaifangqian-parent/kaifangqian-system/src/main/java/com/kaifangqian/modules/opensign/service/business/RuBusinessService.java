@@ -457,6 +457,7 @@ public class RuBusinessService {
                                 senderVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                                 senderVo.setVerifyType(signRuSignConfirm.getConfirmType());
                                 senderVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
+                                senderVo.setSealType(signRuSignConfirm.getSealType());
                             }
 
 //                            if(confirmSignerIdList.contains(sender.getId())){
@@ -471,6 +472,7 @@ public class RuBusinessService {
                         signerVo.setAgreeSkipWillingness(signRuSignConfirm.getAgreeSkipWillingness());
                         signerVo.setVerifyType(signRuSignConfirm.getConfirmType());
                         signerVo.setPersonalSignAuth(signRuSignConfirm.getPersonalSignAuth());
+                        signerVo.setSealType(signRuSignConfirm.getSealType());
                     }
 
 //                    if(confirmSignerIdList.contains(signer.getId())){
@@ -1417,7 +1419,7 @@ public class RuBusinessService {
                                             //保存企业签署人信息
                                             senderList.add(ruSender);
                                             //发起方-保存签署意愿校验信息
-                                            ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                            ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth(),dataSender.getSealType());
                                         }
                                     }
                                 }
@@ -1459,7 +1461,7 @@ public class RuBusinessService {
                                     //保存企业签署人信息
                                     senderList.add(ruSender);
                                     //发起方-保存签署意愿校验信息
-                                    ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth());
+                                    ruSignConfirmService.save(ruSender.getId(),ruCreateData.getRuId(),dataSinger.getSignerType(),dataSender.getAgreeSkipWillingness(),dataSender.getVerifyType(),dataSender.getPersonalSignAuth(),dataSender.getSealType());
                                 }
                             }
                         }
@@ -1479,7 +1481,7 @@ public class RuBusinessService {
                         ruCreateData.getReSigner2RuSingerMap().put(dataSinger.getReSignerId(),ruSigner.getId());
                     }
                     //个人接收方
-                    ruSignConfirmService.save(ruSigner.getId(),ruCreateData.getRuId(),SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType(),dataSinger.getPersonalSignAuth());
+                    ruSignConfirmService.save(ruSigner.getId(),ruCreateData.getRuId(),SignerTypeEnum.RECEIVER_PERSONAL.getCode(),dataSinger.getAgreeSkipWillingness(),dataSinger.getVerifyType(),dataSinger.getPersonalSignAuth(),dataSinger.getSealType());
 
                     singerList.add(ruSigner);
                 }
@@ -1489,6 +1491,64 @@ public class RuBusinessService {
         // = signerService.listByRuId(ruCreateData.getRuId());
         if(singerList == null || singerList.size() == 0){
             throw new PaasException("签署人为空");
+        }
+
+        //签署控件
+        List<RuDataControl> signControlList = ruCreateData.getSignControlList();
+        if(signControlList.size() > 0){
+            for(RuDataControl signControl : signControlList) {
+
+                SignRuDocControl ruDocControl = signControl.getRuDocControl();
+                if(ruDocControl.getSignerId() == null){
+                    String reSignerId = signControl.getReSignerId();
+                    if (reSignerId == null || reSignerId.length() == 0) {
+                        throw new PaasException("签署控件归属人丢失");
+                    }
+                    String ruSignerId = ruCreateData.getReSigner2RuSingerMap().get(reSignerId);
+                    if (ruSignerId == null || ruSignerId.length() == 0) {
+                        throw new PaasException("签署控件归属人丢失");
+                    }
+                    ruDocControl.setSignerId(ruSignerId);
+                }
+                ruDocControl.setSignRuId(ru.getId());
+                if(ruDocControl.getId() == null){
+                    ruDocControl.setId(UUID.randomUUID().toString());
+                }
+
+                ruDocControl.setDeleteFlag(false);
+                boolean saveControl = ruDocControlService.save(ruDocControl);
+                if(!saveControl){
+                    throw new PaasException("保存控件失败");
+                }
+                List<RuDataControlProperty> dataControlPropertyList = signControl.getDataControlPropertyList();
+                for(RuDataControlProperty dataControlProperty : dataControlPropertyList) {
+                    SignRuDocControlProperty ruDocControlProperty = dataControlProperty.getRuDocControlProperty();
+                    if(ruDocControlProperty.getPropertyType().equals(ControlPropertyTypeEnum.RELATION_DOC.getCode())){
+                        if(ruDocControlProperty.getPropertyValue() == null){
+                            String reDocId = dataControlProperty.getReDocId();
+                            if(reDocId != null && reDocId.length() > 0 && ruCreateData.getReDoc2RuDocMap().size() > 0){
+                                String ruDocId = ruCreateData.getReDoc2RuDocMap().get(reDocId);
+                                if(ruDocId == null || ruDocId.length() == 0){
+                                    throw new PaasException("签署控件归属文档丢失");
+                                }
+                                ruDocControlProperty.setPropertyValue(ruDocId);
+                            }
+                        }
+
+                    }
+
+                    ruDocControlProperty.setControlId(ruDocControl.getId());
+                    ruDocControlProperty.setRuId(ru.getId());
+                    if(ruDocControlProperty.getId() == null){
+                        ruDocControlProperty.setId(UUID.randomUUID().toString());
+                    }
+
+                    boolean saveControlProperty = ruDocControlPropertyService.save(ruDocControlProperty);
+                    if(!saveControlProperty){
+                        throw new PaasException("保存控件属性失败");
+                    }
+                }
+            }
         }
 
         //根据发起人、接受人、控件列表计算操作人
@@ -1897,6 +1957,10 @@ public class RuBusinessService {
                 signNodeConfigResponse.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
             }
 
+            if (confirm != null && MyStringUtils.isNotBlank(confirm.getSealType())){
+                signNodeConfigResponse.setSealType(confirm.getSealType());
+            }
+
         }else {
             SignRuSigner signer = signerService.getById(threadlocalVO.getUserTaskId());
             // 获取签署人确认信息
@@ -1906,6 +1970,10 @@ public class RuBusinessService {
                 signNodeConfigResponse.setPersonalSignAuth(confirm.getPersonalSignAuth());
             }else{
                 signNodeConfigResponse.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
+            }
+
+            if (confirm != null && MyStringUtils.isNotBlank(confirm.getSealType())){
+                signNodeConfigResponse.setSealType(confirm.getSealType());
             }
         }
 

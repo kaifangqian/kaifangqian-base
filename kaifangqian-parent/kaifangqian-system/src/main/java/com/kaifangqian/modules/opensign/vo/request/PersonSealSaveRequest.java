@@ -48,4 +48,7 @@ public class PersonSealSaveRequest implements Serializable {
     // @ApiModelProperty("文件id")
     private String annexId;
 
+    // @ApiModelProperty("印章生成类型：TEMPLATE：模板生成、HAND：手写签名")
+    private String sealType ;
+
 }

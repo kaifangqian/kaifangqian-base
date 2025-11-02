@@ -71,9 +71,9 @@ public class ConfirmSignCmd implements SignCommand<TaskCmdInfo> {
         //修改实例-用户操作表任务状态
         SignRuOperator query = new SignRuOperator();
         query.setSignRuId(signCommandContext.getSignRuId());
-        if (signRuTask.getTaskType() == TaskTypeEnum.SIGN_TASK.getCode()) {
+        if (signRuTask.getTaskType().equals(TaskTypeEnum.SIGN_TASK.getCode())) {
             query.setOperateType(OperateTypeEnum.SIGN.getCode());
-        }else if(signRuTask.getTaskType() == TaskTypeEnum.APPROVE_TASK.getCode()){
+        }else if(signRuTask.getTaskType().equals(TaskTypeEnum.APPROVE_TASK.getCode())){
             query.setOperateType(OperateTypeEnum.APPROVE.getCode());
         }
         query.setSignerType(signCommandContext.getUserType());

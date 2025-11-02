@@ -1,5 +1,5 @@
 /**
- * @description 签署业务校验服务接口类
+ * @description 个人签名生成类型
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,29 +19,30 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.opensign.service.ru;
+package com.kaifangqian.modules.opensign.enums;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.kaifangqian.modules.opensign.entity.SignRuSignConfirm;
+public enum PersonalSealTypeEnum {
 
-import java.util.List;
+    NOLIMIT("NOLIMIT", "不限制"),
+    TEMPLATE("TEMPLATE", "模板签名"),
+    HAND("HAND", "手写签名"),
+    ;
 
-/**
- * @Description: SignRuSignConfirmService
- * @Package: com.kaifangqian.modules.opensign.service.ru
- * @ClassName: SignRuSignConfirmService
- * @author: FengLai_Gong
- */
-public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
+    private String type;
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth, String sealType);
+    private String name;
 
-    SignRuSignConfirm getByParam(String signerId, String ruId);
-
-    List<SignRuSignConfirm> listByParam(String ruId);
-
-    void delete(String signerId,String ruId);
+    PersonalSealTypeEnum(String type, String name) {
+        this.type = type;
+        this.name = name;
+    }
 
 
+    public String getType() {
+        return this.type;
+    }
 
+    public String getName() {
+        return this.name;
+    }
 }

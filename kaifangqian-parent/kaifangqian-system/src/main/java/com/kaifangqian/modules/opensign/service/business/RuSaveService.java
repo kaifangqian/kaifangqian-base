@@ -287,7 +287,7 @@ public class RuSaveService {
                 dataSigner.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                 dataSigner.setVerifyType(signerVo.getVerifyType());
                 dataSigner.setPersonalSignAuth(signerVo.getPersonalSignAuth());
-
+                dataSigner.setSealType(signerVo.getSealType());
                 if(SignerTypeEnum.SENDER.getCode().equals(signerVo.getSignerType())){
                     //发起人
                     List<DocSenderVo> senderVoList = signerVo.getSenderList();
@@ -350,6 +350,7 @@ public class RuSaveService {
                 dataSigner.setConfirmType(signerVo.getConfirmType());
                 dataSigner.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                 dataSigner.setVerifyType(signerVo.getVerifyType());
+                dataSigner.setSealType(signerVo.getSealType());
                 dataSigner.setRuSigner(signer);
                 saveData.getUpdateSignerList().add(dataSigner);
             }
@@ -496,6 +497,7 @@ public class RuSaveService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                     dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                    dataSigner.setSealType(senderVo.getSealType());
                 }
 
                 dataSigner.getAddSenderList().add(dataSender);
@@ -527,6 +529,7 @@ public class RuSaveService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())) {
                     dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                    dataSigner.setSealType(senderVo.getSealType());
                 }
                 dataSigner.getAddSenderList().add(dataSender);
             }
@@ -574,6 +577,7 @@ public class RuSaveService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                     dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                    dataSender.setSealType(senderVo.getSealType());
                 }
 
                 dataSigner.getUpdateSenderList().add(dataSender);
@@ -604,6 +608,7 @@ public class RuSaveService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 if(senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                     dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                    dataSender.setSealType(senderVo.getSealType());
                 }
 
                 dataSigner.getUpdateSenderList().add(dataSender);
