@@ -182,31 +182,42 @@
           });
           if (userInfo && userInfo?.user_tenant_depart) {
             if (userInfo?.user_tenant_depart.length > 1) {
-              openModal(true, {
-                isUpdate: false,
-                record: userInfo,
-                type: 'authSelect',
-              });
-            } else {
-              if (userInfo?.user_tenant_depart[0].departs.length > 1) {
-                openModal(true, {
-                  isUpdate: false,
-                  record: userInfo,
+              // 从depts中选择selectFlag为true的部门自动进行登录
+              if (userInfo?.user_tenant_depart.some((item: any) => item.selectFlag)) {
+                console.log('登录上次登录身份');
+                const selectDept = userInfo?.user_tenant_depart.find((item: any) => item.selectFlag);
+                // console.log('selectDept-----', selectDept);
+                if (selectDept?.departs && selectDept.departs.length > 0 && selectDept.departs[0].departId) {
+                  await userStore.selectTenant({
+                    departId: selectDept.departs[0].departId,
+                    departName: selectDept.departs[0].departName
+                  });
+                } else {
+                  createMessage.error('部门信息不完整，无法自动登录');
+                }
+                // handleSubmit(selectDept);
+              }else {
+                console.log('选择登录身份');
+                //如果多个部门则需要选择登录
+                openModal(true,{
+                  isUpdate:false,
+                  record:userInfo,
                   type: 'authSelect',
-                });
-              } else {
+                })
+              }
+            } else {
+              // if (userInfo?.user_tenant_depart[0].departs.length > 1) {
+              //   openModal(true, {
+              //     isUpdate: false,
+              //     record: userInfo,
+              //     type: 'authSelect',
+              //   });
+              // } else {
                 const formData = {
                   departId: userInfo?.user_tenant_depart[0].departs[0].departId,
                 };
-                const result = await userStore.authSelectTenant(formData);
-                if (result) {
-                  // notification.success({
-                  //   message: '登录成功',
-                  //   description: `${'登录成功'}: ${result.username}`,
-                  //   duration: 3,
-                  // });
-                }
-              }
+                await userStore.authSelectTenant(formData);
+              // }
             }
 
             return;

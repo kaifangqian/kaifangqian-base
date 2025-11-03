@@ -355,6 +355,7 @@
           <div 
             class="signature-info seal-item add-signature-btn" 
             @click.stop="handleSignatureVisible"
+            v-if="sealType == 'NOLIMIT' || sealType == 'HAND'"
           >
             <div class="signature-img add-signature-img">
               <div class="add-signature-icon">
@@ -365,7 +366,7 @@
             <span class="signer-title" style="margin-bottom:10px">手写签名</span>
           </div>
           <!-- 添加横向分割线 -->
-          <div style="height: 1px; background-color: #e5e5e5; margin: 15px 0;"></div>
+          <div style="height: 1px; background-color: #e5e5e5; margin: 15px 0;" v-if="sealType == 'NOLIMIT' || sealType == 'HAND'"></div>
           <div>
           <!-- <div v-if="!signatureList && signatureList.length"> -->
             <template v-for="(row, rowIndex) in personSignatureRows" :key="rowIndex">
@@ -402,10 +403,22 @@
       @confirm="handleSetSignature" @cancel="handleSignatureCancel">
       <div class="signature-pad" v-if="showPad">
         <!-- 居中提示文字 -->
-        <div class="signature-context" v-show="!hasSignature">请在此区域签名</div>
+        <div class="signature-context" v-show="!hasSignature && !userFullName">请在此区域签名</div>
         <VueSignaturePad class="signature-canvas" :width="signaturePadConfig.width + 'px'"
           :height="signaturePadConfig.height + 'px'" ref="signaturePad" :options="options"
-          :style="{ border: '1px solid #e4e4e4', transform: 'translate(50px, 2px)' }" />
+          :style="{ border: '1px solid #e4e4e4', transform: 'translate(50px, 0px)' }" />
+          <!-- 添加动态姓名文本引导 -->
+        <div class="signature-name-guide" :style="{ width: signaturePadConfig.width + 'px' ,height:signaturePadConfig.height + 'px',transform: 'translate(50px, 0px)'}" v-if="userFullName">
+          <template v-for="(char, index) in userFullName.split('')" :key="index">
+            <!-- <div class="signature-block" :style="{ width: signatureBlockSize  + 'px' ,height:signaturePadConfig.width + 'px',fontSize: signatureBlockSize + 'px',margin: (signaturePadConfig.height - signatureBlockSize * userFullName.length)/2 + 'px 0px ' + (signatureBlockSize - signaturePadConfig.width) + 'px ' + (signaturePadConfig.width - signatureBlockSize)/2 + 'px'}">
+              <span >{{ char }}</span>
+            </div> -->
+            <div class="signature-block" :style="{ width: signatureBlockSize  + 'px' ,height:signaturePadConfig.width + 'px',fontSize: signatureBlockSize -30 + 'px',margin: firstSignatureBlockTop + 'px 0px ' + (signatureBlockSize - signaturePadConfig.width) + 'px ' + (signaturePadConfig.width - signatureBlockSize)/2 + 'px'}">
+              <span >{{ char }}</span>
+            </div>
+            
+          </template>
+        </div>
       </div>
       <div class="signature-footer" :style="{ width: signaturePadConfig.height - 40 + 'px' }">
         <div v-if="clientHeight >= 700">
@@ -876,6 +889,9 @@ export default defineComponent({
     const signControlTip = ref();
     const showSignControlTip = ref(false);
 
+    // 个人签名方式
+    const sealType = ref('NOLIMIT');
+
     showSignControlTip.value = (localStorage.getItem("showSignControlTip") == 'false') ? false : true;
 
     const getFromPath = () => {
@@ -883,6 +899,44 @@ export default defineComponent({
         fromPath.value = route.history[route.history.length - 2].fullPath;
       }
     };
+
+    const userFullName = computed(() => {
+      console.log(tenantInfo,'tenantInfo---');
+      let name: string | any[] ;
+      if(tenantInfo.tenantType == '2'){
+        name = tenantInfo?.name || userInfo.realname;
+      }else{
+        name = userInfo.realname;
+      }
+      if(name && (name.length < 6 && name.length > 1)){
+        return name;
+      }else{
+        return '';
+      }
+      
+      
+    });
+    const firstSignatureBlockTop = ref(0);
+    const signatureBlockSize = computed(() => {
+      if(userFullName.value == '' || userFullName.value == null){
+        return 0;
+      }else{ 
+        const width = signaturePadConfig.value.width ;
+        const height = signaturePadConfig.value.height;
+        const length = userFullName.value.length;
+        console.log(length,width,height / length);
+        if(height > width * length) {
+          console.log('1----');
+          firstSignatureBlockTop.value = (height-width * length)/(length + 1);
+          return width;
+        }else {
+          console.log('2----');
+          firstSignatureBlockTop.value = (height / length - width)/2;
+          return height / length;
+        }
+      }
+      
+    });
 
     onActivated(() => {
       getSignerInfo();
@@ -1050,6 +1104,12 @@ export default defineComponent({
         }
       } else {
         personalSignAuth.value = 'required';
+      }
+      // 查询该签署节点的签署要求-签名方式
+      const { result: signNodeResult }: any = await Api.getSignNodeConfig({taskId});
+      if(signNodeResult && signNodeResult.sealType){
+        sealType.value = signNodeResult.sealType;
+        console.log('个人签署签名方式：', signNodeResult.sealType);
       }
       
     }
@@ -1801,10 +1861,10 @@ export default defineComponent({
       // listMyJob(params);
       // console.log("listMyJob",Api.listMyJob(params));
     }
-    onMounted(() => {
-      initPage();
-      //ubject=&status=&code=&pageNo=1&pageSize=10&_t=1706948188035
-    });
+    // onMounted(() => {
+    //   initPage();
+    //   //ubject=&status=&code=&pageNo=1&pageSize=10&_t=1706948188035
+    // });
 
     function checkHasSignPos() {
       let flag = false;
@@ -2326,7 +2386,7 @@ export default defineComponent({
         return;
       } else {
         getSignaturs();
-        personSignatureVisible.value = true;
+        // personSignatureVisible.value = true;
         // signatureVisible.value = true;
         // setTimeout(() => {
         //   showPad.value = true;
@@ -2386,23 +2446,41 @@ export default defineComponent({
     }
     //获取签名列表
     async function getSignaturs() {
-      let { result } = await Api.getSignatureList({
-            pageNo: 1,
-            pageSize: 1000
-          });
-      // console.log(result,"result-------");
-      if (result) {
+      const params = {
+        pageNo: 1,
+        pageSize: 1000
+      };
+
+      // sealType.value = 'HAND';
+      // NOLIMIT、TEMPLATE、HAND
+      // 只有当sealType不是'NOLIMIT'时才添加sealType参数
+      if (sealType.value !== 'NOLIMIT') {
+        params.sealType = sealType.value;
+      }
+      const { result } = await Api.getSignatureList(params);
+      // console.log(result.records.length)
+      if (result && Array.isArray(result.records) && result.records.length>0) {
+        console.log('1');
         signatureList.value = result.records;
         loadSignatureBase64();
-        // signatureList.value.map(async (item) => {
-        //   item.base64 = '';
-        //   const { result } = await Api.getBase64ById({ id: item.annexId });
-        //   // console.log(result, '签名结果')
-        //   if (result) {
-        //     item.base64 = result.image;
-        //   }
-        // });
+        personSignatureVisible.value = true;
+      }else{
+        console.log('2');
+        if(sealType.value == 'TEMPLATE'){
+          console.log('3');
+          personSignatureVisible.value = true;
+        }else{
+          console.log('4');
+          personSignatureVisible.value = false;
+          signatureVisible.value = true;
+          showSignControlTip.value = false;
+          setTimeout(() => {
+            showPad.value = true;
+          });
+        }
+
       }
+
     }
     //获取图片流宽高
     function getImageIdSize(imgId: string,controlType: string) {
@@ -2734,7 +2812,7 @@ export default defineComponent({
       options.value = {
         penColor: '#000',
         dotSize: 1,
-        minWidth: 1 * val,
+        minWidth: 2 * val,
         maxWidth: 4 * val,
         throttle: 16,
         minDistance: 5,
@@ -3096,7 +3174,7 @@ export default defineComponent({
         } else {
           checkSignatureCount();
           getSignaturs();
-          personSignatureVisible.value = true;
+          // personSignatureVisible.value = true;
           // showSignControlTip.value = false;
           // signatureVisible.value = true;
           // setTimeout(() => {
@@ -4402,6 +4480,10 @@ export default defineComponent({
       currentLocationIndex,
       clientHeight,
       personalSignAuth,
+      userFullName,
+      signatureBlockSize,
+      firstSignatureBlockTop,
+      sealType,
     };
   },
 });
@@ -5221,6 +5303,38 @@ export default defineComponent({
     font-size: 16px;
     color: #333;
     white-space: nowrap;
+  }
+
+  .signature-name-guide {
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+    // font-weight: bold;
+    color: rgba(0, 0, 0, 0.15);
+    text-align: center;
+    z-index: 2;
+    pointer-events: none; /* 确保不影响签名操作 */
+    user-select: none; /* 防止选中文本 */
+    // border: 0.01333rem solid #ef0808;
+  }
+
+  /* 基础签字块样式 */
+  .signature-name-guide .signature-block {
+    // border: 1px solid #ccc;
+    // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(90deg);
+    // border: 0.01333rem solid #ccc;
+    // color: #e7e7e7;
+    display: flex;
+  }
+
+  /* 确保签名画布在最上层 */
+  .signature-canvas {
+    z-index: 1;
   }
 
 </style>

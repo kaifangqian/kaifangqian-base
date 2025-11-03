@@ -141,24 +141,6 @@
     websiteTitle.value = web.websiteTitle || "开放签";
   }
   initData();
-  // const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN);
-  // function changeTab(val) {
-  //   if (val === 'LOGIN_VERIFY') {
-  //     setLoginState(LoginStateEnum.LOGIN_VERIFY);
-  //   }
-  //   // if(val==='LOGIN' && route.fullPath.indexOf('experience') === -1){
-  //   if (val === 'LOGIN') {
-  //     setLoginState(LoginStateEnum.LOGIN);
-  //   }
-  //   // if(val==='LOGIN_MOBILE' && route.fullPath.indexOf('experience') === -1){
-  //   if (val === 'LOGIN_MOBILE') {
-  //     setLoginState(LoginStateEnum.LOGIN_MOBILE);
-  //   }
-  //   if (val === 'EXPERIENCE') {
-  //     setLoginState(LoginStateEnum.EXPERIENCE);
-  //   }
-  // }
-
    // 当前显示的组件
   const currentComponent = computed(() => {
     switch (TabKey.value) {

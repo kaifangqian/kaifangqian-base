@@ -21,9 +21,10 @@
 -->
 
 <template>
-  <cheader/>
+  <cheader v-if="!pageLoading"/>
   <div class="sign-noauth-container">
-    <div class="sign-noauth-body">
+    <Loading :loading="pageLoading" text="加载中..." />
+    <div class="sign-noauth-body" v-if="!pageLoading">
       <div class="no-auth-header">
         <SvgIcon name="sign-no-auth" size="80"/>
         <p style="font-size:18px;">无权访问</p>
@@ -103,7 +104,8 @@ export default defineComponent({
     const signRuId = route.query.signRuId;
     const taskId = route.query.taskId;
     const taskType = ref(route.query.taskType);
-    ls.set('Sign-Task-Id',taskId)
+    ls.set('Sign-Task-Id',taskId);
+    const pageLoading = ref(true);
     const [companyJoinRegister, { openModal: openCompanyJoin, closeModal: closeCompanyJoin }] =
     useModal();
   
@@ -124,6 +126,7 @@ export default defineComponent({
       let result = await getViewCheck({signRuId:signRuId});
        console.log("result.value",result)
       if(result){ 
+        pageLoading.value = false;
         returnSignPage();
       }
     }
@@ -133,8 +136,16 @@ export default defineComponent({
       if(result){
         tipInfo.value = result;
         if(result.checkStatus === 1){
+          console.log('身份正确，直接进入');
           returnSignPage();
         }
+        // 账号正确、身份不正确
+        if (result.checkStatus === 4 || result.checkStatus === 7) {
+            console.log('身份不正确，自动切换身份');
+            handleChangeIdentity();
+        }
+      }else {
+        pageLoading.value = false;
       }
     }
 
@@ -246,9 +257,11 @@ export default defineComponent({
             await handleMenuClick(matchDepart);
           } else {
             msg.warning('未找到匹配的身份信息');
+            pageLoading.value = false;
           }
         } else {
           msg.warning('暂无可用的身份信息');
+          pageLoading.value = false;
         }
       }
       async function handleMenuClick(depart){
@@ -257,7 +270,7 @@ export default defineComponent({
           }
           const result = await userStore.selectTenantAuth(params);
           if(result){
-              msg.success('切换成功,即将跳转')
+              // msg.success('切换成功,即将跳转')
           }
       }
 
@@ -277,7 +290,8 @@ export default defineComponent({
       partyName,
       handleChangeIdentity,
       createCompany,
-      handleJoinEnterprise,companyJoinRegister
+      handleJoinEnterprise,companyJoinRegister,
+      pageLoading,
     }
   }
 })

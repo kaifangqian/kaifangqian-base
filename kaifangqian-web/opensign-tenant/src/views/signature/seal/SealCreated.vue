@@ -622,6 +622,7 @@
             width: sealOptions.value.imageWidth,
             height: sealOptions.value.imageHeight,
             imageSmoothingQuality: 'high',
+            fillColor: '#FFFFFF' // 设置背景颜色为白色
           })
           .toDataURL('image/jpeg');
 

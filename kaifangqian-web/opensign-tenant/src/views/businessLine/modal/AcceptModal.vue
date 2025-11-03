@@ -85,6 +85,30 @@
                       @change="(val) => handleVerifyTypeChange(val, item)"
                     />
                   </a-space>
+                  <p
+                    class="flex items-center w-full"
+                    style="margin-bottom: 10px"
+                    v-show="item.senderType === 1"
+                  >
+                    <span>签名方式：</span>
+                    <a-tooltip :overlayStyle="{ width: '600px' }">
+                      <template #title>
+                        <p>不限制：个人签署时，不限制其签名类型</p>
+                        <p>手写签名：个人手绘的自定义签名</p>
+                        <p>模板签名：系统根据签名模板生成的电子化的个人章，例如"张三之印"</p>
+                        <!-- </div> -->
+                      </template>
+                      <Icon
+                        icon="ant-design:question-circle-outlined"
+                        style="margin-right: 10px; color: #888"
+                      />
+                    </a-tooltip>
+                    <a-radio-group v-model:value="item.sealType">
+                      <a-radio value="NOLIMIT"> 不限制 </a-radio>
+                      <a-radio value="TEMPLATE"> 模板签名 </a-radio>
+                      <a-radio value="HAND"> 手写签名 </a-radio>
+                    </a-radio-group>
+                  </p>
                   <p v-show="personalSignAuth == 'allowed' && item.senderType === 1">
                     <span>实名认证要求：</span>
                     <a-radio-group v-model:value="item.personalSignAuth">
@@ -170,6 +194,7 @@
     verifyType?: Array<string>;
     agreeSkipWillingness?: number;
     personalSignAuth?: string;
+    sealType?: string;
   }
 
   export default defineComponent({
@@ -286,6 +311,7 @@
           senderName: type == 1 ? '经办人签字' : '组织签章',
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
           personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
+          sealType: 'NOLIMIT',
         });
       }
 

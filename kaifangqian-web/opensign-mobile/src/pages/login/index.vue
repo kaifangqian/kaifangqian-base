@@ -369,8 +369,16 @@
         if (depts.length == 1) {
           handleSubmit(depts[0]);
         } else {
-          selectDepart.value.show = true;
-          selectDepart.value.depts = depts;
+          // 从depts中选择selectFlag为true的身份自动进行登录
+          if (depts.some((item: any) => item.selectFlag)) {
+            const selectDept = depts.find((item: any) => item.selectFlag);
+            // console.log('selectDept-----', selectDept);
+            handleSubmit(selectDept);
+          }else {
+            //如果多个身份则需要选择登录
+            selectDepart.value.show = true;
+            selectDepart.value.depts = depts;
+          }
         }
       } else if (loginType.value == 1 && !status) {
         reloadImgCode();
