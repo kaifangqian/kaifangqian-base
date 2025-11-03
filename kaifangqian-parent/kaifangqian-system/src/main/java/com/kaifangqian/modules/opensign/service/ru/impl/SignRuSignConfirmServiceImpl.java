@@ -41,7 +41,7 @@ public class SignRuSignConfirmServiceImpl extends ServiceImpl<SignRuSignConfirmM
 
 
     @Override
-    public void save(String signerId, String ruId, Integer signerType,Integer isFastSign, String verifyType, String personalSignAuth) {
+    public void save(String signerId, String ruId, Integer signerType,Integer isFastSign, String verifyType, String personalSignAuth, String sealType) {
         SignRuSignConfirm signRuSignConfirm = new SignRuSignConfirm();
         signRuSignConfirm.setSignRuId(ruId);
         signRuSignConfirm.setSignerId(signerId);
@@ -49,6 +49,7 @@ public class SignRuSignConfirmServiceImpl extends ServiceImpl<SignRuSignConfirmM
         signRuSignConfirm.setConfirmType(verifyType);
         signRuSignConfirm.setAgreeSkipWillingness(isFastSign);
         signRuSignConfirm.setPersonalSignAuth(personalSignAuth);
+        signRuSignConfirm.setSealType(sealType);
         save(signRuSignConfirm);
     }
 

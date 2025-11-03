@@ -24,6 +24,7 @@ package com.kaifangqian.modules.opensign.service.flow.impl;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kaifangqian.modules.opensign.enums.TaskTypeEnum;
 import com.kaifangqian.modules.opensign.service.flow.IInstanceTaskService;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.common.system.vo.LoginUser;
@@ -177,7 +178,18 @@ public class InstanceTaskServiceImpl implements IInstanceTaskService {
         LoginUser loginUser = MySecurityUtils.getCurrentUser();
         req.setTenantUserId(loginUser.getTenantUserId());
         req.setStatus(7);
+        req.setTaskType(TaskTypeEnum.SIGN_TASK.getCode());
         IPage<TaskListInfoRes> result = mapper.listMyJobSignUsers(page, req);
+        return result;
+    }
+
+    @Override
+    public IPage<TaskListInfoRes> listMyApproveJob(Page<TaskListInfoRes> page, TaskListInfoReq req) {
+        LoginUser loginUser = MySecurityUtils.getCurrentUser();
+        req.setTenantUserId(loginUser.getTenantUserId());
+        req.setStatus(7);
+        req.setTaskType(TaskTypeEnum.APPROVE_TASK.getCode());
+        IPage<TaskListInfoRes> result = mapper.listMyJobApproveUsers(page, req);
         return result;
     }
 

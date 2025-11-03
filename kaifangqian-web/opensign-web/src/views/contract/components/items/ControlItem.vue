@@ -375,8 +375,8 @@
           ref="datePicker"
           v-model:value="element.value"
           :placeholder="element.format"
-          :format="element.format"
-          :value-format="element.format"
+          :format="element.format?.toUpperCase()"
+          :value-format="element.format?.toUpperCase()"
           :class="['control-date-picker','control-text-'+ element.style.textAlign]"
           :style="[
             'width:100%;height:100%; resize: none;padding:0',

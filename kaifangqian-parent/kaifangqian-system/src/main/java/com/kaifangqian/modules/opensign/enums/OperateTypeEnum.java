@@ -33,6 +33,7 @@ public enum OperateTypeEnum {
     WRITE(1,"填写"),
     SIGN(2,"签署"),
     SIGN_NO_CERT(3,"无证书签署"),
+    APPROVE(4,"审批"),
 
     ;
 

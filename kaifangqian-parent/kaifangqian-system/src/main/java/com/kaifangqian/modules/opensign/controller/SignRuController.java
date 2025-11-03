@@ -73,29 +73,20 @@ import com.kaifangqian.external.enums.SignOrdeStatusResponseTypeEnum;
 import com.kaifangqian.modules.opensign.dto.SignTaskInfo;
 import com.kaifangqian.modules.opensign.dto.SignTaskThreadlocalVO;
 import com.kaifangqian.modules.opensign.dto.SignaturePicVO;
-import com.kaifangqian.modules.opensign.entity.*;
-import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.pdfbox.PdfboxService;
-import com.kaifangqian.modules.opensign.service.business.*;
 import com.kaifangqian.modules.opensign.service.business.vo.CompletedSignVo;
 import com.kaifangqian.modules.opensign.service.business.vo.ControlQueryVo;
 import com.kaifangqian.modules.opensign.service.confirm.ISignUserConfirmService;
 import com.kaifangqian.modules.opensign.service.confirm.IUserConfirmService;
 import com.kaifangqian.modules.opensign.service.flow.IFlowService;
 import com.kaifangqian.modules.opensign.service.flow.IInstanceTaskService;
-import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.opensign.service.seal.SignEntSealService;
 import com.kaifangqian.modules.opensign.service.tool.SignFileService;
-import com.kaifangqian.modules.opensign.vo.base.sign.*;
-import com.kaifangqian.modules.opensign.vo.request.ru.*;
 import com.kaifangqian.modules.opensign.vo.response.EntSealAuthorizedResponse;
 import com.kaifangqian.modules.opensign.vo.response.EntSealListResponse;
 import com.kaifangqian.modules.opensign.vo.response.RunCertificateVerifyResponse;
 import com.kaifangqian.modules.opensign.vo.response.SignerIdentifyResponse;
-import com.kaifangqian.modules.opensign.vo.response.ru.*;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
-import com.kaifangqian.modules.system.entity.*;
-import com.kaifangqian.modules.system.service.*;
 import com.kaifangqian.utils.IPUtil;
 import com.kaifangqian.utils.MD5Util;
 import com.kaifangqian.utils.MyStringUtils;
@@ -591,8 +582,15 @@ public class SignRuController {
             String signerName = "";
             for (int i = 0; i < signerList.size(); i++) {
                 SignRuSigner signer = signerList.get(i);
-                signers.add(new SignRuSignerResponse(signer.getSignerType(), signer.getSignerName()));
 
+                if(signer.getSignerType() == SignerTypeEnum.SENDER.getCode()){
+                    List<SignRuSender> senderList = ruSenderService.listBySignerId(signer.getId());
+                    if (CollUtil.isNotEmpty(senderList)){
+                        signers.add(new SignRuSignerResponse(signer.getSignerType(), signer.getSignerName()));
+                    }
+                }else{
+                    signers.add(new SignRuSignerResponse(signer.getSignerType(), signer.getSignerName()));
+                }
             }
             SysTenantInfo tenantInfo = sysTenantInfoService.getById(signRu.getSysTenantId());
             if (tenantInfo != null) {
@@ -2238,6 +2236,191 @@ public class SignRuController {
 //        if (ruTask != null && ruTask.getTaskStatus() != null && ruTask.getTaskStatus() == 2) {
 //
 //        }
+
+        return Result.OK();
+    }
+
+    // @ApiOperation("业务线实例-运行中-签署审核通过")
+    @RequestMapping(value = "/run/approve/check", method = RequestMethod.POST)
+    public Result<?> runApproveSign(@RequestBody RunRejectSignRequest request, HttpServletRequest httpServletRequest) {
+
+//        if (request.getSignConfirmOrderNo() == null || request.getSignConfirmOrderNo().length() == 0) {
+//            return Result.error("参数缺失");
+//        }
+
+        //校验是否已经完成
+        SignTaskThreadlocalVO threadlocalVO = SignTaskInfo.THREAD_LOCAL.get();
+        String signRuId = threadlocalVO.getSignRuId();
+        String taskId = threadlocalVO.getTaskId();
+        //校验是否已经完成
+        SignRu ru = ruService.getById(threadlocalVO.getSignRuId());
+        if (ru == null || ru.getStatus() == null) {
+            return Result.error("实例不存在", null);
+        }
+        //意愿校验结果
+//        Boolean checkSign = userConfirmService.checkSign(request.getSignConfirmOrderNo(), threadlocalVO.getTaskId(), ConfirmOperateType.REJECT_SIGN.getType());
+//        if (!checkSign) {
+//            return Result.error("意愿校验未通过");
+//        }
+
+        LoginUser currentUser = MySecurityUtils.getCurrentUser();
+        SignRuTask query = new SignRuTask();
+        query.setDeleteFlag(false);
+        query.setSignRuId(threadlocalVO.getSignRuId());
+        query.setTenantUserId(currentUser.getTenantUserId());
+        query.setTaskType(TaskTypeEnum.APPROVE_TASK.getCode());
+        List<SignRuTask> ruTaskList = ruTaskService.getByEntity(query);
+        if (ruTaskList == null || ruTaskList.size() == 0) {
+            return Result.error("非当前业务操作人", null);
+        }
+        Boolean finishFlag = true;
+        for (SignRuTask ruTask : ruTaskList) {
+            if (ruTask.getTaskStatus() == null || ruTask.getTaskStatus() == 1) {
+                finishFlag = false;
+            }
+        }
+        if (finishFlag) {
+            return Result.error("您已办理完成，无需重复操作", null);
+        }
+        //校验状态
+        if (!ru.getStatus().equals(SignRuStatusEnum.SIGNING.getCode())) {
+            verifyRu(ru.getStatus(), ru.getId());
+        }
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setAccountId(currentUser.getId());
+        ruOperateRecord.setTenantId(currentUser.getTenantId());
+        ruOperateRecord.setTenantUserId(currentUser.getTenantUserId());
+
+        if (threadlocalVO.getUserType() != null && threadlocalVO.getUserType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+        } else {
+            SignRuSender sender = ruSenderService.getById(threadlocalVO.getUserTaskId());
+            if (sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()) {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
+            }else if (sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.APPROVER.getCode()) {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.APPROVE.getType());
+            } else {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+            }
+        }
+
+        ruOperateRecord.setActionType(SignRecordActionTypeEnum.APPROVE_CHECK.getType());
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setIpAddr(IPUtil.getIpAddr(httpServletRequest));
+        ruOperateRecord.setTaskId(threadlocalVO.getTaskId());
+        ruOperateRecord.setConfirmOrderNo(request.getSignConfirmOrderNo());
+        ruOperateRecord.setOperateReason(request.getComment());
+        ruOperateRecordService.save(ruOperateRecord);
+
+        //驱动
+        iFlowService.complete(null, RuFlowEnum.APPROVE.getName());
+        //签署
+        ruCallbackService.callback(signRuId, taskId, SignCallbackTypeEnum.SUBMIT_APPROVE);
+        //查询下一个任务
+        SubmitResponse response = new SubmitResponse();
+        response.setRuId(signRuId);
+        SignRuTask myTask = ruService.getMyTask(signRuId);
+        if (myTask != null) {
+            response.setTaskId(myTask.getId());
+            if (myTask.getTaskType().equals(TaskTypeEnum.SIGN_TASK.getCode())) {
+                response.setTaskType("sign");
+            } else if (myTask.getTaskType().equals(TaskTypeEnum.WRITE_TASK.getCode())) {
+                response.setTaskType("write");
+            } else if (myTask.getTaskType().equals(TaskTypeEnum.APPROVE_TASK.getCode())) {
+                response.setTaskType("approve");
+            }
+        }
+        //查询是否还有任务
+        Boolean allTaskComplete = ruService.allTaskComplete(signRuId);
+        if (allTaskComplete) {
+            //完成签署
+            ruCallbackService.callback(signRuId, null, SignCallbackTypeEnum.COMPLETE);
+        }
+        return Result.OK(response);
+
+
+    }
+
+    // @ApiOperation("业务线实例-运行中-审批拒绝")
+    @RequestMapping(value = "/run/reject/check", method = RequestMethod.POST)
+    public Result<?> runRejectTask(@RequestBody RunRejectSignRequest request, HttpServletRequest httpServletRequest) {
+
+//        if (request.getSignConfirmOrderNo() == null || request.getSignConfirmOrderNo().length() == 0) {
+//            return Result.error("参数缺失");
+//        }
+
+        //校验是否已经完成
+        SignTaskThreadlocalVO threadLocalVO = SignTaskInfo.THREAD_LOCAL.get();
+        String signRuId = threadLocalVO.getSignRuId();
+        String taskId = threadLocalVO.getTaskId();
+        //校验是否已经完成
+        SignRu ru = ruService.getById(threadLocalVO.getSignRuId());
+        if (ru == null || ru.getStatus() == null) {
+            return Result.error("实例不存在", null);
+        }
+        //意愿校验结果
+//        Boolean checkSign = userConfirmService.checkSign(request.getSignConfirmOrderNo(), threadLocalVO.getTaskId(), ConfirmOperateType.REJECT_SIGN.getType());
+//        if (!checkSign) {
+//            return Result.error("意愿校验未通过");
+//        }
+
+        LoginUser currentUser = MySecurityUtils.getCurrentUser();
+        SignRuTask query = new SignRuTask();
+        query.setDeleteFlag(false);
+        query.setSignRuId(threadLocalVO.getSignRuId());
+        query.setTenantUserId(currentUser.getTenantUserId());
+        query.setTaskType(TaskTypeEnum.APPROVE_TASK.getCode());
+        List<SignRuTask> ruTaskList = ruTaskService.getByEntity(query);
+        if (ruTaskList == null || ruTaskList.size() == 0) {
+            return Result.error("非当前业务操作人", null);
+        }
+        Boolean finishFlag = true;
+        for (SignRuTask ruTask : ruTaskList) {
+            if (ruTask.getTaskStatus() == null || ruTask.getTaskStatus() == 1) {
+                finishFlag = false;
+            }
+        }
+        if (finishFlag) {
+            return Result.error("您已办理完成，无需重复操作", null);
+        }
+        //校验状态
+        if (!ru.getStatus().equals(SignRuStatusEnum.SIGNING.getCode())) {
+            verifyRu(ru.getStatus(), ru.getId());
+        }
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setAccountId(currentUser.getId());
+        ruOperateRecord.setTenantId(currentUser.getTenantId());
+        ruOperateRecord.setTenantUserId(currentUser.getTenantUserId());
+
+        if (threadLocalVO.getUserType() != null && threadLocalVO.getUserType() == SignerTypeEnum.RECEIVER_PERSONAL.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+        } else {
+            SignRuSender sender = ruSenderService.getById(threadLocalVO.getUserTaskId());
+
+            if (sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()) {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
+            }else if (sender != null && sender.getSenderType() != null && sender.getSenderType() == SenderTypeEnum.APPROVER.getCode()) {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.APPROVE.getType());
+            }else {
+                ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+            }
+        }
+
+        ruOperateRecord.setActionType(SignRecordActionTypeEnum.REJECT_CHECK.getType());
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setIpAddr(IPUtil.getIpAddr(httpServletRequest));
+        ruOperateRecord.setTaskId(threadLocalVO.getTaskId());
+        ruOperateRecord.setConfirmOrderNo(request.getSignConfirmOrderNo());
+        ruOperateRecord.setOperateReason(request.getComment());
+        ruOperateRecordService.save(ruOperateRecord);
+        //驱动
+        iFlowService.complete(null, RuFlowEnum.REJECT.getName());
+        //拒签
+        ruCallbackService.callback(signRuId, taskId, SignCallbackTypeEnum.SUBMIT_REFUSAL);
 
         return Result.OK();
     }

@@ -31,6 +31,7 @@ public enum TaskTypeEnum {
     B_SIGN_TASK("b_sign_task", "签署前审批节点"),
     INITIATE_SIGN_TASK("initiate_sign_task", "初始化签署节点"),
     SIGN_TASK("sign_task", "签署节点"),
+    APPROVE_TASK("approve_task", "审批节点"),
     FINISH_FLOW("finish_flow", "结束流程"),
     ;
 

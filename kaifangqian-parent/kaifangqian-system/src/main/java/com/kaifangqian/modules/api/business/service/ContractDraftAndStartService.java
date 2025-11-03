@@ -23,13 +23,18 @@ package com.kaifangqian.modules.api.business.service;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.api.vo.base.*;
+import com.kaifangqian.modules.api.vo.request.ContractApproveRequest;
 import com.kaifangqian.modules.api.vo.request.ContractCompleteRequest;
 import com.kaifangqian.modules.api.vo.request.ContractSignNodeRequest;
+import com.kaifangqian.modules.opensign.dto.SignTaskInfo;
+import com.kaifangqian.modules.opensign.dto.SignTaskThreadlocalVO;
 import com.kaifangqian.modules.opensign.entity.*;
 import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.business.vo.*;
+import com.kaifangqian.modules.opensign.vo.response.ru.SubmitResponse;
 import com.kaifangqian.modules.system.entity.ApiDeveloperManage;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.modules.system.entity.SysTenantUser;
@@ -40,10 +45,12 @@ import com.kaifangqian.common.system.vo.LoginUser;
 import com.kaifangqian.common.util.MySecurityUtils;
 import com.kaifangqian.modules.api.vo.request.ContractDraftRequest;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
+import com.kaifangqian.utils.IPUtil;
 import com.kaifangqian.utils.MyStringUtils;
 import com.kaifangqian.utils.UUIDGenerator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -76,16 +83,22 @@ public class ContractDraftAndStartService extends ContractService {
 //        ContractVo contractVo = new ContractVo();
         //校验操作人
         checkAndBuildOperator(request,createData);
+
         //校验到期时间
         checkAndBuildExpireDate(request,createData);
+
         //校验并且构建业务线实例数据
         checkAndBuildBase(request,createData);
+
         //校验并且构建业务线实例签约文件数据
         checkAndBuildDocList(request,createData);
+
         //校验并且构建业务线实例签署人及其签署控件数据
         checkAndBuildSignerList(request,createData);
+
         //校验模板数据
         checkAndBuildTemplate(request,createData);
+
         //保存数据
         ruDataService.createRuData(createData);
         String startRuId = createData.getRuId() ;
@@ -137,6 +150,7 @@ public class ContractDraftAndStartService extends ContractService {
      * @Param [request]
      * @return void
      **/
+    @Transactional(rollbackFor = Exception.class)
     public void addSignNode(ContractDraftRequest request){
 
         String contractId = request.getContractId();
@@ -181,6 +195,16 @@ public class ContractDraftAndStartService extends ContractService {
         //传递保存租户数据
         createData.setTenantInfo(tenantInfo);
 
+        // TODO 签署文件读取
+//        List<SignRuDoc> signRuDocList = ruDocService.listByRuId(ru.getId());
+//
+//        if(signRuDocList != null && signRuDocList.size() > 0){
+//            for(SignRuDoc ruDoc : signRuDocList){
+//                createData.getDocList().add(ruDoc);
+//            }
+//        }
+        //createData.setDocList();
+
         //校验并且构建业务线实例签署人及其签署控件数据
         checkAndBuildSignerList(request,createData);
 
@@ -189,7 +213,7 @@ public class ContractDraftAndStartService extends ContractService {
 
         //驱动
         iFlowService.complete(ru.getId(), "signActivitiFlow");
-        ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
+        //ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
 
     }
 
@@ -215,6 +239,189 @@ public class ContractDraftAndStartService extends ContractService {
         }else{
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "还存在待完成的签署任务，不能手动结束。");
         }
+
+    }
+
+    /**
+     * @Description #合同审批API接口业务处理
+     * @Param [request]
+     * @return void
+     **/
+    @Transactional(rollbackFor = Exception.class)
+    public void approveSign(ContractApproveRequest request){
+
+        ApiDeveloperManage developerManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(developerManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }
+
+        if (!ru.getSysTenantId().equals(developerManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "不属于当前用户");
+        }
+
+        // 状态合同状态是否未签署中，仅有签署中合同可进行合同审批
+        if (ru.getStatus() != null && ru.getStatus() != SignRuStatusEnum.SIGNING.getCode()){
+            // 获取合同当前状态名称
+            SignRuStatusEnum  ruStatusEnum = SignRuStatusEnum.getByCode(ru.getStatus());
+            String ruStatus = null;
+            if (ruStatusEnum != null){
+                ruStatus = ruStatusEnum.getName();
+            }
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批仅支持签署中的合同，合同id："+request.getContractId()+"状态为："+ruStatus);
+        }
+
+        // 校验合同审批人信息
+        checkContractUser(request.getSigner(),"合同审批人");
+
+        SysUser currentUser = sysUserService.getUserByName(request.getSigner().getContact());
+
+        if (currentUser == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批人：" + request.getSigner().getName() + "数据不存在");
+        }
+
+        //SysTenantUser tenantUser = tenantUserService.getPersonalTenantUser(currentUser.getId());
+
+        SysTenantUser tenantUser = tenantUserService.getTenantUser(developerManage.getTenantId(), currentUser.getId());
+
+        if (tenantUser == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批人：" + request.getSigner().getName() + "数据不存在");
+        }
+
+        //查询审批用户的审批任务
+        SignRuTask query = new SignRuTask();
+        query.setDeleteFlag(false);
+        query.setSignRuId(ru.getId());
+        query.setTenantUserId(tenantUser.getId());
+        query.setTaskType(TaskTypeEnum.APPROVE_TASK.getCode());
+        List<SignRuTask> ruTaskList = ruTaskService.getByEntity(query);
+        if (ruTaskList == null || ruTaskList.size() == 0) {
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,当前用户无审批任务");
+        }
+
+        List<String> signerIdList = ruTaskList.stream().map(SignRuTask::getUserTaskId).collect(Collectors.toList());
+
+        String taskId = null;
+        SignRuSender signRuSender = null;
+        String signTaskThreadTaskType = null;
+        String signTaskThreadUserTaskId = null;
+        Integer signTaskThreadUserType = null;
+
+        List<SignRuSender> senderList = ruSenderService.listByIds(signerIdList);
+        if(senderList == null || senderList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签署人不存在");
+        }
+
+        //String signerId = null;
+        //获取代办人信息
+        for(SignRuSender sender : senderList){
+            SignRuOperator sroQuery = new SignRuOperator();
+            sroQuery.setSignRuId(ru.getId());
+            sroQuery.setSignerId(sender.getId());
+            sroQuery.setOperateStatus(OperateStatusEnum.WAIT_TO_FINISH.getCode());
+            List<SignRuOperator> operator = ruOperatorService.getByEntity(sroQuery);
+            if(operator != null && operator.size() > 0){
+                signRuSender = sender;
+                break;
+            }
+        }
+
+        if(signRuSender == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签署人不存在");
+        }
+
+        //通过代办人，获取代办任务
+        Boolean finishFlag = true;
+        for (SignRuTask ruTask : ruTaskList) {
+            if(ruTask.getUserTaskId().equals(signRuSender.getId())){
+                taskId = ruTask.getId();
+
+                signTaskThreadTaskType = ruTask.getTaskType();
+                signTaskThreadUserTaskId = ruTask.getUserTaskId();
+                signTaskThreadUserType = ruTask.getUserType();
+
+                if (ruTask.getTaskStatus() == TaskStatusEnum.DONE.getCode()){
+                    finishFlag = true;
+                } else {
+                    finishFlag = false;
+                }
+            }
+        }
+        if (finishFlag) {
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "已办理完成，无需重复操作");
+        }
+
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setAccountId(tenantUser.getUserId());
+        ruOperateRecord.setTenantId(tenantUser.getTenantId());
+        ruOperateRecord.setTenantUserId(tenantUser.getId());
+
+        if (signRuSender != null && signRuSender.getSenderType() != null && signRuSender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
+        }else if (signRuSender != null && signRuSender.getSenderType() != null && signRuSender.getSenderType() == SenderTypeEnum.APPROVER.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.APPROVE.getType());
+        }else {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+        }
+
+        if (request.getApproval() != null && request.getApproval() == 1){
+            ruOperateRecord.setActionType(SignRecordActionTypeEnum.APPROVE_CHECK.getType());
+        }else if (request.getApproval() != null && request.getApproval() == 0){
+            ruOperateRecord.setActionType(SignRecordActionTypeEnum.REJECT_CHECK.getType());
+        }
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setIpAddr("");
+        ruOperateRecord.setTaskId(taskId);
+        ruOperateRecord.setConfirmOrderNo("");
+        ruOperateRecord.setOperateReason(request.getComment());
+        ruOperateRecordService.save(ruOperateRecord);
+
+        //存储签署任务本地线程变量
+        SignTaskThreadlocalVO threadlocalVO = new SignTaskThreadlocalVO();
+        threadlocalVO.setSignRuId(ru.getId());
+        threadlocalVO.setTaskId(taskId);
+        threadlocalVO.setTaskType(signTaskThreadTaskType);
+        threadlocalVO.setUserTaskId(signTaskThreadUserTaskId);
+        threadlocalVO.setUserType(signTaskThreadUserType);
+        SignTaskInfo.THREAD_LOCAL.set(threadlocalVO);
+
+        //存储用户信息本地线程变量
+        LoginUser loginUser = new LoginUser();
+        BeanUtils.copyProperties(currentUser, loginUser);
+        loginUser.setTenantId(tenantUser.getTenantId());
+        loginUser.setTenantUserId(tenantUser.getId());
+        MySecurityUtils.THREAD_LOCAL.set(loginUser);
+
+        //执行签署驱动
+        if (request.getApproval() != null && request.getApproval() == 1){
+            //驱动
+            iFlowService.complete(ru.getId(), RuFlowEnum.APPROVE.getName());
+            //签署
+            ruCallbackService.callback(ru.getId(), taskId, SignCallbackTypeEnum.SUBMIT_APPROVE);
+
+            //查询是否还有任务
+            Boolean allTaskComplete = ruService.allTaskComplete(ru.getId());
+            if (allTaskComplete) {
+                //完成签署
+                ruCallbackService.callback(ru.getId(), null, SignCallbackTypeEnum.COMPLETE);
+            }
+        }else if (request.getApproval() != null && request.getApproval() == 0){
+            //驱动
+            iFlowService.complete(ru.getId(), RuFlowEnum.REJECT.getName());
+            //拒签
+            ruCallbackService.callback(ru.getId(), taskId, SignCallbackTypeEnum.SUBMIT_REFUSAL);
+        }
+        SignTaskInfo.THREAD_LOCAL.remove();
+        MySecurityUtils.THREAD_LOCAL.remove();
 
     }
 
@@ -926,9 +1133,11 @@ public class ContractDraftAndStartService extends ContractService {
                         dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
 
                         if(node.getNodeType() != null && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
-
+                            dataSender.setPersonalSignAuth(node.getPersonalSignAuth());
+                            if(MyStringUtils.isNotBlank(node.getSealType())){
+                                dataSender.setSealType(node.getSealType());
+                            }
                         }
-                        dataSender.setPersonalSignAuth(node.getPersonalSignAuth());
 
                         String signConfirm = node.getSignConfirm();
                         if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1024,6 +1233,10 @@ public class ContractDraftAndStartService extends ContractService {
                     ruSender.setSenderType(SenderTypeEnum.PERSONAL.getCode());
                     ruSender.setSenderName(SenderTypeEnum.PERSONAL.getName());
                     ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                }else if(node.getNodeType().equals("APPROVER_CHECK")){
+                    ruSender.setSenderType(SenderTypeEnum.APPROVER.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.APPROVER.getName());
+                    ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
                 }
 
                 //非自动签署需要指定签署人
@@ -1049,6 +1262,7 @@ public class ContractDraftAndStartService extends ContractService {
                     String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
                     String personalSignAuth = setSignNodeConfig(node.getPersonalSignAuth(), personalSignAuthPlatform);
                     dataSender.setPersonalSignAuth(personalSignAuth);
+                    dataSender.setSealType(node.getSealType());
                 }
                 //人脸
                 String signConfirm = node.getSignConfirm();
@@ -1105,6 +1319,7 @@ public class ContractDraftAndStartService extends ContractService {
         String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
         String personalSignAuth = setSignNodeConfig(personalSinger.getPersonalSignAuth(), personalSignAuthPlatform);
         dataSigner.setPersonalSignAuth(personalSignAuth);
+        dataSigner.setSealType(personalSinger.getSealType());
         //人脸
         String signConfirm = personalSinger.getSignConfirm();
         if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1166,6 +1381,11 @@ public class ContractDraftAndStartService extends ContractService {
                 }
                 dataSigner.setAgreeSkipWillingness(contractSigner.getAgreeSkipWillingness());
                 dataSigner.setPersonalSignAuth(contractSigner.getPersonalSignAuth());
+
+                if(MyStringUtils.isNotBlank(contractSigner.getSealType())){
+                    dataSigner.setSealType(contractSigner.getSealType());
+                }
+
                 //人脸
                 String signConfirm = contractSigner.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1266,6 +1486,7 @@ public class ContractDraftAndStartService extends ContractService {
                     String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
                     String personalSignAuth = setSignNodeConfig(node.getPersonalSignAuth(), personalSignAuthPlatform);
                     dataSender.setPersonalSignAuth(personalSignAuth);
+                    dataSender.setSealType(node.getSealType());
                 }
                 //人脸
                 String signConfirm = node.getSignConfirm();
@@ -1366,6 +1587,9 @@ public class ContractDraftAndStartService extends ContractService {
                                 dataSigner.setAgreeSkipWillingness(contractInternalNode.getAgreeSkipWillingness());
                                 if(contractInternalNode.getNodeType() != null && !contractInternalNode.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getName())){
                                     dataSigner.setPersonalSignAuth(contractInternalNode.getPersonalSignAuth());
+                                    if(MyStringUtils.isNotBlank(contractInternalNode.getSealType())){
+                                        dataSigner.setSealType(contractInternalNode.getSealType());
+                                    }
                                 }
 
                                 //人脸
@@ -1506,6 +1730,8 @@ public class ContractDraftAndStartService extends ContractService {
                 signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
             }else if (request.getAutoFinish().equals(SignFinishTypeEnum.MANUAL_FINISH.getCode())){
                 signRu.setAutoFinish(SignFinishTypeEnum.MANUAL_FINISH.getCode());
+            }else {
+                signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
             }
         }else {
             signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());

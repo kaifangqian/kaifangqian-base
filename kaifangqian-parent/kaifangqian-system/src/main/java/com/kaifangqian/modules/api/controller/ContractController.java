@@ -569,6 +569,21 @@ public class ContractController {
         return ApiCommonRes.ok(signContract) ;
     }
 
+    // @ApiOperation(value = "合同签署审批", notes = "合同签署审批")
+    @PostMapping("/contract/approval")
+    @ResponseBody
+    public ApiCommonRes<?> contractSignApprove()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractApproveRequest request = JSON.parseObject(cachedRequestBody, ContractApproveRequest.class);
+
+        contractDraftAndStartService.approveSign(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
     @PostMapping("/contract/finish")
     @ResponseBody
     public ApiCommonRes<?> completeSign()  {
@@ -600,7 +615,6 @@ public class ContractController {
     @ResponseBody
     public ApiCommonRes<ContractTasksResponse> contractTasks(ContractTasksRequest request) {
 
-
         String contractId = request.getContractId();
         if(contractId == null || contractId.length() == 0){
             return ApiCommonRes.of(ApiCode.PARAM_MISSING.getCode(), MessageFormat.format(ApiCode.PARAM_MISSING.getTemplate(),"contractId"));
@@ -631,6 +645,8 @@ public class ContractController {
                         task.setTaskType("SIGN");
                     }else if(ruTask.getTaskType().equals(TaskTypeEnum.WRITE_TASK.getCode())){
                         task.setTaskType("WRITE");
+                    }else if(ruTask.getTaskType().equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                        task.setTaskType("APPROVE");
                     }
                     else {
                         continue;

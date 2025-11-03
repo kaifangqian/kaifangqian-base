@@ -194,32 +194,45 @@ public class OpensignFlowIntiConfig implements ApplicationListener<ApplicationRe
         Map<String, String> operateMap0 = new HashMap<>();
         operateMap0.put("initiateFlow", "com.kaifangqian.modules.opensign.service.cmd.InitiateFlowCmd");
         taskMap.put(TaskTypeEnum.INITIATE_FLOW.getCode(), intiTaskInfo(0, TaskTypeEnum.INITIATE_FLOW.getCode(), TaskTypeEnum.B_START_TASK.getCode(), operateMap0));
+
         Map<String, String> operateMap1 = new HashMap<>();
         operateMap1.put("startActivitiFlow", "com.kaifangqian.modules.opensign.service.cmd.StartActivitiFlowCmd");
         taskMap.put(TaskTypeEnum.B_START_TASK.getCode(), intiTaskInfo(1, TaskTypeEnum.B_START_TASK.getCode(), TaskTypeEnum.REAL_START_FLOW.getCode(), operateMap1));
+
         Map<String, String> operateMap2 = new HashMap<>();
         operateMap2.put("realStartFlow", "com.kaifangqian.modules.opensign.service.cmd.RealStartFlowCmd");
         taskMap.put(TaskTypeEnum.REAL_START_FLOW.getCode(), intiTaskInfo(2, TaskTypeEnum.REAL_START_FLOW.getCode(), TaskTypeEnum.INITIATE_WRITE_TASK.getCode(), operateMap2));
+
         Map<String, String> operateMap3 = new HashMap<>();
         operateMap3.put("initiateFillInTask", "com.kaifangqian.modules.opensign.service.cmd.InitiateFillInTaskCmd");
         taskMap.put(TaskTypeEnum.INITIATE_WRITE_TASK.getCode(), intiTaskInfo(3, TaskTypeEnum.INITIATE_WRITE_TASK.getCode(), TaskTypeEnum.INITIATE_SIGN_TASK.getCode(), operateMap3));
+
         Map<String, String> operateMap4 = new HashMap<>();
         operateMap4.put("approve", "com.kaifangqian.modules.opensign.service.cmd.ConfirmFillInCmd");
         operateMap4.put("reject", "com.kaifangqian.modules.opensign.service.cmd.RefuseFillInCmd");
         taskMap.put(TaskTypeEnum.WRITE_TASK.getCode(), intiTaskInfo(4, TaskTypeEnum.WRITE_TASK.getCode(), TaskTypeEnum.INITIATE_SIGN_TASK.getCode(), operateMap4));
+
         Map<String, String> operateMap5 = new HashMap<>();
         operateMap5.put("initiateSignTask", "com.kaifangqian.modules.opensign.service.cmd.InitiateSignTaskCmd");
         taskMap.put(TaskTypeEnum.INITIATE_SIGN_TASK.getCode(), intiTaskInfo(5, TaskTypeEnum.INITIATE_SIGN_TASK.getCode(), TaskTypeEnum.B_SIGN_TASK.getCode(), operateMap5));
+
         Map<String, String> operateMap6 = new HashMap<>();
         operateMap6.put("signActivitiFlow", "com.kaifangqian.modules.opensign.service.cmd.SignActivitiFlowCmd");
         taskMap.put(TaskTypeEnum.B_SIGN_TASK.getCode(), intiTaskInfo(6, TaskTypeEnum.B_SIGN_TASK.getCode(), TaskTypeEnum.FINISH_FLOW.getCode(), operateMap6));
+
         Map<String, String> operateMap7 = new HashMap<>();
         operateMap7.put("approve", "com.kaifangqian.modules.opensign.service.cmd.ConfirmSignCmd");
         operateMap7.put("reject", "com.kaifangqian.modules.opensign.service.cmd.RefuseSignCmd");
         taskMap.put(TaskTypeEnum.SIGN_TASK.getCode(), intiTaskInfo(7, TaskTypeEnum.SIGN_TASK.getCode(), TaskTypeEnum.FINISH_FLOW.getCode(), operateMap7));
+
         Map<String, String> operateMap8 = new HashMap<>();
         operateMap8.put("finishFlow", "com.kaifangqian.modules.opensign.service.cmd.FinishFlowCmd");
         taskMap.put(TaskTypeEnum.FINISH_FLOW.getCode(), intiTaskInfo(8, TaskTypeEnum.FINISH_FLOW.getCode(), null, operateMap8));
+
+        Map<String, String> operateMap9 = new HashMap<>();
+        operateMap9.put("approve", "com.kaifangqian.modules.opensign.service.cmd.ConfirmSignCmd");
+        operateMap9.put("reject", "com.kaifangqian.modules.opensign.service.cmd.RefuseCheckCmd");
+        taskMap.put(TaskTypeEnum.APPROVE_TASK.getCode(), intiTaskInfo(9, TaskTypeEnum.APPROVE_TASK.getCode(), TaskTypeEnum.FINISH_FLOW.getCode(), operateMap9));
     }
 
     private OpenSignTaskInfo intiTaskInfo(Integer order, String type, String nextTaskType, Map<String, String> operateMap) {

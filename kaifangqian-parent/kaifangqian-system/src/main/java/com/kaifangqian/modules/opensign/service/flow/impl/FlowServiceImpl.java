@@ -24,7 +24,7 @@ package com.kaifangqian.modules.opensign.service.flow.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.kaifangqian.modules.opensign.entity.*;
-import com.kaifangqian.modules.opensign.enums.OperateStatusEnum;
+import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.system.entity.SysAppInfo;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
@@ -51,10 +51,6 @@ import com.kaifangqian.modules.opensign.dto.OpenSignTaskInfo;
 import com.kaifangqian.modules.opensign.dto.SignTaskInfo;
 import com.kaifangqian.modules.opensign.dto.SignTaskThreadlocalVO;
 import com.kaifangqian.modules.opensign.dto.TaskCmdInfo;
-import com.kaifangqian.modules.opensign.entity.*;
-import com.kaifangqian.modules.opensign.enums.ReNoticeTypeEnum;
-import com.kaifangqian.modules.opensign.enums.SignFileEnum;
-import com.kaifangqian.modules.opensign.enums.TaskTypeEnum;
 import com.kaifangqian.modules.opensign.interceptor.SignCommand;
 import com.kaifangqian.modules.opensign.service.business.RuSignFlowService;
 import com.kaifangqian.modules.opensign.service.business.RuSignReportService;
@@ -62,7 +58,6 @@ import com.kaifangqian.modules.opensign.service.business.vo.SignReportDocFileVo;
 import com.kaifangqian.modules.opensign.service.business.vo.SignReportSignSubVO;
 import com.kaifangqian.modules.opensign.service.flow.IFlowService;
 import com.kaifangqian.modules.opensign.service.re.SignReNoticeService;
-import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.storage.service.IAnnexStorageService;
 import com.kaifangqian.modules.system.service.ISysAppInfoService;
 import com.kaifangqian.modules.system.service.ISysTenantInfoService;
@@ -153,7 +148,8 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         }
         SignTaskThreadlocalVO threadlocalVO = SignTaskInfo.THREAD_LOCAL.get();
         String taskType;
-        if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && !operate.equals("signActivitiFlow") && !operate.equals("finishFlow")) {
+        //if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && !operate.equals("signActivitiFlow") && !operate.equals("finishFlow") && !operate.equals("approve") && !operate.equals("reject")) {
+        if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && operate.equals("initiateFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = OpensignFlowIntiConfig.taskMap.get(TaskTypeEnum.INITIATE_FLOW.getCode()).getType();
         } else if (MyStringUtils.isNotBlank(threadlocalVO.getTaskType())) {
@@ -161,6 +157,9 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("signActivitiFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.B_SIGN_TASK.getCode();
+        } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && (operate.equals("reject") || operate.equals("approve"))) {
+            threadlocalVO.setSignRuId(signRuId);
+            taskType = TaskTypeEnum.APPROVE_TASK.getCode();
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("finishFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.FINISH_FLOW.getCode();
@@ -932,12 +931,12 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                                 //调用自动签署接口
                                 ruSignFlowService.autoSign(sender.getId(), 1);
                                 //修改实例-操作表状态
-                                updateRuOpetare(signRuId, sender.getId(), 3, 3);
+                                updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.RECEIVER_ENT.getCode(), OperateStatusEnum.FINISHED.getCode(), OperateTypeEnum.SIGN.getCode());
                             } else if (sender.getSenderSignType() == 2) {
                                 //创建签署任务
                                 addCompanyOutRuTask(signRuId, sender.getId(), s.getSignerName(), sender.getSenderExternalType(), sender.getSenderExternalValue(), 1);
                                 //修改实例-操作表状态
-                                updateRuOpetare(signRuId, sender.getId(), 3, 2);
+                                updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.RECEIVER_ENT.getCode(), OperateStatusEnum.WAIT_TO_FINISH.getCode(), OperateTypeEnum.SIGN.getCode());
                                 break;
                             }
                         }
@@ -950,10 +949,10 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
     @Override
     public TaskCmdInfo computeCompanyOutAndNextSignTask(String taskId, String signRuId) {
         computeCompanyOutSignTask(null, taskId, signRuId);
-        return computentNextSignTask(taskId, signRuId);
+        return computeNextSignTask(taskId, signRuId);
     }
 
-    TaskCmdInfo computentNextSignTask(String taskId, String signRuId)  {
+    TaskCmdInfo computeNextSignTask(String taskId, String signRuId)  {
         String ruSignerId = null;
         if (MyStringUtils.isNotBlank(taskId)) {
             SignRuTask signRuTask = signRuTaskService.getById(taskId);
@@ -1155,18 +1154,24 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                         }
 
                         if(isAddSignTask){
-                            if (sender.getSenderSignType() == 1) {
+                            if (sender.getSenderSignType() == SenderSignTypeEnum.AUTO.getCode()) {
                                 //创建签署任务
-                                taskId = addRuTask(signRuId, sender.getId(), null, 2);
+                                taskId = addRuTask(signRuId, sender.getId(), null, TaskStatusEnum.DONE.getCode(),TaskTypeEnum.SIGN_TASK.getCode());
                                 //调用自动签署接口
-                                ruSignFlowService.autoSign(sender.getId(), 1);
+                                ruSignFlowService.autoSign(sender.getId(), SignerTypeEnum.SENDER.getCode());
                                 //修改实例-操作表状态
-                                updateRuOpetare(signRuId, sender.getId(), 1, 3);
-                            } else if (sender.getSenderSignType() == 2) {
+                                updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.FINISHED.getCode(), OperateTypeEnum.SIGN.getCode());
+                            } else if (sender.getSenderSignType() == SenderSignTypeEnum.APPOINT.getCode() && sender.getSenderType() != 5) {
                                 //创建签署任务
-                                taskId = addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), 1);
+                                taskId = addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), TaskStatusEnum.WAIT_TO_DO.getCode(), TaskTypeEnum.SIGN_TASK.getCode());
                                 //修改实例-操作表状态
-                                updateRuOpetare(signRuId, sender.getId(), 1, 2);
+                                updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.WAIT_TO_FINISH.getCode(), OperateTypeEnum.SIGN.getCode());
+                                break;
+                            } else if (sender.getSenderSignType() == SenderSignTypeEnum.APPOINT.getCode() && sender.getSenderType() == 5) {
+                                //创建审批任务
+                                taskId = addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), TaskStatusEnum.WAIT_TO_DO.getCode(), TaskTypeEnum.APPROVE_TASK.getCode());
+                                //修改实例-操作表状态
+                                updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.WAIT_TO_FINISH.getCode(), OperateTypeEnum.APPROVE.getCode());
                                 break;
                             }
                         }
@@ -1174,7 +1179,7 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                 }
             }
         }
-        return computentNextSignTask(taskId, signRuId);
+        return computeNextSignTask(taskId, signRuId);
     }
 
     @Override
@@ -1207,18 +1212,24 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                         if (ruSenderId != null && ruSenderId.equals(sender.getId())) {
                             continue;
                         }
-                        if (sender.getSenderSignType() == 1) {
+                        if (sender.getSenderSignType() == SenderSignTypeEnum.AUTO.getCode()) {
                             //创建签署任务
-                            addRuTask(signRuId, sender.getId(), null, 2);
+                            addRuTask(signRuId, sender.getId(), null, TaskStatusEnum.DONE.getCode(),TaskTypeEnum.SIGN_TASK.getCode());
                             //调用自动签署接口
-                            ruSignFlowService.autoSign(sender.getId(), 1);
+                            ruSignFlowService.autoSign(sender.getId(), SignerTypeEnum.SENDER.getCode());
                             //修改实例-操作表状态
-                            updateRuOpetare(signRuId, sender.getId(), 1, 3);
-                        } else if (sender.getSenderSignType() == 2) {
+                            updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.FINISHED.getCode(), OperateTypeEnum.SIGN.getCode());
+                        } else if (sender.getSenderSignType() == SenderSignTypeEnum.APPOINT.getCode() && sender.getSenderType() != 5) {
                             //创建签署任务
-                            addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), 1);
+                            addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), TaskStatusEnum.WAIT_TO_DO.getCode(), TaskTypeEnum.SIGN_TASK.getCode());
                             //修改实例-操作表状态
-                            updateRuOpetare(signRuId, sender.getId(), 1, 2);
+                            updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.WAIT_TO_FINISH.getCode(), OperateTypeEnum.SIGN.getCode());
+                            break;
+                        } else if (sender.getSenderSignType() == SenderSignTypeEnum.APPOINT.getCode() && sender.getSenderType() == 5) {
+                            //创建签署任务
+                            addRuTask(signRuId, sender.getId(), sender.getSenderUserId(), TaskStatusEnum.WAIT_TO_DO.getCode(),TaskTypeEnum.APPROVE_TASK.getCode());
+                            //修改实例-操作表状态
+                            updateRuOperare(signRuId, sender.getId(), SignerTypeEnum.SENDER.getCode(), OperateStatusEnum.WAIT_TO_FINISH.getCode(), OperateTypeEnum.APPROVE.getCode());
                             break;
                         }
                     }
@@ -1669,11 +1680,11 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
 
     }
 
-    void updateRuOpetare(String signRuId, String signRuSenderId, Integer userType, Integer operateStatus) {
+    void updateRuOperare(String signRuId, String signRuSenderId, Integer userType, Integer operateStatus,Integer operateType) {
         //修改实例-用户操作表任务状态
         SignRuOperator query = new SignRuOperator();
         query.setSignRuId(signRuId);
-        query.setOperateType(2);
+        query.setOperateType(operateType);
         query.setSignerType(userType);
         query.setSignerId(signRuSenderId);
         List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);
@@ -1688,10 +1699,11 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
     }
 
     // 流程驱动过程中添加签署任务
-    String addRuTask(String signRuId, String signRuSenderId, String tenantUserId, Integer taskStatus) {
+    String addRuTask(String signRuId, String signRuSenderId, String tenantUserId, Integer taskStatus, String taskType) {
         SignRuTask task = new SignRuTask();
         task.setSignRuId(signRuId);
-        task.setTaskType(TaskTypeEnum.SIGN_TASK.getCode());
+        //task.setTaskType(TaskTypeEnum.SIGN_TASK.getCode());
+        task.setTaskType(taskType);
         task.setUserType(1);
         task.setUserTaskId(signRuSenderId);
         if (MyStringUtils.isNotBlank(tenantUserId)) {
@@ -1768,20 +1780,35 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                     Map<String, String> mappingPara2 = new HashMap<>();
                     mappingPara1.put("signRuId", signRuId);
                     mappingPara1.put("taskId", task.getId());
-                    mappingPara1.put("taskType", "sign");
+                    if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())) {
+                        mappingPara1.put("taskType", "sign");
+                    }else if(taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                        mappingPara1.put("taskType", "approval");
+                    }
+
                     mappingPara2.put("signRuId", signRuId);
                     mappingPara2.put("taskId", task.getId());
-                    mappingPara2.put("taskType", "sign");
+                    if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())) {
+                        mappingPara2.put("taskType", "sign");
+                    }else if(taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                        mappingPara2.put("taskType", "approval");
+                    }
+
                     MessageShortMapping mapping1 = new MessageShortMapping();
                     mapping1.setMegCode(code1);
+
                     MessageShortMapping mapping2 = new MessageShortMapping();
                     mapping2.setMegCode(code2);
 
                     MessageDto messageDto = new MessageDto();
                     EmailDto emailDto = new EmailDto();
+
                     messageDto.setSendType(SendType.IMMEDIATELY);
+
                     emailDto.setSendType(SendType.IMMEDIATELY);
+
                     List<String> receivers1 = new ArrayList<>();
+
                     List<String> receivers2 = new ArrayList<>();
                     if (sysUser != null && MyStringUtils.isNotBlank(sysUser.getPhone())) {
                         mappingPara1.put("phone", sysUser.getPhone());
@@ -1791,7 +1818,13 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                         if(isEcup != null && "resrun".equals(isEcup.getValue()) && sendMessageConfig != null && "true".equals(sendMessageConfig.getValue())){
                             MsgRequest msgRequest = new MsgRequest();
                             msgRequest.setPhoneNumbers(sysUser.getPhone());
-                            msgRequest.setTemplateName("signTaskIn");
+
+                            //根据不同的任务类型判断短信模板
+                            if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                                msgRequest.setTemplateName("signTaskIn");
+                            }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                                msgRequest.setTemplateName("approvalTaskIn");
+                            }
                             Map<String, String> para = new HashMap<>();
                             // todo 获取域名,补充信息
                             para.put("sender", sysTenantUser1.getNickName());
@@ -1802,15 +1835,30 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                             }
                             para.put("code", code1);
                             msgRequest.setParams(para);
-                            if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_IN_PHONE.getType())) {
-                                smsSendService.sendMsg(msgRequest);
-                                mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
-                                messageShortMappingService.save(mapping1);
+
+                            // 根据不同的任务类型判断短信发送类型
+                            if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                                if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_IN_PHONE.getType())) {
+                                    smsSendService.sendMsg(msgRequest);
+                                    mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
+                                    messageShortMappingService.save(mapping1);
+                                }
+                            }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                                if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.APPROVE_TASK_IN_PHONE.getType())) {
+                                    smsSendService.sendMsg(msgRequest);
+                                    mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
+                                    messageShortMappingService.save(mapping1);
+                                }
                             }
                         }else{
                             receivers1.add(sysUser.getPhone());
                             messageDto.setReceivers(receivers1);
-                            messageDto.setTemplateCode("signTaskIn");
+                            // 根据不同的任务类型判断短信模板
+                            if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                                messageDto.setTemplateCode("signTaskIn");
+                            }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                                messageDto.setTemplateCode("approvalTaskIn");
+                            }
                             messageDto.setContentParaMap(para1);
                             if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_IN_PHONE.getType())) {
                                 sysMessageUtil.asyncSendMessage(messageDto);
@@ -1823,19 +1871,38 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                         mappingPara2.put("email", sysUser.getEmail());
                         receivers2.add(sysUser.getEmail());
                         emailDto.setReceivers(receivers2);
-                        emailDto.setTemplateCode("email_signTaskIn");
+                        // 根据不同的任务类型判断邮件模板
+                        if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                            emailDto.setTemplateCode("email_signTaskIn");
+                        }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                            emailDto.setTemplateCode("email_approvalTask");
+                        }
                         SysAppInfo sysAppInfo = sysAppInfoService.getById("490489ab-d8b4-414c-ad77-d856962c286f");
                         if (sysAppInfo != null && sysAppInfo.getAppAddress() != null) {
                             para2.put("domain", sysAppInfo.getAppAddress());
                         }
                         emailDto.setContentParaMap(para2);
-                        if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_IN_EMAIL.getType())) {
-                            sysMessageUtil.asyncSendEmail(emailDto);
 
-                            mapping2.setMsgPara(JacksonUtil.toJson(mappingPara2));
-                            messageShortMappingService.save(mapping2);
+                        // 根据不同的任务类型判断邮件发送类型
+                        if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                            if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_IN_EMAIL.getType())) {
+                                sysMessageUtil.asyncSendEmail(emailDto);
+
+                                mapping2.setMsgPara(JacksonUtil.toJson(mappingPara2));
+                                messageShortMappingService.save(mapping2);
+                            }
+                        }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                            if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.APPROVE_TASK_IN_EMAIL.getType())) {
+                                sysMessageUtil.asyncSendEmail(emailDto);
+
+                                mapping2.setMsgPara(JacksonUtil.toJson(mappingPara2));
+                                messageShortMappingService.save(mapping2);
+                            }
                         }
+
+
                     }
+                    // 发送站内信
                     MailDto mailDto = new MailDto();
                     mailDto.setSendType(SendType.IMMEDIATELY);
 
@@ -1843,8 +1910,6 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                     List<String> userIds = Arrays.asList(task.getTenantUserId());
                     userMap.put(MesAuthType.USER, userIds);
                     mailDto.setReceivers(userMap);
-
-                    mailDto.setTemplateCode("opensign_sign");
 
                     Map<String, String> titleParaMap = new HashMap<>();
                     titleParaMap.put("contract", signRu.getSubject());
@@ -1866,7 +1931,14 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                     para3.put("from", "list");
                     para3.put("taskId", task.getId());
 
-                    buttonParaMap.put("contract_sign", para3);
+                    if(taskType.equals(TaskTypeEnum.SIGN_TASK.getCode())){
+                        mailDto.setTemplateCode("opensign_sign");
+                        buttonParaMap.put("contract_sign", para3);
+                    }else if (taskType.equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                        mailDto.setTemplateCode("opensign_approval");
+                        buttonParaMap.put("contract_approval", para3);
+                    }
+
                     mailDto.setButtonParaMap(buttonParaMap);
 
                     //发送通知
@@ -1877,6 +1949,7 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         return task.getId();
     }
 
+    //判断签署人是否可以增加签署任务
     private Boolean isHaveSignTask(String signRuId,String senderId){
         Boolean isAddSignTask = false;
         SignRuOperator opqQuery = new SignRuOperator();

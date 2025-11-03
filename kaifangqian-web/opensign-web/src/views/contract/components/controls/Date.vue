@@ -30,7 +30,7 @@
       'height:' + element.size.height + 'px']"
     >
   	<DatePicker ref="inputRef" v-model:value="element.value"
-  	:placeholder="element.format" :format="element.format" :value-format="element.format"
+  	:placeholder="element.format.toUpperCase()" :format="element.format.toUpperCase()" :value-format="element.format.toUpperCase()"
   	class="control-date-picker"
   	 :style="['width:100%;height:100%; resize: none;',  
      'font-size:'+  element.style.fontSize + 'px', 

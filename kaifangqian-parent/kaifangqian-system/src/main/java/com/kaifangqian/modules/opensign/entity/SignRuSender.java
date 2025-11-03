@@ -61,7 +61,7 @@ public class SignRuSender extends BaseEntity implements Serializable {
     // @ApiModelProperty("'发起方指定签章id'")
     private String senderSealId;
 
-    // @ApiModelProperty("'发起方盖章方式，1自动盖章，2指定位置盖章'")
+    // @ApiModelProperty("'发起方盖章方式，1自动盖章，2指定位置盖章，3审批'")
     private Integer senderSignType;
 
     // @ApiModelProperty("'发起方id，租户下用户id'")

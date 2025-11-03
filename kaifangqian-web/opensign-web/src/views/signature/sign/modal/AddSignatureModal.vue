@@ -112,8 +112,9 @@
             	</a-tab-pane>
             	<a-tab-pane :key="2" tab="手绘签名" force-render>
             		<div style="padding-bottom: 20px;">
-            			<div class="signature-box" :class="!startSignature?'signature-bg':''">
-            				<VueSignaturePad ref="signaturePad" :images="[{ src: 'A.png', x: 0, y: 0 }, { src: 'B.png', x: 0, y: 10 }, { src: 'C.png', x: 0, y: 20 }]" :options="options" />
+            			<div class="signature-box" :class="[!startSignature?'signature-bg':'']">
+            				<VueSignaturePad ref="signaturePad" :images="[{ src: 'A.png', x: 0, y: 0 }, 
+                    { src: 'B.png', x: 0, y: 10 }, { src: 'C.png', x: 0, y: 20 }]" :options="options" />
             			</div>
             		</div>
             	</a-tab-pane>
@@ -146,7 +147,7 @@
          <template #footer>
          	<div>
          		<div style="display: inline-block;width: 400px;text-align: left;"
-         			v-if="fromData.activeKey == '2'">
+         			v-if="fromData.activeKey === 2">
          			<a-button type="link" @click="undoSignature">撤销</a-button>
          			<a-button type="link" @click="clearSignature">重写</a-button>
          		</div>
@@ -248,6 +249,7 @@
       onMounted(() => {
           signatureStyleSelect(1);
       });
+      const timer = ref<any>();
       async function tabChange(activeKey:number){
       	if(activeKey == 2){
       		setTimeout(function(){
@@ -266,24 +268,19 @@
             signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
             generateQRCode(signatureUrl.value)
             connectSocket();
-            setTimeout(()=>{
+            timer.value = setTimeout(()=>{
               isQRValid.value = false;
               QRSuccess.value = false
               socket.value.close();
             },5*60*1000)
           }
-        }else{
-          QRsignatureBase64.value = '';
-          isQRValid.value = true;
-          socket.value.close();
         }
-        
-        // if(activeKey == '1'){
-        //   if(signaturePad.value){
-        //     signaturePad.value.clearSignature();
-        //     startSignature.value = false;
-        //   }
-        // }
+        activeKey !== 3?clearSocket():null;
+      }
+
+      function clearSocket(){
+        socket.value.close();
+        timer.value?clearTimeout(timer.value):null
       }
       async function signatureStyleSelect(index:number){
       	fromData.value.sealStyle = index;
@@ -440,7 +437,7 @@
         const websocketInfo =  {
             url:location.origin
         }
-        let socketUrl = websocketInfo.url.replace("https://","wss://").replace("http://","ws://") + '/resrun-paas/websocket/'+ userInfo.id + QRKey.value
+        let socketUrl = websocketInfo.url.replace('https','wss').replace('http','ws') + '/resrun-paas/websocket/'+ userInfo.id + QRKey.value
         socket.value = useWebSocketService({url:socketUrl})
         socket.value.setMessageCallback((info)=>{
           console.log(info,'接收到了推送校验信息')
@@ -449,7 +446,8 @@
           }
           if(info.type=='signature' && info.value){
             QRsignatureBase64.value = 'data:image/png;base64,' + info.value;
-            socket.value.close();
+            // socket.value.close();
+            clearSocket();
           }
         })
       }
@@ -569,7 +567,7 @@
         left:0;right: 0;
         top:0;
         bottom:0;
-        background-color: rgba(64, 64, 64, 0.8);
+        background-color: rgba(0, 0, 0, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -588,7 +586,7 @@
         left:0;right: 0;
         top:0;
         bottom:0;
-        background-color: rgba(64, 64, 64, 0.9);
+        background-color: rgba(0, 0, 0, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;

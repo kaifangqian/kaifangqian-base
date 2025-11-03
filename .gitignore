@@ -4,4 +4,6 @@
 *.iml
 *.ipr
 *.log
+
+/logs/
 /kaifangqian-parent/kaifangqian-system/src/main/resources/application-dev.yml

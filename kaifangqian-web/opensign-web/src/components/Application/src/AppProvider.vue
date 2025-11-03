@@ -27,6 +27,7 @@
   import { prefixCls } from '/@/settings/designSetting';
   import { useAppStore } from '/@/store/modules/app';
   import { MenuModeEnum, MenuTypeEnum } from '/@/enums/menuEnum';
+  import {isMobileAgent} from '/@/utils';
 
   const props = {
     /**
@@ -44,13 +45,15 @@
       const isSetState = ref(false);
 
       const appStore = useAppStore();
-
+ 
       // Monitor screen breakpoint information changes
-      createBreakpointListen(({ screenMap, sizeEnum, width }) => {
-        const lgWidth = screenMap.get(sizeEnum.LG);
-        if (lgWidth) {
-          isMobile.value = width.value - 1 < lgWidth;
-        }
+      createBreakpointListen(() => {
+      // createBreakpointListen(({ screenMap, sizeEnum, width }) => {
+        // const lgWidth = screenMap.get(sizeEnum.LG);
+        // if (lgWidth) {
+        //   isMobile.value = width.value - 1 < lgWidth;
+        // }
+        isMobile.value =  isMobileAgent();
         handleRestoreState();
       });
 
@@ -86,7 +89,16 @@
         } else {
           if (unref(isSetState)) {
             isSetState.value = false;
-            const { menuMode, menuCollapsed, menuType, menuSplit } = appStore.getBeforeMiniInfo;
+            // const { menuMode, menuCollapsed, menuType, menuSplit } = appStore.getBeforeMiniInfo;
+            const {
+              menuSetting: {
+                type: menuType,
+                mode: menuMode,
+                collapsed: menuCollapsed,
+                split: menuSplit,
+              },
+            } = appStore.getProjectConfig;
+            console.log("menuType",menuType);
             appStore.setProjectConfig({
               menuSetting: {
                 type: menuType,
@@ -107,6 +119,7 @@
             });
           }
         }
+        console.log("isMobile",isMobile.value);
       }
       return () => slots.default?.();
     },

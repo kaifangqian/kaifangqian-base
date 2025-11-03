@@ -84,6 +84,11 @@
     // padding:24px;
     margin-top:@multiple-height + 2 + 63;
 
+    // @media (min-width: 0px) and (max-width: 1000px){
+      // width: 1000px;
+      overflow: auto;
+    // }
+
     &.fixed {
       width: 1200px;
       margin: 0 auto;

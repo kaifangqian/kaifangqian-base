@@ -134,8 +134,8 @@ public class SignServiceExternalImpl implements SignServiceExternal {
                     signOrderServiceInfoResponse.setSignConfirmUrl(signRuTask.getYdAuthSignUrl());
                 } else if(signOrderStatusInfoResponse.getOrderStatus() == SignOrdeStatusResponseTypeEnum.VERIFY_SUCCESS.getCode() && signRuTask.getTaskStatus() == 2){
                     signUserConfirmService.setFlag(signUserConfirm.getId(),true);
-
-                    String token = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING,SignCommonConstant.VERIFY_SIGN_DOCUMENT+signRuTask.getId());
+                    String token = MD5Util.MD5Encode(SignCommonConstant.VERIFY_SIGN_DOCUMENT+signRuTask.getId(),"UTF-8");
+//                    String token = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING,SignCommonConstant.VERIFY_SIGN_DOCUMENT+signRuTask.getId());
                     //String bizCallbackUrl = signOrderRequest.getCallbackPage()+"?orderNo="+verifyOrderNo+"&signRuId="+signOrderRequest.getContractId();
                     String bizCallbackUrl = signOrderRequest.getCallbackPage();
                     redisUtil.set(token,bizCallbackUrl);

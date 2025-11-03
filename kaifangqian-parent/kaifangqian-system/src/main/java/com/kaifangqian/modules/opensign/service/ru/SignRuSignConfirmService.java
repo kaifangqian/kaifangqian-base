@@ -34,7 +34,7 @@ import java.util.List;
  */
 public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth);
+    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth, String sealType);
 
     SignRuSignConfirm getByParam(String signerId, String ruId);
 

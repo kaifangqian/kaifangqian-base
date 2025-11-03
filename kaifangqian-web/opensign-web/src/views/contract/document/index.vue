@@ -586,7 +586,16 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .doc-content{
-  width:1506px;
+  // width:1506px;
+  @media (min-width: 0px) and (max-width: 1280px){
+    width: 1000px;
+  }
+  @media (min-width: 1280px) and (max-width: 1536px){
+    width: 1200px;
+  }
+  @media (min-width: 1536px){
+    width: 1506px;
+  }
   margin:0 auto;
   display: flex;
   .doc-menu{
