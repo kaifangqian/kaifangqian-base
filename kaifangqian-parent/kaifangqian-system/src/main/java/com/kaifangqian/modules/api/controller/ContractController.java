@@ -570,13 +570,13 @@ public class ContractController {
     }
 
     // @ApiOperation(value = "合同签署审批", notes = "合同签署审批")
-    @PostMapping("/contract/sign/approve")
+    @PostMapping("/contract/approval")
     @ResponseBody
     public ApiCommonRes<?> contractSignApprove()  {
         String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
-        ContractDraftRequest request = JSON.parseObject(cachedRequestBody, ContractDraftRequest.class);
+        ContractApproveRequest request = JSON.parseObject(cachedRequestBody, ContractApproveRequest.class);
 
-        contractDraftAndStartService.addSignNode(request);
+        contractDraftAndStartService.approveSign(request);
 
         SignContract signContract = new SignContract();
         signContract.setContractId(request.getContractId());

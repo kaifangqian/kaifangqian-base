@@ -24,6 +24,7 @@ package com.kaifangqian.modules.opensign.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kaifangqian.modules.opensign.enums.PersonalSealTypeEnum;
 import com.kaifangqian.modules.opensign.vo.request.*;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.modules.system.entity.SysTenantUser;
@@ -50,6 +51,7 @@ import com.kaifangqian.modules.system.service.ISysTenantInfoService;
 import com.kaifangqian.modules.system.service.ISysTenantUserService;
 // import io.swagger.annotations.Api;
 // import io.swagger.annotations.ApiOperation;
+import com.kaifangqian.utils.MyStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +60,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -90,7 +93,7 @@ public class SignPersonSealController {
     // @ApiOperation("签名列表")
     @RequestMapping(value = "/list",method = RequestMethod.GET)
     public Result<IPage<PersonSealListResponse>> list(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize){
+                                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, @RequestParam(name = "sealType", required = false) String sealType){
         List<PersonSealListResponse> responseList = new ArrayList<>();
         LoginUser currentUser = MySecurityUtils.getCurrentUser();
 
@@ -115,6 +118,16 @@ public class SignPersonSealController {
         QueryWrapper<SignPersonSeal> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(BaseEntity::getDeleteFlag,false);
         wrapper.lambda().eq(SignPersonSeal::getSysTenantId,tenantId);
+        if (MyStringUtils.isNotBlank(sealType)){
+            if (sealType.equals(PersonalSealTypeEnum.TEMPLATE.getType())){
+                wrapper.lambda()
+                        .and(wrapperInner -> wrapperInner.in(SignPersonSeal::getSealType, PersonalSealTypeEnum.TEMPLATE.getType())
+                                .or()
+                                .isNull(SignPersonSeal::getSealType));
+            }else if(sealType.equals(PersonalSealTypeEnum.HAND.getType())){
+                wrapper.lambda().eq(SignPersonSeal::getSealType, PersonalSealTypeEnum.HAND.getType());
+            }
+        }
         wrapper.lambda().orderByDesc(BaseEntity::getCreateTime);
 
         Page<SignPersonSeal> page = personSealService.page(new Page<>(pageNo, pageSize), wrapper);
@@ -153,6 +166,7 @@ public class SignPersonSealController {
         LoginUser currentUser = MySecurityUtils.getCurrentUser();
         SignPersonSeal personSeal = new SignPersonSeal();
         personSeal.setSealName(request.getSealName());
+        personSeal.setSealType(request.getSealType());
         personSeal.setSysDeptId(currentUser.getDepartId());
         personSeal.setDeleteFlag(false);
 

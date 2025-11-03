@@ -148,7 +148,8 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         }
         SignTaskThreadlocalVO threadlocalVO = SignTaskInfo.THREAD_LOCAL.get();
         String taskType;
-        if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && !operate.equals("signActivitiFlow") && !operate.equals("finishFlow")) {
+        //if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && !operate.equals("signActivitiFlow") && !operate.equals("finishFlow") && !operate.equals("approve") && !operate.equals("reject")) {
+        if (MyStringUtils.isNotBlank(signRuId) && MyStringUtils.isNotBlank(operate) && operate.equals("initiateFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = OpensignFlowIntiConfig.taskMap.get(TaskTypeEnum.INITIATE_FLOW.getCode()).getType();
         } else if (MyStringUtils.isNotBlank(threadlocalVO.getTaskType())) {
@@ -156,6 +157,9 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("signActivitiFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.B_SIGN_TASK.getCode();
+        } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && (operate.equals("reject") || operate.equals("approve"))) {
+            threadlocalVO.setSignRuId(signRuId);
+            taskType = TaskTypeEnum.APPROVE_TASK.getCode();
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("finishFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.FINISH_FLOW.getCode();

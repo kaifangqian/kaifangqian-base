@@ -72,5 +72,8 @@ public class SignPersonSeal extends BaseEntity implements Serializable {
     // @ApiModelProperty("1有效，2失效")
     private Integer status ;
 
+    // @ApiModelProperty("印章生成类型：TEMPLATE：模板生成、HAND：手写签名")
+    private String sealType ;
+
 
 }

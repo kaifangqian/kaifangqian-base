@@ -43,5 +43,8 @@ public class SignNodeConfigResponse implements Serializable {
     // Personal real-name authentication configuration
     private String personalSignAuth ;
 
+    // 个人签署图片类型
+    private String sealType;
+
 
 }

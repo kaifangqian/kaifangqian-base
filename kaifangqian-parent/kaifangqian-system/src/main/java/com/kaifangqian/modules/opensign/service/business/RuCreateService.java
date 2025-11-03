@@ -231,6 +231,7 @@ public class RuCreateService {
 
                         if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                             dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                            dataSender.setSealType(senderVo.getSealType());
                         }
 
                         dataSinger.getAddSenderList().add(dataSender);
@@ -258,8 +259,10 @@ public class RuCreateService {
                         dataSender.setConfirmType(senderVo.getConfirmType());
                         dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                         dataSender.setVerifyType(senderVo.getVerifyType());
+
                         if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                             dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                            dataSender.setSealType(senderVo.getSealType());
                         }
                         dataSinger.getAddSenderList().add(dataSender);
                     }
@@ -271,6 +274,7 @@ public class RuCreateService {
                 dataSinger.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                 dataSinger.setVerifyType(signerVo.getVerifyType());
                 dataSinger.setPersonalSignAuth(signerVo.getPersonalSignAuth());
+                dataSinger.setSealType(signerVo.getSealType());
             }
             createData.getSignerList().add(dataSinger);
         }

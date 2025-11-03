@@ -1,5 +1,5 @@
 /**
- * @description 签署业务校验服务接口类
+ * @description API合同审批请求对象
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,29 +19,40 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.modules.opensign.service.ru;
+package com.kaifangqian.modules.api.vo.request;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.kaifangqian.modules.opensign.entity.SignRuSignConfirm;
+import com.kaifangqian.modules.api.base.ReqBaseVO;
+import com.kaifangqian.modules.api.vo.base.*;
+import lombok.Data;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * @Description: SignRuSignConfirmService
- * @Package: com.kaifangqian.modules.opensign.service.ru
- * @ClassName: SignRuSignConfirmService
- * @author: FengLai_Gong
+ * @Description: ContractApproveRequest
+ * @Package: com.kaifangqian.modules.api.vo.request
+ * @ClassName: ContractDraftRequest
+ * @author: resrun_Y
+ * @Date: 2025/10/30
  */
-public interface SignRuSignConfirmService extends IService<SignRuSignConfirm> {
+@Data
+public class ContractApproveRequest extends ReqBaseVO implements Serializable {
 
-    void save(String signerId,String ruId,Integer signerType , Integer isFastSign, String verifyType, String personalSignAuth, String sealType);
+    private static final long serialVersionUID = -7293700917961018375L;
 
-    SignRuSignConfirm getByParam(String signerId, String ruId);
+    //基本信息
+    // @ApiModelProperty("合同id")
+    private String contractId;
 
-    List<SignRuSignConfirm> listByParam(String ruId);
+    // 审批人
+    // @ApiModelProperty("审批人")
+    private ContractUser signer;
 
-    void delete(String signerId,String ruId);
+    // 审批原因
+    // @ApiModelProperty("审批原因")
+    private String comment;
 
-
+    // 合同审批状态0,未通过；1，通过
+    // @ApiModelProperty("合同审批状态0,不通过；1，通过")
+    private Integer approval;
 
 }

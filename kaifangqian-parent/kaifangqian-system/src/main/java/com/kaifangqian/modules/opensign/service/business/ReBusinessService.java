@@ -719,6 +719,7 @@ public class ReBusinessService {
                     dataSigner.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                     dataSigner.setSignerType(SignerTypeEnum.RECEIVER_PERSONAL.getCode());
                     dataSigner.setPersonalSignAuth(signerVo.getPersonalSignAuth());
+                    dataSigner.setSealType(signerVo.getSealType());
                 }
                 data.getAddSignerList().add(dataSigner);
             }
@@ -768,6 +769,7 @@ public class ReBusinessService {
                     dataSigner.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                     dataSigner.setSignerType(SignerTypeEnum.RECEIVER_PERSONAL.getCode());
                     dataSigner.setPersonalSignAuth(signerVo.getPersonalSignAuth());
+                    dataSigner.setSealType(signerVo.getSealType());
                 }
                 dataSigner.setReSigner(signer);
                 data.getUpdateSignerList().add(dataSigner);
@@ -922,6 +924,7 @@ public class ReBusinessService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                dataSender.setSealType(senderVo.getSealType());
                 dataSigner.getAddSenderList().add(dataSender);
             }
         }
@@ -945,6 +948,7 @@ public class ReBusinessService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                dataSender.setSealType(senderVo.getSealType());
                 dataSigner.getAddSenderList().add(dataSender);
             }
         }
@@ -986,6 +990,7 @@ public class ReBusinessService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                dataSender.setSealType(senderVo.getSealType());
                 dataSigner.getUpdateSenderList().add(dataSender);
 
             }
@@ -1012,6 +1017,7 @@ public class ReBusinessService {
                 dataSender.setVerifyType(senderVo.getVerifyType());
                 dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                 dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                dataSender.setSealType(senderVo.getSealType());
                 dataSigner.getUpdateSenderList().add(dataSender);
             }
         }
@@ -1597,6 +1603,7 @@ public class ReBusinessService {
                                 senderVo.setAgreeSkipWillingness(signReSignConfirm.getAgreeSkipWillingness());
                                 senderVo.setVerifyType(signReSignConfirm.getConfirmType());
                                 senderVo.setPersonalSignAuth(signReSignConfirm.getPersonalSignAuth());
+                                senderVo.setSealType(signReSignConfirm.getSealType());
                             }
 
 //                            if(confirmSignerIdList.contains(sender.getId())){
@@ -1618,6 +1625,7 @@ public class ReBusinessService {
                         signerVo.setAgreeSkipWillingness(signReSignConfirm.getAgreeSkipWillingness());
                         signerVo.setVerifyType(signReSignConfirm.getConfirmType());
                         signerVo.setPersonalSignAuth(signReSignConfirm.getPersonalSignAuth());
+                        signerVo.setSealType(signReSignConfirm.getSealType());
                     }
 
                 }
