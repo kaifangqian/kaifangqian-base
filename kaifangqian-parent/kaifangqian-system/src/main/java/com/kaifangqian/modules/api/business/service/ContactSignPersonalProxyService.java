@@ -49,6 +49,7 @@ import com.kaifangqian.utils.MyStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -288,8 +289,29 @@ public class ContactSignPersonalProxyService extends ContractService {
             //创建整合数据
             RuCreateData createData = new RuCreateData();
             createData.setRuId(signRu.getId());
+
+
             for(ContractPositionParam positionParam : positionParamList){
                 //校验参数
+                if (docList.size() == 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }else if (docList.size() > 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }
                 checkPositionParam(positionParam,signerNodeType);
             }
             //整合关联文档数据
