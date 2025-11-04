@@ -58,7 +58,7 @@
                         <a-input :class="[item.focus?'control-focus-item':'']" :min="0" v-if="item.controlType == ControlType.Number"  type="number" v-model:value="item.value" @change="(e)=>handleWriteChange(e, item)" :placeholder="item.value" :disabled="item.isMineFlag!=1 || isDetail"></a-input>
                         <a-textarea  :class="[item.focus?'control-focus-item':'']"  v-if="item.controlType == ControlType.MultilineText"  :auto-size="{ minRows: 2, maxRows: 5 }" :value="item.value" @change="(e)=>handleWriteChange(e, item)" :placeholder="item.value" :disabled="item.isMineFlag!=1 || isDetail"></a-textarea>
                         <a-datepicker style="width:100%"   :class="[item.focus?'control-focus-item':'']"  v-if="item.controlType == ControlType.Date" 
-                        v-model:value="item.value" format="YYYY-MM-DD" value-format="YYYY-MM-DD" 
+                        v-model:value="item.value" :format="item.format?.toUpperCase()" :value-format="item.format?.toUpperCase()" 
                         @change="(e)=>handleWriteDateChange(e, item)" placeholder="请选择日期" 
                         :disabled="item.isMineFlag!=1 || isDetail" ></a-datepicker>
                         <a-select :class="[item.focus?'control-focus-item':'']"  v-model:value="item.value" v-if="item.controlType  == ControlType.DropdownList"   :disabled="item.isMineFlag!=1 || isDetail">
@@ -196,7 +196,7 @@ export default defineComponent({
       item.value = e.target.value;
     }
     function handleWriteDateChange(e:Dayjs,item){
-      console.log(e, moment(e).format('YYYY-MM-DD'),'变更时间')
+      // console.log(item, moment(e).format(item.format),'变更时间')
       // item.value = moment(e,).format('YYYY-MM-DD');
     }
     //参数过滤

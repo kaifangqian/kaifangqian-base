@@ -387,6 +387,26 @@
                           @change="(val) => handleVerifyTypeChange(val, item)"
                         />
                       </a-space>
+                      <a-space class="flex items-center w-full" style="margin-bottom: 10px">
+                        <span>签名方式：</span>
+                        <a-tooltip :overlayStyle="{ width: '600px' }">
+                          <template #title>
+                            <p>不限制：个人签署时，不限制其签名类型</p>
+                            <p>手写签名：个人手绘的自定义签名</p>
+                            <p>模板签名：系统根据签名模板生成的电子化的个人章，例如"张三之印"</p>
+                            <!-- </div> -->
+                          </template>
+                          <Icon
+                            icon="ant-design:question-circle-outlined"
+                            style="margin-right: 10px; color: #888"
+                          />
+                        </a-tooltip>
+                        <a-radio-group v-model:value="item.sealType">
+                          <a-radio value="NOLIMIT"> 不限制 </a-radio>
+                          <a-radio value="TEMPLATE"> 模板签名 </a-radio>
+                          <a-radio value="HAND"> 手写签名 </a-radio>
+                        </a-radio-group>
+                      </a-space>
                       <a-space
                         class="flex items-center w-full"
                         style="margin-bottom: 10px"
@@ -1010,7 +1030,7 @@
       const { createMessage: msg } = useMessage();
 
       const [register, { openModal }] = useModal();
-      const [registerAccept, { openModal: openAcceptModal }] = useModal();
+      const [registerAccept, { openModal: openAcceptModal }] = useModal();1
 
       const [registerCC, { openModal: openCCModal }] = useModal();
       const [registerTpl, { openModal: openTplModal }] = useModal();
@@ -1231,6 +1251,10 @@
               item.personalSignAuth =
                 basicInfo.value.personalSignAuth === 'not_required' ? 'not_required' : 'required';
             }
+            // 未设置签名方式数据时，设置默认数据
+            if (!item.sealType) {
+              item.sealType = 'NOLIMIT';
+            }
             if (!item.senderList) {
               item.senderList = [];
             }
@@ -1242,6 +1266,10 @@
                     basicInfo.value.personalSignAuth === 'not_required'
                       ? 'not_required'
                       : 'required';
+                }
+                // 未设置签名方式数据时，设置默认数据
+                if (!v.sealType) {
+                  v.sealType = 'NOLIMIT';
                 }
               });
             }
@@ -1565,8 +1593,8 @@
           signerOrder: signerList.value.length + 1,
           senderList: [],
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
-          personalSignAuth:
-            personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
+          personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
+          sealType: 'NOLIMIT',
         });
         setSignerOrder();
       }
@@ -1687,7 +1715,7 @@
           }
         });
         signerList.value = signerList.value;
-        console.log('send', list);
+        console.log('send----', list);
       }
       function handleEdit(element) {
         element.edit = true;
@@ -1755,7 +1783,7 @@
           });
           codeTypeRuleVoList.sort((a, b) => a.contentOrder - b.contentOrder);
           subjectTypeRuleVoList.sort((a, b) => a.contentOrder - b.contentOrder);
-          console.log('333333333333333333', signerList.value);
+          // console.log('333333333333333333', signerList.value);
           signerList.value.some((item) => {
             if (item.signerType == 3) {
               signerReceiveEntNodes = item.senderList ? item.senderList.length : 0;
@@ -2501,6 +2529,14 @@
     .modal-warning {
       color: #ff4d4f;
       font-weight: bold;
+    }
+  }
+
+  .custom-tooltip-width-specific {
+    width: 600px !important;
+    .ant-tooltip-inner {
+      width: 600px !important;
+      max-width: 600px !important;
     }
   }
   // .signatory-action {

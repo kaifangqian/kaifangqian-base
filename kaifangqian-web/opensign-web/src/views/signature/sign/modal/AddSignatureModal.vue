@@ -196,7 +196,7 @@
       const fromData = ref({
         sealName:"",
         activeKey:1,
-        sealType:1,
+        sealType:"",
         addContext:1,
         sealStyle:1,
         sealStyleTem:4,
@@ -220,7 +220,7 @@
         fromData.value.activeKey = 1;
         fromData.value.annexId = "";
         fromData.value.previewImg = "";
-        fromData.value.sealType = 1;
+        fromData.value.sealType = "";
         fromData.value.addContext = 1;
         fromData.value.sealStyle = 1;
         fromData.value.sealStyleTem = 4;
@@ -321,6 +321,7 @@
           let params = {
             annexId:fromData.value.annexId,
             sealName: fromData.value.sealName,
+            sealType:"",
           }
           if(fromData.value.activeKey == 2){
             const { isEmpty, data } = signaturePad.value.saveSignature();
@@ -338,6 +339,7 @@
             const base64 = data.split(",");
             const result = await signBase64({image:base64[1]});
             params.annexId = result;
+            params.sealType = "HAND";
           }
           if(fromData.value.activeKey == 3){
             if(!QRsignatureBase64.value){
@@ -348,12 +350,15 @@
             const base64 = QRsignatureBase64.value.split(",");
             const result = await signBase64({image:base64[1]});
             params.annexId = result;
+            params.sealType = "HAND";
+          }
+          if(fromData.value.activeKey == 1){
+            params.sealType = "TEMPLATE";
           }
           const response = await signSave(params);
-          //const res = (await addSeal(sealFrom.value)) as any;
-         if(response.code == 200){
+          if(response.code == 200){
             message.success("新增签名成功！");
-             // spinning.value = false;
+              // spinning.value = false;
             // router.push("/seals/manage")
             closeModal();
             emit("success");

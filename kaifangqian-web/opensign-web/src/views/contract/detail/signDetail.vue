@@ -1012,6 +1012,7 @@
         }
       }
       async function handleCopySignLink(row) {
+        console.log('handleCopySignLink', row); 
         let appSignInfo = window.appInfo.sign_app_info;
         let result = await getCopyLinkCode({ signerId: row.id });
         if (result) {

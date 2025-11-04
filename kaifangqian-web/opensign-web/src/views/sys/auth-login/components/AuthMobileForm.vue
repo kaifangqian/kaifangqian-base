@@ -167,6 +167,8 @@
       const { validForm } = useFormValid(formRef);
       const registerCheck = ref(false);
       const {createConfirm } = useMessage();
+
+
       async function handleLogin() {
         let { VITE_GLOB_APP_CODE } = getAppEnvConfig();
 
@@ -189,9 +191,10 @@
             appCode: VITE_GLOB_APP_CODE,
           });
           if (userInfo) {
+            console.log(userInfo, '--返回的信息12--');
             emit('success', userInfo);
           } else {
-            console.log(userInfo, '--返回的信息--');
+            // console.log(userInfo, '--返回的信息--');
           }
         } catch (error) {
           // createMessage.error((error as unknown as Error).message || '网络异常');

@@ -75,7 +75,7 @@
                 <a-space :size="20">
                   <span class="sub-name" style="width: 250px;">{{item.signerName}}</span>
                   <!-- <a-tag color="success">待签署</a-tag> -->
-                  <a-tag v-if="item.writeStatus>-1" class="sign-status" :color="loadSignColor(item.writeStatus)">{{ loadWriteStatus(sender.writeStatus) }}</a-tag>
+                  <a-tag v-if="item.writeStatus>-1" class="sign-status" :color="loadSignColor(item.writeStatus)">{{ loadWriteStatus(item.writeStatus) }}</a-tag>
                 </a-space>
               </div>
               <div class="sneder-sub">

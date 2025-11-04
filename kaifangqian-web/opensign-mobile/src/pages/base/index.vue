@@ -498,16 +498,40 @@
         if (!tokenEffective.value || !appToken) {
           loginVisible.value = true;
           return;
+        }else{
+          // 已经登录
+          console.log('已经登录');
+          // 多个租户身份
+          if (selectDepart.value.depts.length > 1) {
+            let matchDepart = selectDepart.value.depts.find((item: any) => item.tenantName === partyName.value);
+              if (matchDepart) {
+                // 存在匹配身份
+                console.log('存在匹配身份');
+                handleSelectTenantSubmit(matchDepart);
+              } else{
+                // 不存在匹配身份
+                console.log('不存在匹配身份');
+                 // 从depts中选择selectFlag为true的身份自动进行登录
+                if (selectDepart.value.depts.some((item: any) => item.selectFlag)) {
+                  // 存在上次登录身份
+                  console.log('登录上次登录身份');
+                  const selectDept = selectDepart.value.depts.find((item: any) => item.selectFlag);
+                  handleSelectTenantSubmit(selectDept);
+                }else {
+                  selectDepart.value.show = true;
+                }
+              }
+          // selectDepart.value.show = true;
+          } else {
+            // 一个租户身份
+            router.push(
+              `${redirectPath.value}?taskId=${unref(taskId)}&signRuId=${unref(
+                signRuId
+              )}&callbackPage=${callbackPage}`
+            );
+          }
         }
-        if (selectDepart.value.depts.length > 1) {
-          selectDepart.value.show = true;
-        } else {
-          router.push(
-            `${redirectPath.value}?taskId=${unref(taskId)}&signRuId=${unref(
-              signRuId
-            )}&callbackPage=${callbackPage}`
-          );
-        }
+        
       }
       function quitSelectDepart(isLogout: boolean) {
         selectDepart.value.show = false;
@@ -555,24 +579,30 @@
           if (status) {
             selectDepart.value.depts = depts;
             if (depts.length > 1) {
+               // 多个租户身份
               let matchDepart = depts.find((item: any) => item.tenantName === partyName.value);
               if (matchDepart) {
+                 // 存在匹配身份
+                console.log('存在匹配身份');
                 handleSelectTenantSubmit(matchDepart);
-              } else {
-                selectDepart.value.show = true;
+              } else{
+                 // 不存在匹配身份
+                console.log('不存在匹配身份');
+                 // 从depts中选择selectFlag为true的身份自动进行登录
+                if (depts.some((item: any) => item.selectFlag)) {
+                  // 存在上次登录身份
+                  console.log('登录上次登录身份');
+                  const selectDept = depts.find((item: any) => item.selectFlag);
+                  handleSelectTenantSubmit(selectDept);
+                }else {
+                  selectDepart.value.show = true;
+                }
               }
             } else {
-              handleSelectTenantSubmit(depts[0]);
-              // router.push({
-              //     path: redirectPath.value,
-              //     query: {
-              //         taskId: unref(taskId),
-              //         signRuId: unref(signRuId)
-              //     }
-              // })
-            }
-          }
-        } catch (e) {
+                handleSelectTenantSubmit(depts[0]);
+              }
+        } 
+        }catch (e) {
           console.error('form field error:', e);
         }
       }

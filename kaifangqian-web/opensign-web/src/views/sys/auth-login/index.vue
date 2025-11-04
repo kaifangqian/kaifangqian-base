@@ -68,8 +68,8 @@
             v-if="tabKey === 'mobile-login'" 
             @success="handleLoginSuccess" 
             :partyName="urlParams.partyName"  
-            :phone="urlParams.phone" 
-            :email="urlParams.email"
+            :phone="typeof urlParams.phone === 'string' ? urlParams.phone : undefined" 
+            :email="typeof urlParams.email === 'string' ? urlParams.email : undefined"
           />
           <AuthLoginForm 
             v-else 
@@ -105,7 +105,7 @@
 
 <script lang="ts">
 import {ref, defineComponent,onMounted, watch, computed} from "vue";
-import { Tabs } from 'ant-design-vue';
+import { Step, Tabs } from 'ant-design-vue';
 import { useModal } from '/@/components/Modal';
 import AuthLoginModal from './modal/AuthLoginModal.vue';
 import AuthSelectTenant from './modal/AuthSelectTenant.vue';
@@ -125,6 +125,7 @@ import { getAppInfoById } from '/@/api/backstage';
 import { getHashQueryString, removeQueryParam } from '/@/utils';
 import { router } from '/@/router';
 import defaultLogo from '/@/assets/images/logo-sign.png';
+import User from "../../organize/User.vue";
 
 
 export default defineComponent({
@@ -159,7 +160,7 @@ export default defineComponent({
       directly:getHashQueryString('directly') || false,
       phone:getHashQueryString('phone') || '',
       email:getHashQueryString('email') || '',
-      partyName:getHashQueryString('partyName')? decodeURIComponent(getHashQueryString('partyName')) :'',
+      partyName:getHashQueryString('partyName')? decodeURIComponent(getHashQueryString('partyName') as string) :'',
       signRuId:getHashQueryString('signRuId') || '',
       taskId:getHashQueryString('taskId') || '',
       taskType:getHashQueryString('taskType') || '',
@@ -190,7 +191,7 @@ export default defineComponent({
     
     const [registerModal, { openModal,closeModal }] = useModal();
     const [registerTenantModal, { openModal:openTenantModal,closeModal:closeTenantModal }] = useModal();
-
+    const tenantList =  ref<any[]>([]);
 
     onMounted(()=>{
       init();
@@ -217,11 +218,13 @@ export default defineComponent({
 
        // 1. 登录token无效 => 登录 => 授权（登录token获取授权token）=> 可以获取 直接跳转子应用；无法获取弹框选择租户获取授权token 跳转子应用
       // 2.  登录token有效 => 授权（登录token获取授权token）=> 可以获取 直接跳转子应用；无法获取弹框选择租户获取授权token 跳转子应用
-      console.log(loginToken,'登录token')
+      // console.log(loginToken,'登录token')
       if(!loginToken){
+        console.log('authStep.value  = 1')
         authStep.value  = 1; 
         loading.value = false;
       }else{
+        console.log('authStep.value  = 2')
         authStep.value  = 2;
         getAppInfo() 
       }
@@ -251,7 +254,7 @@ export default defineComponent({
       if(urlParams.value.departId){
         getAppToken(urlParams.value.departId)
       }else{
-        authStep.value  = 2;
+        handleAuthByTenant();
       }
     }
     //获取授权token
@@ -276,16 +279,65 @@ export default defineComponent({
         msg.warning(result)
       }
     }
+
+    // 根据身份信息/选择身份信息进行授权登录
+    async function handleAuthByTenant(){ 
+      console.log(tenantList.value,'身份列表---');
+      if(tenantList.value && tenantList.value.length>1){
+        if(urlParams.value.partyName){
+          let matchDepart:any = tenantList.value.filter((u:any)=>u.tenantName == urlParams.value.partyName)
+          if(matchDepart&&matchDepart.length && typeof urlParams.value.redirect == 'string'){
+            console.log('存在匹配身份');
+            handleTenantSuccess(matchDepart[0].departId);
+            }else{
+              // 不存在匹配身份
+              console.log('不存在匹配身份');
+                // 从tenantList中选择selectFlag为true的身份自动进行登录
+              if (tenantList.value.some((item: any) => item.selectFlag)) {
+                // 存在上次登录身份
+                console.log('登录上次登录身份');
+                const selectDept = tenantList.value.find((item: any) => item.selectFlag);
+                handleTenantSuccess(selectDept.departId);
+              }else {
+                authStep.value  = 2;
+              }
+
+            }
+        }else{
+          // 从tenantList中选择selectFlag为true的身份自动进行登录
+          if (tenantList.value.some((item: any) => item.selectFlag)) {
+            // 存在上次登录身份
+            console.log('登录上次登录身份');
+            const selectDept = tenantList.value.find((item: any) => item.selectFlag);
+            handleTenantSuccess(selectDept.departId);
+          }else {
+            authStep.value  = 2;
+          }
+        }
+
+      }else if(tenantList.value && tenantList.value.length==1){
+        handleTenantSuccess(tenantList.value[0].departId);
+      }
+    }
+
+
     function changeTab(val){
       tabKey.value =  val;
     }
 
     function handleLoginSuccess(info){
-      authStep.value  = 2;
+
+      console.log(info,'登录成功')
+      tenantList.value = info.user_tenant_depart;
+      judgeUrlParams();
+
+      // authStep.value  = 2;
       // msg.success('登录成功，开始授权');
-      setTimeout(()=>{
-        getAppInfo();
-      },1000)
+      
+      // setTimeout(()=>{
+      //   getAppInfo();
+      // },1000)
+
     }
     //选择租户
     function handleTenantSuccess(departId){
@@ -318,31 +370,46 @@ export default defineComponent({
     // }
 
     async function handleAuth(){
-      if(urlParams.value.partyName){
-        let result = await getMyTenantDepartsByLoginToken({appCode:urlParams.value.appCode});
-        let accountList:any = result;
-        // result.map((v:any)=>{
-        //   accountList = [...accountList,...v.departs]
-        // })
-        let matchDepart:any = accountList.filter((u:any)=>u.tenantName == urlParams.value.partyName)
-        if(matchDepart&&matchDepart.length && typeof urlParams.value.redirect == 'string'){
-          handleTenantSuccess(matchDepart[0].departId);
+      let result = await getMyTenantDepartsByLoginToken({appCode:urlParams.value.appCode});
+      let accountList:any = result;
+      console.log(accountList,'accountList')
+      if(accountList.length > 1){
+        if(urlParams.value.partyName){
+          let matchDepart:any = accountList.filter((u:any)=>u.tenantName == urlParams.value.partyName)
+          if(matchDepart&&matchDepart.length && typeof urlParams.value.redirect == 'string'){
+            // 存在匹配身份
+            console.log('存在匹配身份');
+            handleTenantSuccess(matchDepart[0].departId);
+          }else{
+              // 不存在匹配身份
+            console.log('不存在匹配身份');
+              // 从depts中选择selectFlag为true的身份自动进行登录
+            if (accountList.some((item: any) => item.selectFlag)) {
+              // 存在上次登录身份
+              const selectDept = accountList.find((item: any) => item.selectFlag);
+              console.log('登录上次登录身份',selectDept.departId);
+              // handleTenantSuccess(selectDept);
+            }else{
+              openTenantModal(true,{
+                isUpdate:false
+              })
+            }
+          }  
+        }else{
+          // 从depts中选择selectFlag为true的身份自动进行登录
+          if (accountList.some((item: any) => item.selectFlag)) {
+            // 存在上次登录身份
+            const selectDept = accountList.find((item: any) => item.selectFlag);
+            console.log('登录上次登录身份',selectDept);
+            handleTenantSuccess(selectDept.departId);
           }else{
             openTenantModal(true,{
               isUpdate:false
-            })
-          }
-      }else{
-        let result = await getMyTenantDepartsByLoginToken({appCode:urlParams.value.appCode});
-        let accountList:any = result;
-        console.log(accountList,'accountList')
-        if(accountList.length === 1){
-          handleTenantSuccess(accountList[0].departId);
-        }else{
-          openTenantModal(true,{
-            isUpdate:false
-          })
+            })}
         }
+        
+      }else{
+        handleTenantSuccess(accountList[0].departId);
       }
     }
 
@@ -382,6 +449,7 @@ export default defineComponent({
       webCopyRight,
       websiteTitle,
       handleBack,
+      tenantList,
            
     }
   }
@@ -469,7 +537,7 @@ export default defineComponent({
       }
 
       .ant-form-item-control {
-        line-height: 40pxchangeTab
+        line-height: 40px;
       }
 
       .ant-form-explain {

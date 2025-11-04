@@ -311,6 +311,8 @@ export default defineComponent({
         
       })
       const personalSignAuth = ref('');
+      // 个人签名方式
+      const sealType = ref('NOLIMIT');
       const signControlInfo:any = ref({
         type:0,
         certType:null
@@ -479,7 +481,13 @@ export default defineComponent({
           } else {
             personalSignAuth.value = 'required';
           }
-          console.log('个人签署实名认证要求：', personalSignAuth.value);
+          // 查询该签署节点的签署要求-签名方式
+          const signNodeResult = await getSignNodeConfig({taskId});
+          if(signNodeResult && signNodeResult.sealType){
+            sealType.value = signNodeResult.sealType;
+            // console.log('个人签署签名方式：', signNodeResult.sealType);
+          }
+          
         }
     
 
@@ -1839,8 +1847,9 @@ export default defineComponent({
         }else{
           // getSignSignature()
           openSignatureModal(true,{
+            sealType:sealType.value,
             isUpdate:false,
-            recoed:{
+            record:{
 
             }
           })
@@ -2244,8 +2253,9 @@ export default defineComponent({
           }else{
             checkHasSignPos(1);
             openSignatureModal(true,{
+              sealType:sealType.value,
               isUpdate:false,
-              recoed:{}
+              record:{}
             })
           } 
         }
@@ -2650,6 +2660,7 @@ export default defineComponent({
           controlChangeFlag,
           chopStampUseFlag,
           personalSignAuth,
+          sealType,
       }  
     }
 })

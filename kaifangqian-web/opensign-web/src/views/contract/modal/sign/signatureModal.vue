@@ -46,7 +46,7 @@
                     </p>
                   </div>
             </a-tab-pane>
-            <a-tab-pane :key="2" tab="手绘签名" forceRender>
+            <a-tab-pane :key="2" tab="手绘签名" forceRender v-if="sealType == 'NOLIMIT' || sealType == 'HAND'">
               <div class="signature-qr" v-if="!QRsignatureBase64"> 
                 <div class="qr-area">
                   <img :src="signatureQC" alt="QR Code" v-if="signatureQC">
@@ -160,6 +160,7 @@
 
       const userStore = useUserStore();
       const userInfo =  userStore.getUserInfo;
+      const sealType = ref('NOLIMIT');
 
       async function generateQRCode (qrCodeData){
         try{
@@ -237,20 +238,31 @@
           canFullscreen: false,
           // getContainer: () => document.body.querySelector(`.signature`) || document.body, 
         });
+        console.log("data----------+++++",data,data.sealType);
+        sealType.value = data.sealType ? data.sealType : 'NOLIMIT';
         rowId.value = data.record?.sealId;
         signatureUrl.value = '';
         activeKey.value = 1;
         setTimeout(()=>{
           showPad.value = true;
         })
-        let res = await getSignatureList({
-            pageNo: 1,
-            pageSize: 1000
-          });
-        // console.log("signerList.value",result);
+        sealType.value = 'TEMPLATE';
+        getSignatureListByType(sealType.value);
+      });
+
+      async function getSignatureListByType(sealType: any) {
+        // NOLIMIT、TEMPLATE、HAND
+        const params = {
+          pageNo: 1,
+          pageSize: 1000
+        };
+        // 只有当sealType不是'NOLIMIT'时才添加sealType参数
+        if (sealType.value !== 'NOLIMIT') {
+          params.sealType = sealType;
+        }
+        let res = await getSignatureList(params);
         if(res && Array.isArray(res.records)){
           signerList.value = res.records;
-          
           signerList.value.map(item=>{
             item.base64 = '';
             getImgBase64ById({id:item.annexId}).then(result=>{
@@ -259,11 +271,8 @@
                 }
             })
           });
-        }else{
-          handleTabChange(2)
-          activeKey.value = 2;
         }
-      });
+      }
      
 
       function onSelectChange(selectedRowKeys: (string | number)[]) {
@@ -370,7 +379,8 @@
         handleRefresh,
         QRSuccess,QRsignatureBase64,
         reQRSignature,
-        handleClose
+        handleClose,
+        sealType,
       };
     }
   })
