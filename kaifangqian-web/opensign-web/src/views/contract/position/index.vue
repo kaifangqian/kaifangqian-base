@@ -409,31 +409,45 @@
               }
             })
             signerList.value.map((v,index)=>{
-                  if(v.signerType==1){
-                      v.senderList.forEach((m,mIndex)=>{
-                        m.colorIndex = mIndex;
-                      })
-                  }
-                  if(v.signerType==2){
-                      const temRes = signerList.value.filter(item=>item.signerType==1)
-                      let  senderLength = 0;
-                      if(temRes && temRes.length>0){
-                          senderLength = temRes[0].senderList.length;
-                      }
-                  }
-                  if(v.signerType == 3){
-                      const temRes = signerList.value.filter(item=>item.signerType==1)
-                      let  senderLength = 0;
-                      if(temRes && temRes.length>0){
-                          senderLength = temRes[0].senderList.length;
-                      }
-                      let  receivePersonalLength = signerList.value.filter(item=>item.signerType==2).length;
-                      v.senderList.forEach((m,mIndex)=>{
-                          m.colorIndex = senderLength + receivePersonalLength + mIndex;
-                      })
-                  }
-              })
+              if(v.signerType==1){
+                v.senderList.forEach((m,mIndex)=>{
+                  m.colorIndex = mIndex;
+                })
+              }
+              if(v.signerType==2){
+                const temRes = signerList.value.filter(item=>item.signerType==1)
+                let  senderLength = 0;
+                if(temRes && temRes.length>0){
+                    senderLength = temRes[0].senderList.length;
+                }
+              }
+              if(v.signerType == 3){
+                const temRes = signerList.value.filter(item=>item.signerType==1)
+                let  senderLength = 0;
+                if(temRes && temRes.length>0){
+                    senderLength = temRes[0].senderList.length;
+                }
+                let  receivePersonalLength = signerList.value.filter(item=>item.signerType==2).length;
+                v.senderList.forEach((m,mIndex)=>{
+                    m.colorIndex = senderLength + receivePersonalLength + mIndex;
+                })
+              }
+            })
           }
+        }
+
+        function initWriterParty(){
+          // 如果只有一方，直接将所有控件设置为当前一方进行填写
+          if(signerList.value && signerList.value.length == 1){
+              console.log("开始设置",documentList.value.activeControl,signerList.value[0].id);
+              documentList.value.forEach((item:any)=>{
+                if(item.activeControl){
+                  item.activeControl.forEach(element => {
+                    element.signerId = signerList.value[0].id;
+                  });
+                }
+              })
+            }
         }
   
   
@@ -685,6 +699,7 @@
                   setDocumentList(docs.value[i], matchControl?.controls || []);
               }
   
+              initWriterParty();
   
               // controlList.value = controlList.value.concat(allControls);
               if (unref(isDetail)) {
@@ -869,7 +884,7 @@
                         // format:(item.controlType=='sign-date'?item.format:'yyyy年MM月dd日') || 'yyyy年MM月dd日',
                         format: item.controlType === 'sign-date' 
                                     ? (item.format && item.format.trim() ? item.format : 'yyyy年MM月dd日')
-                                    : '',
+                                    : item.format,
                         colorIndex:item.colorIndex,
                         fontSize:parseInt(item.fontSize),
                         fontFamily:item.fontFamily,

@@ -50,11 +50,12 @@ public class WatermarkUtil {
 
     public static void main(String[] args) {
         try {
-            byte[] bytes = IOUtils.toByteArray(new FileInputStream(new File("/Users/kaifangqian/test/personal0826.jpg")));
+            byte[] bytes = IOUtils.toByteArray(new FileInputStream(new File("E://work//tem//1.png")));
 //            byte[] bytes = IOUtils.toByteArray(new FileInputStream(new File("/Users/kaifangqian/file/zyld.png")));
 //            byte[] bytes = IOUtils.toByteArray(new FileInputStream(new File("/Users/kaifangqian/test/zyld_water10.jpg")));
 
-            byte[] watermark = watermark(bytes, "仅用于签署记录报告","/Users/kaifangqian/file/simsun.ttf");
+//            byte[] watermark = watermark(bytes, "仅用于签署记录报告","/Users/kaifangqian/file/simsun.ttf");
+            byte [] watermark = WatermarkUtil.watermark(bytes,"仅用于文档验签",26,"png");
 //            byte[] watermark = watermark(bytes, "仅用于签署记录报告",45);
 //            byte[] watermark = test(bytes, "仅用于签署记录报告");
 //            byte[] watermark = watermark(bytes, "仅用于签署记录报告",100,10);
@@ -74,7 +75,7 @@ public class WatermarkUtil {
 
 //            byte[] resize = resize5(bytes, 100);
 //            resizeImage("/Users/kaifangqian/file/zyld.png","/Users/kaifangqian/test/zyld_water54.jpg", 100,100);
-            IOUtils.write(watermark,new FileOutputStream(new File("/Users/kaifangqian/test/0826——0004.jpg")));
+            IOUtils.write(watermark,new FileOutputStream(new File("E://work//tem//0826——0004.png")));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -325,9 +326,11 @@ public class WatermarkUtil {
         }
     }
 
-
-
     public static byte[] watermark(byte[] image,String context,Integer fontSize){
+        return watermark(image,context,fontSize,"jpg");
+    }
+
+    public static byte[] watermark(byte[] image,String context,Integer fontSize,String imgType){
         byte[] waterMark = image ;
 
         try {
@@ -344,8 +347,7 @@ public class WatermarkUtil {
             //消除锯齿
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // 绘制原始图片
-            graphics.drawImage(read, 0, 0, imgWidth, imgHeight, null);
+
 
             // 添加文字水印：
             // 根据图片的背景设置水印颜色
@@ -353,20 +355,35 @@ public class WatermarkUtil {
             // 设置字体  画笔字体样式为微软雅黑，加粗，文字大小为45pt
             graphics.setFont(new Font("宋体", Font.BOLD, fontSize));
             // 设置水印的坐标(为原图片中间位置)
-            int x = (imgWidth - getWatermarkLength(context, graphics)) / 2;
-            int y = imgHeight / 2;
+//            int x = (imgWidth - getWatermarkLength(context, graphics)) / 2;
+            int row = imgHeight<100 ? 2 :3;
+
+            int h = imgHeight / (row-1);
+
+
+
+//            graphics.rotate(Math.toRadians(45), imgWidth/2,imgHeight/2);
+            context = context + "    " + context + "    " +context+ "    ";
+
+//            graphics.drawString(context,  30  , -2 * h);
+//            graphics.drawString(context,  30  , -1 * h);
+
             // 画出水印 第一个参数是水印内容，第二个参数是x轴坐标，第三个参数是y轴坐标
-            graphics.drawString(context, x, y);
+            for (int i=0;i<row;i++){
+                graphics.drawString(context,  0  ,  fontSize + i* (h-fontSize));
+            }
+            // 绘制原始图片
+            graphics.drawImage(read, 0, 0, imgWidth, imgHeight, null);
 
             graphics.dispose();
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 //            ImageIO.write(bufImg, "png", outputStream);
-            ImageIO.write(bufImg, "jpg", outputStream);
+            ImageIO.write(bufImg, imgType, outputStream);
 
             waterMark = outputStream.toByteArray();
         } catch (Exception e) {
-
+e.printStackTrace();
         }
 
 
