@@ -598,6 +598,22 @@ public class ContractController {
         return ApiCommonRes.ok(signContract) ;
     }
 
+    @PostMapping("/contract/recall")
+    @ResponseBody
+    public ApiCommonRes<?> recallSign()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractRecallRequest request = JSON.parseObject(cachedRequestBody, ContractRecallRequest.class);
+
+        contractDraftAndStartService.recallSign(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
+
+
 
 
 

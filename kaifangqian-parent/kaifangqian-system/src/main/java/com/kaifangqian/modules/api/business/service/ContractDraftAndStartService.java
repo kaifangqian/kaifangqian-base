@@ -26,9 +26,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.api.vo.base.*;
-import com.kaifangqian.modules.api.vo.request.ContractApproveRequest;
-import com.kaifangqian.modules.api.vo.request.ContractCompleteRequest;
-import com.kaifangqian.modules.api.vo.request.ContractSignNodeRequest;
+import com.kaifangqian.modules.api.vo.request.*;
 import com.kaifangqian.modules.opensign.dto.SignTaskInfo;
 import com.kaifangqian.modules.opensign.dto.SignTaskThreadlocalVO;
 import com.kaifangqian.modules.opensign.entity.*;
@@ -43,7 +41,6 @@ import com.kaifangqian.common.base.entity.BaseEntity;
 import com.kaifangqian.common.constant.ApiCode;
 import com.kaifangqian.common.system.vo.LoginUser;
 import com.kaifangqian.common.util.MySecurityUtils;
-import com.kaifangqian.modules.api.vo.request.ContractDraftRequest;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
 import com.kaifangqian.utils.IPUtil;
 import com.kaifangqian.utils.MyStringUtils;
@@ -170,6 +167,8 @@ public class ContractDraftAndStartService extends ContractService {
         //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
         SignRu ru = ruService.getById(request.getContractId());
 
+
+
         if (ru == null){
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
         }else if (ru != null && ru.getStatus() == SignRuStatusEnum.DONE.getCode()){
@@ -178,15 +177,21 @@ public class ContractDraftAndStartService extends ContractService {
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"追加签署方接口仅支持签署完成类型为手动结束，如需追加签署方，请检查合同发起接口autoFinish字段值是否为0");
         }
 
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
         //创建整合数据
         RuCreateData createData = new RuCreateData();
 
         createData.setRuId(ru.getId());
 
-        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
-        if(apiDeveloperManage == null){
-            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
-        }
 
         SysTenantInfo tenantInfo = tenantInfoService.getById(apiDeveloperManage.getTenantId());
         if(tenantInfo == null){
@@ -239,6 +244,12 @@ public class ContractDraftAndStartService extends ContractService {
 
     }
 
+    /**
+     * @Description #签署完成
+     * @Param [request]
+     * @return void
+     **/
+    @Transactional(rollbackFor = Exception.class)
     public void completeSign(ContractCompleteRequest request){
 
         //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
@@ -252,6 +263,16 @@ public class ContractDraftAndStartService extends ContractService {
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "的签署结束类型为系统自动结束，不能手动结束。");
         }
 
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
         //查询是否还有任务
         Boolean allTaskComplete = ruService.allTaskComplete(ru.getId());
         if (allTaskComplete) {
@@ -261,6 +282,66 @@ public class ContractDraftAndStartService extends ContractService {
         }else{
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "还存在待完成的签署任务，不能手动结束。");
         }
+
+    }
+
+    /**
+     * 签署撤回
+     * @param request
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void recallSign(ContractRecallRequest request){
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }
+
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
+        if (SignRuStatusEnum.APPROVING.getCode().equals(ru.getStatus()) || SignRuStatusEnum.WRITING.getCode().equals(ru.getStatus()) ||
+                SignRuStatusEnum.SIGNING.getCode().equals(ru.getStatus()) ) {
+            ru.setStatus(SignRuStatusEnum.REVOKE.getCode());
+            boolean b = ruService.updateById(ru);
+            if (!b) {
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"合同签署撤回失败");
+            }
+        }else {
+            SignRuStatusEnum statusEnum = SignRuStatusEnum.getByCode(ru.getStatus());
+            if (statusEnum == null) {
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"实例异常，状态不存在");
+            }
+
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"实例状态为"+ statusEnum.getName() + ",不可撤回");
+        }
+
+        LoginUser currentUser = MySecurityUtils.getCurrentUser();
+
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setAccountId(currentUser.getId());
+        ruOperateRecord.setTenantId(currentUser.getTenantId());
+        ruOperateRecord.setTenantUserId(currentUser.getTenantUserId());
+        ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.REVOKE.getType());
+        ruOperateRecord.setActionType(SignRecordActionTypeEnum.REVOKE.getType());
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecordService.save(ruOperateRecord);
+        //撤回合同
+        ruCallbackService.callback(ru.getId(), "", SignCallbackTypeEnum.RECALLED);
+
+        //清空本地变量
+        MySecurityUtils.THREAD_LOCAL.remove();
 
     }
 
@@ -286,7 +367,7 @@ public class ContractDraftAndStartService extends ContractService {
         }
 
         if (!ru.getSysTenantId().equals(developerManage.getTenantId())){
-            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "不属于当前用户");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
         }
 
         // 状态合同状态是否未签署中，仅有签署中合同可进行合同审批

@@ -100,6 +100,7 @@ public class ApiSignThreadLocalAop {
         ProcTaskInfo.THREAD_LOCAL.remove();
         HttpServletRequest request = RequestHolder.getHttpServletRequest();
         request.setAttribute(ApiConstants.FROM_TYPE, ApiConstants.FROM_API);
+        String path =request.getRequestURI() ;
         String sign = request.getHeader(ApiConstants.SIGN);
         String operatorAccount = null;
         String uniqueCode = null;
@@ -203,6 +204,11 @@ public class ApiSignThreadLocalAop {
                 }
             }
 
+        }else if (MyStringUtils.isBlank(operatorAccount) && path.equals("/resrun-paas/kaifangqian/openAPI/V2/contract/recall")) {
+            ApiDeveloperManage developerManage = apiDeveloperManageService.getByToken(token);
+            LoginUser loginUser = new LoginUser();
+            loginUser.setTenantId(developerManage.getTenantId());
+            MySecurityUtils.THREAD_LOCAL.set(loginUser);
         }
 
         //初始化数据
