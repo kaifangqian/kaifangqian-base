@@ -56,7 +56,7 @@
                       <div class="params-select">
                         <!-- <span>填写方：</span> -->
                         <!-- <a-select :allowClear="true" :disabled="(item.originType == 1 && item.signerId)?true:false" v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select> -->
-                        <a-select :allowClear="true"  v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select>
+                        <a-select :allowClear="true" placeholder="请选择填写方" v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select>
                       </div>
                     </div>
                   </div>

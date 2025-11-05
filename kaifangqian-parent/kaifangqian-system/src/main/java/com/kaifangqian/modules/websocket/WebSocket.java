@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
@@ -73,6 +74,13 @@ public class WebSocket {
             log.info("【websocket消息】连接断开，总数为:" + sessionPool.size());
         } catch (Exception e) {
         }
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+//        System.err.println("WebSocket error occurred: " + throwable.getMessage());
+//        throwable.printStackTrace();
+        // 在这里可以添加更多的错误处理逻辑，如记录日志、发送错误通知等
     }
 
 

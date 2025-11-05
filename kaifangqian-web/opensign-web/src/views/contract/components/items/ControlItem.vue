@@ -1007,6 +1007,7 @@ export default defineComponent({
       if (props.element.controlType == ControlType.SignDate && props.isSign) {
         props.element.today = getTodayDateByFormat(props.element.format);
       }
+      console.log(props.element.controlType,props.element);
     }
     function addSeal(seal: any) {
       //props.element.dataId = dataId;
