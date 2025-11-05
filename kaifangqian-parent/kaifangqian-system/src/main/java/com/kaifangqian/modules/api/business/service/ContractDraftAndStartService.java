@@ -48,6 +48,7 @@ import com.kaifangqian.modules.storage.entity.AnnexStorage;
 import com.kaifangqian.utils.IPUtil;
 import com.kaifangqian.utils.MyStringUtils;
 import com.kaifangqian.utils.UUIDGenerator;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -182,7 +183,6 @@ public class ContractDraftAndStartService extends ContractService {
 
         createData.setRuId(ru.getId());
 
-
         ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
         if(apiDeveloperManage == null){
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
@@ -196,14 +196,36 @@ public class ContractDraftAndStartService extends ContractService {
         createData.setTenantInfo(tenantInfo);
 
         // TODO 签署文件读取
-//        List<SignRuDoc> signRuDocList = ruDocService.listByRuId(ru.getId());
-//
-//        if(signRuDocList != null && signRuDocList.size() > 0){
-//            for(SignRuDoc ruDoc : signRuDocList){
-//                createData.getDocList().add(ruDoc);
-//            }
-//        }
-        //createData.setDocList();
+        //解析签署位置集合数据，追加到签署人原有签署控件上，保存控件数据
+        //校验签约文件数据
+        List<SignRuDoc> docList = ruDocService.listByRuId(ru.getId());
+        if(docList == null || docList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件不存在");
+        }
+        List<SignRuDocOperate> ruDocOperateList = ruDocOperateService.listByRuId(ru.getId());
+        if(ruDocOperateList == null || ruDocOperateList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件不存在");
+        }
+
+        // 构建代签署文档关联信息
+        if (request.getSignerList() != null && request.getSignerList().size() > 0){
+            for (ContractSigner signer : request.getSignerList()) {
+                List<ContractPositionParam> positionParamList = null;
+
+                if(SignerTypeEnum.SENDER.getApiName().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getApiName().equals(signer.getSignerType())){
+                    for (ContractInternalNode internalNode : signer.getInternalNodeList()){
+                        positionParamList = internalNode.getPositionParamList();
+
+                        if (!internalNode.getNodeType().equals(SenderTypeEnum.APPROVER.getApiName())){
+                            buildDocRelationInfo(docList,ruDocOperateList,positionParamList,createData);
+                        }
+                    }
+                }else if(SignerTypeEnum.RECEIVER_PERSONAL.getApiName().equals(signer.getSignerType())){
+                    positionParamList = signer.getPositionParamList();
+                    buildDocRelationInfo(docList,ruDocOperateList,positionParamList,createData);
+                }
+            }
+        }
 
         //校验并且构建业务线实例签署人及其签署控件数据
         checkAndBuildSignerList(request,createData);
@@ -787,6 +809,7 @@ public class ContractDraftAndStartService extends ContractService {
 
     public void checkAndBuildSignerList(ContractDraftRequest request,RuCreateData createData){
         SignRe re = reService.getById(request.getSignReId());
+
         if(re != null && re.getSignerType() == SignReSignerTypeEnum.RULE.getCode()){
             //校验签署人列表
             List<SignReSigner> reSignerList = reSignerService.listByReId(request.getSignReId());
@@ -1147,6 +1170,17 @@ public class ContractDraftAndStartService extends ContractService {
                         }
                         if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
                             for(ContractPositionParam positionParam : node.getPositionParamList()){
+                                if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                        positionParam.setRelationDocList(relationDocList);
+                                    }
+                                }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                        positionParam.setRelationDocList(relationDocList);
+                                    }
+                                }
                                 checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
                             }
                         }
@@ -1274,6 +1308,17 @@ public class ContractDraftAndStartService extends ContractService {
                 //控件数据
                 if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
                     for(ContractPositionParam positionParam : node.getPositionParamList()){
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
                         checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
                     }
                 }
@@ -1330,6 +1375,18 @@ public class ContractDraftAndStartService extends ContractService {
         //控件数据
         if(personalSinger.getPositionParamList() != null && personalSinger.getPositionParamList().size() > 0){
             for(ContractPositionParam contractPositionParam : personalSinger.getPositionParamList()){
+                if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                    if (contractPositionParam.getRelationDocList() == null || contractPositionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                        contractPositionParam.setRelationDocList(relationDocList);
+                    }
+                }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                    if (contractPositionParam.getRelationDocList() == null || contractPositionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                        contractPositionParam.setRelationDocList(relationDocList);
+                    }
+                }
+
                 checkAndBuildSignControlList(contractPositionParam,createData,ruSigner.getId(),personalSinger.getSignerType());
             }
         }
@@ -1375,6 +1432,17 @@ public class ContractDraftAndStartService extends ContractService {
                 //控件数据
                 if(contractSigner.getPositionParamList() != null && contractSigner.getPositionParamList().size() > 0){
                     for(ContractPositionParam positionParam : contractSigner.getPositionParamList()){
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
                         checkAndBuildSignControlList(positionParam,createData,ruSigner.getId(),contractSigner.getSignerType());
                     }
 
@@ -1498,6 +1566,19 @@ public class ContractDraftAndStartService extends ContractService {
                 //控件数据
                 if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
                     for(ContractPositionParam positionParam : node.getPositionParamList()){
+
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
+
                         checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
                     }
                 }
@@ -1601,6 +1682,17 @@ public class ContractDraftAndStartService extends ContractService {
                                 }
                                 if(contractInternalNode.getPositionParamList() != null && contractInternalNode.getPositionParamList().size() > 0){
                                     for(ContractPositionParam positionParam : contractInternalNode.getPositionParamList()){
+                                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                                positionParam.setRelationDocList(relationDocList);
+                                            }
+                                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                                positionParam.setRelationDocList(relationDocList);
+                                            }
+                                        }
                                         checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),contractInternalNode.getNodeType());
                                     }
                                 }
@@ -1627,6 +1719,14 @@ public class ContractDraftAndStartService extends ContractService {
         }
     }
 
+    private static @NotNull List<ContractRelationDoc> getContractRelationDocs(RuCreateData createData) {
+        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+        ContractRelationDoc relationDoc =new ContractRelationDoc();
+        relationDoc.setDocId(createData.getDocList().get(0).getRuDoc().getId());
+        relationDoc.setDocType(String.valueOf(createData.getDocList().get(0).getRuDoc().getDocType()));
+        relationDocList.add(relationDoc);
+        return relationDocList;
+    }
 
 
     /**
@@ -1851,6 +1951,89 @@ public class ContractDraftAndStartService extends ContractService {
             }
         }
         return finalPersonalSignAuth;
+    }
+
+    private void buildDocRelationInfo(List<SignRuDoc> docList,List<SignRuDocOperate> ruDocOperateList,List<ContractPositionParam> positionParamList, RuCreateData createData){
+        if (positionParamList != null && positionParamList.size() > 0){
+            for (ContractPositionParam positionParam : positionParamList) {
+                if (docList.size() == 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getDocOriginId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }else if (docList.size() > 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getDocOriginId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }
+
+                List<ContractRelationDoc> relationDocList = positionParam.getRelationDocList();
+                for(ContractRelationDoc contractRelationDoc : relationDocList){
+                    String docId = null ;
+                    SignRuDoc ruDataRuDoc = null ;
+                    byte[] fileByte = null ;
+                    String annexId = null ;
+                    if(contractRelationDoc.getDocType().equals("1")){
+                        //上传的
+                        for(SignRuDoc ruDoc : docList){
+                            if(ruDoc.getDocOriginId().equals(contractRelationDoc.getDocId())){
+                                ruDataRuDoc = ruDoc ;
+                                docId = ruDoc.getId();
+                                for(SignRuDocOperate ruDocOperate : ruDocOperateList){
+                                    if(ruDocOperate.getDocId().equals(docId) && ruDocOperate.getIsCurrent() == SignCurrentEnum.IS_CURRENT.getCode()){
+                                        annexId = ruDocOperate.getAnnexId();
+                                    }
+                                }
+                            }
+                        }
+                    }else {
+                        //模板
+                        for(SignRuDoc ruDoc : docList){
+                            if(ruDoc.getDocOriginId().equals(contractRelationDoc.getDocId())) {
+                                docId = ruDoc.getId() ;
+                                ruDataRuDoc = ruDoc ;
+                                Date time = null ;
+                                for(SignRuDocOperate ruDocOperate : ruDocOperateList){
+                                    if(ruDocOperate.getDocId().equals(ruDoc.getId()) && ruDocOperate.getIsCurrent() == SignCurrentEnum.NOT_CURRENT.getCode()){
+                                        if(time == null){
+                                            time = ruDocOperate.getCreateTime();
+                                            annexId = ruDocOperate.getAnnexId();
+                                        }
+                                        if(ruDocOperate.getCreateTime().before(time)){
+                                            time = ruDocOperate.getCreateTime();
+                                            annexId = ruDocOperate.getAnnexId();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(annexId == null){
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,关联文档不存在");
+                    }
+                    fileByte = signFileService.getByteById(annexId);
+                    if(docId == null || ruDataRuDoc == null || fileByte == null){
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,关联文档不存在");
+                    }
+                    //关联关系
+                    createData.getAddDocAnnex2RuDocMap().put(contractRelationDoc.getDocId(),docId);
+                    //文档数据
+                    RuDataDoc ruDataDoc = new RuDataDoc();
+                    ruDataDoc.setRuDoc(ruDataRuDoc);
+                    ruDataDoc.setFileByte(fileByte);
+                    createData.getDocList().add(ruDataDoc);
+                }
+            }
+        }
     }
 
 

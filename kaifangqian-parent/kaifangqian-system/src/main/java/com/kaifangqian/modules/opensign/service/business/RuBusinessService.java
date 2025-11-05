@@ -211,6 +211,13 @@ public class RuBusinessService {
     @Autowired
     private SignServiceManageExternal signServiceManageExternal ;
 
+
+    @Autowired
+    private SignRuKeywordService ruKeywordService ;
+
+    @Autowired
+    private SignRuKeywordPropertyService ruKeywordPropertyService ;
+
     @Value("${service.app-id}")
     private String appId ;
 
@@ -1069,7 +1076,8 @@ public class RuBusinessService {
         //获取签约文件列表
         List<SignRuDoc> docList = ruDocService.listByRuId(ruId);
         if(docList == null || docList.size() == 0){
-            throw new PaasException("签约文件为空");
+            //throw new PaasException("签约文件为空");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"未查询到签署文件，请确认业务线是否设置了签署文件，或确认是否已通过API上次文件。");
         }
         //获取所有控件类型列表
         List<String> writeList = ControlTypeEnum.getWriteList();
@@ -1086,27 +1094,33 @@ public class RuBusinessService {
 //                    throw new PaasException("控件关联签约文档为空");
 //                }
                 if(signRuDocControl.getControlType() == null || signRuDocControl.getControlType().length() == 0){
-                    throw new PaasException("控件类型为空");
+                    //throw new PaasException("控件类型为空");
+                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"控件类型为空");
+
                 }
                 if(signRuDocControl.getSignerId() == null || signRuDocControl.getSignerId().length() == 0){
                     if(ControlTypeEnum.getWriteList().contains(signRuDocControl.getControlType())){
                         if(signRuDocControl.getIsRequired() != null && signRuDocControl.getIsRequired().equals(ControlIsRequiredEnum.IS.getCode())){
-                            throw new PaasException("模板参数填写方未全部设置");
+                            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"模板参数填写方未全部设置");
+                            //throw new PaasException("模板参数填写方未全部设置");
                         }
                     }else {
-                        throw new PaasException("签署方未全部设置");
+                        //throw new PaasException("签署方未全部设置");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署方未全部设置");
                     }
                 }
 
                 if(signRuDocControl.getControlType().equals(ControlTypeEnum.SIGN_DATE.getName())){
                     if(signRuDocControl.getFormat() == null || signRuDocControl.getFormat().length() == 0){
-                        throw new PaasException("签署日期控件-时间格式不能为空");
+                        //throw new PaasException("签署日期控件-时间格式不能为空");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署方未全部设置");
                     }
                     try {
                         SimpleDateFormat signDateFormat = new SimpleDateFormat(signRuDocControl.getFormat());
                         signDateFormat.format(new Date());
                     }catch (Exception e){
-                        throw new PaasException("签署日期控件-时间格式错误：" + signRuDocControl.getFormat());
+                        throw new RequestParamsException(ApiCode.PARAM_FORMAT_ERROR,"签署日期控件-时间格式错误");
+                        //throw new PaasException("签署日期控件-时间格式错误：" + signRuDocControl.getFormat());
                     }
                 }
                 if(writeList.contains(signRuDocControl.getControlType())){
@@ -1120,12 +1134,14 @@ public class RuBusinessService {
         //获取签署人列表
         List<SignRuSigner> singerList = signerService.listByRuId(ruId);
         if(singerList == null || singerList.size() == 0){
-            throw new PaasException("签署人为空");
+            //throw new PaasException("签署人为空");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署人为空");
         }
         //单号生成
         SignRu ru = ruService.getById(ruId);
         if(ru == null){
-            throw new PaasException("业务线实例不存在");
+            //throw new PaasException("业务线实例不存在");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务线实例不存在");
         }
 
         //根据发起人、接受人、控件列表计算操作人
@@ -1140,7 +1156,8 @@ public class RuBusinessService {
                             //如果为必填项，则必须有值
                             if(signRuDocControl.getIsRequired() != null && signRuDocControl.getIsRequired().equals(ControlIsRequiredEnum.IS.getCode())){
                                 if(signRuDocControl.getValue() == null || signRuDocControl.getValue().length() == 0){
-                                    throw new PaasException("文档参数内容未填写完成，请完善");
+                                    //throw new PaasException("文档参数内容未填写完成，请完善");
+                                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"文档参数内容未填写完成，请完善");
                                 }
                                 //如果是时间控件
                                 if(signRuDocControl.getControlType().equals(ControlTypeEnum.DATE.getName())){
@@ -1152,7 +1169,8 @@ public class RuBusinessService {
                                         Date parse = number.parse(value);
                                         character.format(parse);
                                     }catch (Exception e){
-                                        throw new PaasException("时间控件日期解析错误，请填写正确时间格式" + value);
+                                        //throw new PaasException("时间控件日期解析错误，请填写正确时间格式" + value);
+                                        throw new RequestParamsException(ApiCode.PARAM_FORMAT_ERROR,"时间控件日期解析错误，请填写正确时间格式yyyy-MM-dd");
                                     }
                                 }
                             }
@@ -1166,7 +1184,8 @@ public class RuBusinessService {
                         if(sender.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
                             //必须设定签章
                             if(sender.getSenderSealId() == null || sender.getSenderSealId().length() == 0){
-                                throw new PaasException("组织签章未指定签章");
+                                //throw new PaasException("组织签章未指定签章");
+                                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"组织签章未指定签章");
                             }
                             //如果没有指定签署人，则为自动盖章，必须有相关的签章
                             if(sender.getSenderSignType().equals(SenderSignTypeEnum.AUTO.getCode())){
@@ -1179,7 +1198,8 @@ public class RuBusinessService {
                                     }
                                 }
                                 if(enterpriseControlFlag){
-                                    throw new PaasException("自动盖章的签署节点未指定签署位置");
+                                    //throw new PaasException("自动盖章的签署节点未指定签署位置");
+                                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"自动盖章的签署节点未指定签署位置");
                                 }
                             }
                         }
@@ -1296,7 +1316,8 @@ public class RuBusinessService {
             }
         }
         if((ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()) && operatorList.size() == 0){
-            throw new PaasException("操作人为空");
+            //throw new PaasException("操作人为空");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"发起签署API接口，operator字段-操作人为空");
         }
 
         if (operatorList.size() > 0) {
@@ -1410,7 +1431,7 @@ public class RuBusinessService {
                                             ruSender.setDeleteFlag(false);
                                             boolean b = senderService.save(ruSender);
                                             if(!b){
-                                                throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"保存企业签署人" + ruSender.getSenderName() + "失败");
                                             }
                                             if(dataSender.getReSenderId() != null){
                                                 //关联关系
@@ -1435,7 +1456,7 @@ public class RuBusinessService {
                         boolean saveSigner = signerService.save(ruSigner);
                         if(!saveSigner){
                             //异常处理
-                            throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"保存签署人" + ruSigner.getSignerName() + "失败。");
                         }
                         if(dataSinger.getReSignerId() != null){
                             //关联关系
@@ -1452,7 +1473,7 @@ public class RuBusinessService {
                                     ruSender.setDeleteFlag(false);
                                     boolean b = senderService.save(ruSender);
                                     if(!b){
-                                        throw new PaasException("保存发起方" + ruSender.getSenderName() + "失败");
+                                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"保存发起方" + ruSender.getSenderName() + "失败。");
                                     }
                                     if(dataSender.getReSenderId() != null){
                                         //关联关系
@@ -1474,7 +1495,7 @@ public class RuBusinessService {
                     boolean saveSigner = signerService.save(ruSigner);
                     if(!saveSigner){
                         //异常处理
-                        throw new PaasException("保存签署人" + ruSigner.getSignerName() + "失败");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"保存个人签署人" + ruSigner.getSignerName() + "失败");
                     }
                     if(dataSinger.getReSignerId() != null){
                         //关联关系
@@ -1488,9 +1509,8 @@ public class RuBusinessService {
             }
         }
 
-        // = signerService.listByRuId(ruCreateData.getRuId());
         if(singerList == null || singerList.size() == 0){
-            throw new PaasException("签署人为空");
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"添加签署人节点失败，签署人或审批人为空");
         }
 
         //签署控件
@@ -1502,11 +1522,11 @@ public class RuBusinessService {
                 if(ruDocControl.getSignerId() == null){
                     String reSignerId = signControl.getReSignerId();
                     if (reSignerId == null || reSignerId.length() == 0) {
-                        throw new PaasException("签署控件归属人丢失");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署控件归属人丢失");
                     }
                     String ruSignerId = ruCreateData.getReSigner2RuSingerMap().get(reSignerId);
                     if (ruSignerId == null || ruSignerId.length() == 0) {
-                        throw new PaasException("签署控件归属人丢失");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署控件归属人丢失");
                     }
                     ruDocControl.setSignerId(ruSignerId);
                 }
@@ -1529,7 +1549,7 @@ public class RuBusinessService {
                             if(reDocId != null && reDocId.length() > 0 && ruCreateData.getReDoc2RuDocMap().size() > 0){
                                 String ruDocId = ruCreateData.getReDoc2RuDocMap().get(reDocId);
                                 if(ruDocId == null || ruDocId.length() == 0){
-                                    throw new PaasException("签署控件归属文档丢失");
+                                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"签署控件归属文档丢失");
                                 }
                                 ruDocControlProperty.setPropertyValue(ruDocId);
                             }
@@ -1545,10 +1565,41 @@ public class RuBusinessService {
 
                     boolean saveControlProperty = ruDocControlPropertyService.save(ruDocControlProperty);
                     if(!saveControlProperty){
-                        throw new PaasException("保存控件属性失败");
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"保存控件属性失败");
                     }
                 }
             }
+        }
+
+        if(ruCreateData.getRuSignControlList() != null && ruCreateData.getRuSignControlList().size() > 0){
+            List<SignRuDocControl> ruSignControlList = ruCreateData.getRuSignControlList();
+            Date now = new Date();
+            for(SignRuDocControl ruDocControl : ruSignControlList){
+                ruDocControl.setSignRuId(ruCreateData.getRuId());
+                ruDocControl.setCreateTime(now);
+            }
+            ruDocControlService.saveBatch(ruSignControlList);
+        }
+        if(ruCreateData.getRuSignControlPropertyList() != null && ruCreateData.getRuSignControlPropertyList().size() > 0){
+            List<SignRuDocControlProperty> ruSignControlPropertyList = ruCreateData.getRuSignControlPropertyList();
+            for(SignRuDocControlProperty ruDocControlProperty : ruSignControlPropertyList){
+                ruDocControlProperty.setRuId(ruCreateData.getRuId());
+            }
+            ruDocControlPropertyService.saveBatch(ruSignControlPropertyList);
+        }
+        if(ruCreateData.getRuKeywordList() != null && ruCreateData.getRuKeywordList().size() > 0){
+            List<SignRuKeyword> ruKeywordList = ruCreateData.getRuKeywordList();
+            for(SignRuKeyword signRuKeyword : ruKeywordList){
+                signRuKeyword.setRuId(ruCreateData.getRuId());
+            }
+            ruKeywordService.saveBatch(ruKeywordList);
+        }
+        if(ruCreateData.getRuKeywordPropertyList() != null && ruCreateData.getRuKeywordPropertyList().size() > 0){
+            List<SignRuKeywordProperty> ruKeywordPropertyList = ruCreateData.getRuKeywordPropertyList();
+            for(SignRuKeywordProperty signRuKeywordProperty : ruKeywordPropertyList){
+                signRuKeywordProperty.setRuId(ruCreateData.getRuId());
+            }
+            ruKeywordPropertyService.saveBatch(ruKeywordPropertyList);
         }
 
         //根据发起人、接受人、控件列表计算操作人

@@ -234,7 +234,7 @@ public class ContractService {
     }
 
 
-    public void checkPositionParam(ContractPositionParam positionParam, String signerNodeType,RuCreateData createData){
+    public void checkPositionParam(ContractPositionParam positionParam, String signerNodeType){
         if(positionParam == null){
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签署位置合集缺失");
         }
@@ -321,10 +321,10 @@ public class ContractService {
             }
         }
 
-
         if(positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,关联文档列表缺失");
         }
+
 
         for(ContractRelationDoc contractRelationDoc : positionParam.getRelationDocList()){
             if(contractRelationDoc.getDocType() == null){

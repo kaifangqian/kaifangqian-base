@@ -23,6 +23,7 @@ package com.kaifangqian.modules.opensign.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.kaifangqian.modules.opensign.enums.SignStatus;
+import com.kaifangqian.modules.opensign.service.tool.WatermarkUtil;
 import com.kaifangqian.modules.opensign.vo.base.SignPdfInfoVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -134,8 +135,8 @@ public class VerifySign {
                             BufferedImage bufferedImage = image.getImage();
                             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                             ImageIO.write(bufferedImage, "png", outputStream);
-                            signatureDetail.setSealBase64(Base64.getEncoder().encodeToString(outputStream.toByteArray()));
-
+                            byte [] watermarkSeal = WatermarkUtil.watermark(outputStream.toByteArray(),"仅用于文档验签",35,"png");
+                            signatureDetail.setSealBase64(Base64.getEncoder().encodeToString(watermarkSeal));
                         }
                     }
                     try {
