@@ -1,6 +1,6 @@
 server {
 	listen 8806;
-	server_name localhost; 
+	server_name $DOMAIN_NAME; 
 	client_max_body_size 100M;
 	
 	location /resrun-paas/websocket {
