@@ -41,7 +41,7 @@
       </li>
       <li>
         <span>签署截止日期：</span>
-        <span>{{ signInfo.baseVo.expireDate  || '无'}}</span>
+        <span>{{ signInfo.baseVo.expireDateString  || '无'}}</span>
       </li>
       <li >
         <span>附件：</span>
