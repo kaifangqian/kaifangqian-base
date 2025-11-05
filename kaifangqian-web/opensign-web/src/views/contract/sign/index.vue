@@ -2408,7 +2408,9 @@ export default defineComponent({
           iconType: 'warning',
           onOk() {
             // window.history.go(-1);
-            window.close();
+            router.push({
+              path: '/contract/doc',
+            });
           }
         })
       }
@@ -2553,8 +2555,9 @@ export default defineComponent({
                           window.open(decodeURIs(callbackPage),'_self')
                         }else{
                             compState.loading = false;
-                            window.history.go(-1);
-                            window.close();
+                            router.push({
+                              path: '/contract/doc',
+                            });
                         }
                       
                       }

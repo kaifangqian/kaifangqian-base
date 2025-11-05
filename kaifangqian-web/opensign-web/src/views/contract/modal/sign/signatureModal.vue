@@ -160,6 +160,7 @@
 
       const userStore = useUserStore();
       const userInfo =  userStore.getUserInfo;
+      const tenantInfo = userStore.getTenantInfo;
       const sealType = ref('NOLIMIT');
 
       async function generateQRCode (qrCodeData){
@@ -246,7 +247,7 @@
         setTimeout(()=>{
           showPad.value = true;
         })
-        sealType.value = 'TEMPLATE';
+        // sealType.value = 'TEMPLATE';
         getSignatureListByType(sealType.value);
       });
 
@@ -306,7 +307,8 @@
             QRsignatureBase64.value = '';
             isQRSignature.value = false;
             QRKey.value = result;
-            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
+            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id + '&realName=' + tenantInfo?.name || userInfo?.realname;
+            // signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
             generateQRCode(signatureUrl.value)
             connectSocket();
             setTimeout(()=>{

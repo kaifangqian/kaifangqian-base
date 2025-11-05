@@ -684,8 +684,8 @@
                   let matchControl = groupControls.find(v=>v.controlDocId == docs.value[i].id)
                   setDocumentList(docs.value[i], matchControl?.controls || []);
               }
-  
-  
+
+
               // controlList.value = controlList.value.concat(allControls);
               if (unref(isDetail)) {
                   actions.value = []
@@ -867,9 +867,7 @@
                         signerId:item.signerId,
                         signerType:item.signerType,
                         // format:(item.controlType=='sign-date'?item.format:'yyyy年MM月dd日') || 'yyyy年MM月dd日',
-                        format: item.controlType === 'sign-date' 
-                                    ? (item.format && item.format.trim() ? item.format : 'yyyy年MM月dd日')
-                                    : '',
+                        format: item.controlType === 'sign-date' ? (item.format && item.format.trim() ? item.format : 'yyyy年MM月dd日') : (item.controlType === 'date' ? (item.format && item.format.trim() ? item.format : '') : ''),
                         colorIndex:item.colorIndex,
                         fontSize:parseInt(item.fontSize),
                         fontFamily:item.fontFamily,
@@ -1383,11 +1381,7 @@
                     "signRuDocId": item.signRuDocId,
                     "controlType": item.controlType,
                     "value": item.value,
-                    // "format":(item.controlType=='sign-date'?item.format:'yyyy年MM月dd日') || 'yyyy年MM月dd日',
-                    // "format": (item.controlType === 'sign-date' && item.format && item.format.trim()) || 'yyyy年MM月dd日',
-                    "format": item.controlType === 'sign-date' 
-                                    ? (item.format && item.format.trim() ? item.format : 'yyyy年MM月dd日')
-                                    : '',
+                    "format": item.controlType === 'sign-date' ? (item.format && item.format.trim() ? item.format : 'yyyy年MM月dd日') : (item.controlType === 'date' ? (item.format && item.format.trim() ? item.format : '') : ''),
                     "width": item.size.width,
                     "written": 1,
                     "id":item.id || '',
@@ -1408,7 +1402,7 @@
                 compState.loading = false;
                 return 
               }
-  
+
               // console.log(paramsControl,'提交的控件--')
               // console.log(mergedDataFn(paramsControl),'提交整理的控件--')
               let result  = await savePosAndParams({controlChangeFlag:unref(controlChangeFlag),signRuId:signRuId,controlList:mergedDataFn(paramsControl),deleteIdList:unref(deleteIdList)});

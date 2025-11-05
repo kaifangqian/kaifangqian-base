@@ -30,7 +30,7 @@
                 </div>
             </SwitchIdentity>
         </div>
-        <div class="sign-noauth-body" v-show="!pageLoading">
+        <div class="sign-noauth-body" v-if="(tipInfo.checkStatus != 1 || taskType == 'detail' || taskType == 'copy') && !pageLoading">
             <div class="no-auth-header">
                 <SvgIcon name="sign-no-auth" size="60" />
                 <p style="font-size:14px; color: #555;">无权访问</p>
@@ -118,9 +118,9 @@ export default defineComponent({
             let { result } = await Api.getViewCheck({ signRuId: signRuId });
             console.log("result.value", result)
             if (result) {
-                pageLoading.value = false;
                 returnSignPage();
             }
+            pageLoading.value = false;
         }
 
         async function getCheckInfo() {
@@ -129,17 +129,17 @@ export default defineComponent({
                 tipInfo.value = result;
                 if (result.checkStatus === 1) {
                     console.log('身份正确，直接进入');
-                    pageLoading.value = false;
                     returnSignPage();
                 }
                 // 账号正确、身份不正确
                 if (result.checkStatus === 4 || result.checkStatus === 7) {
                     console.log('身份不正确，自动切换身份');
                     handleChangeIdentity();
+                    return;
                 }
-            }else {
-                pageLoading.value = false;
             }
+            pageLoading.value = false;
+            
         }
 
         //企业实名认证

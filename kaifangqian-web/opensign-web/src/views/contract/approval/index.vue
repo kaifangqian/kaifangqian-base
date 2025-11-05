@@ -352,8 +352,11 @@ export default defineComponent({
                 window.open(decodeURIs(callbackPage),'_self')
               }else{
                   compState.loading = false;
-                  window.history.go(-1);
-                  window.close();
+                  // window.history.go(-1);
+                  // window.close();
+                  router.push({
+                    path: '/contract/doc',
+                  });
               }
             
             }

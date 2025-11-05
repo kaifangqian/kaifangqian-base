@@ -1808,7 +1808,7 @@ export default defineComponent({
 
     //控件点击操作
     function controlMousedown(element: any) {
-      console.log(element,'点击控件-------')
+      // console.log(element,'121212点击控件-------')
       // controlMove.elementMove = element;
       nowDocument.value.activeControl.forEach((item: any) => {
         item.controlClick = false;
@@ -1983,6 +1983,10 @@ export default defineComponent({
       sealCount.value += 1;
       nowDocument.value.activeControl.push(sealControl);
       controlList.value.push(sealControl);
+      console.log('sealControl', sealControl);
+      nextTick(() => {
+        scrollToControl(sealControl);
+      });
     }
     //添加骑缝章
     function handleAddChopSeal() {
@@ -2191,6 +2195,9 @@ export default defineComponent({
       signatureCount.value += 1;
       nowDocument.value.activeControl.push(signControl);
       controlList.value.push(signControl);
+      nextTick(() => {
+        scrollToControl(signControl);
+      });
     }
     // 添加日期
     function handleAddSignDate() {
@@ -2210,8 +2217,8 @@ export default defineComponent({
 
       const target = targets[scrollPage];
       const offsetWidth = (maxWidth - target.width) / 2;
-      const offsetX = 80;
-      const offsetY = 80;
+      const offsetX = 120;
+      const offsetY = 120;
       // const pageWidth = target.width * baseImgZoomRatio.value;
       // const pageHeight = target.height * baseImgZoomRatio.value;
       const pageWidth = target.width;
@@ -2288,6 +2295,9 @@ export default defineComponent({
       signDateCount.value += 1;
       nowDocument.value.activeControl.push(signDateControl);
       controlList.value.push(signDateControl);
+      nextTick(() => {
+        scrollToControl(signDateControl);
+        });
     }
     //删除控件
     function controlDelete(element: any) {
@@ -2333,6 +2343,7 @@ export default defineComponent({
     //控件点击
     function controlShowMenu(e, element) {
       // console.log(e, element);
+      // console.log('-点击控件-',e, element);
       nowDocument.value.activeControl.forEach((el: any) => {
         if (el.uid == element.uid) {
           el.showPopover = true;
@@ -2343,6 +2354,7 @@ export default defineComponent({
     }
     //菜单点击设置控件签章、签名、日期格式相关
     function controlMenu(e, element, isBatch) {
+      console.log('菜单点击设置控件签章、签名、日期格式相关');
       if (isBatch) {
         if (element.propertyVoList) {
           docKeys.value = [];
@@ -3320,7 +3332,12 @@ export default defineComponent({
           // 滚动事件
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           // 点击事件
-           controlMousedown(control);
+          nextTick(() => {
+            controlMousedown(control);
+            // 菜单事件
+            controlShowMenu(null, control);
+            });
+           
         }
       }
 
@@ -4533,6 +4550,7 @@ export default defineComponent({
     white-space: nowrap;
     transform: rotate(90deg) translate(0%, 100%);
     letter-spacing: 1rem; /* 适中的字符间距 */
+    background: #f7f8fb;
     
   }
   /* 可选：让文字更清晰 */
@@ -5306,6 +5324,7 @@ export default defineComponent({
   }
 
   .signature-name-guide {
+    // background: #f7f8fb;
     position: absolute;
     top: 0rem;
     left: 0rem;
@@ -5316,6 +5335,7 @@ export default defineComponent({
     pointer-events: none; /* 确保不影响签名操作 */
     user-select: none; /* 防止选中文本 */
     // border: 0.01333rem solid #ef0808;
+    
   }
 
   /* 基础签字块样式 */
@@ -5335,6 +5355,7 @@ export default defineComponent({
   /* 确保签名画布在最上层 */
   .signature-canvas {
     z-index: 1;
+    background: #f7f8fb;
   }
 
 </style>

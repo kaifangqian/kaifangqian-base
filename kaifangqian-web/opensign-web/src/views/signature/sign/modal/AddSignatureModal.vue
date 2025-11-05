@@ -206,6 +206,7 @@
       
       const userStore = useUserStore();
       const userInfo =  userStore.getUserInfo;
+      const tenantInfo = userStore.getTenantInfo;
       
       const [registerModal, { setModalProps,closeModal }] = useModalInner(async (data) => {
         setModalProps({ 
@@ -264,8 +265,9 @@
             isQRSignature.value = false;
             QRKey.value = result;
             //scan_code_service
-            
-            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
+            // console.log(tenantInfo?.name,userInfo?.realname);
+            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id + '&realName=' + tenantInfo?.name || userInfo?.realname;
+            console.log(signatureUrl.value);
             generateQRCode(signatureUrl.value)
             connectSocket();
             timer.value = setTimeout(()=>{

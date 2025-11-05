@@ -1,6 +1,5 @@
 <!--
   @description 手写签名面板
-
   Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
 
   This program is free software: you can redistribute it and/or modify
@@ -19,7 +18,6 @@
   注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
   必须公开修改后的完整源码（包括衍生作品），详见协议全文。
 -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +34,8 @@
       display: block;
       touch-action: none; /* 禁用默认的 touch 行为 */
       border:1px dashed #999;
-      border-radius: 2px;
+      /* border-radius: 2px; */
+      background: #f7f8fb;
       /* transform: rotate(90deg); */
     }
     #sign-block{
@@ -88,20 +87,51 @@
     #signatureText {
         position: absolute;
         top: 50%;
-        transform: rotate(-90deg) translate(15%, -50%);
-        font-size: 28px;
-        color: #999;
-        letter-spacing: 2em;
+        /* transform: rotate(-90deg) translate(15%, -50%); */
+        transform: rotate(-90deg) translate(10%, -120%);
+        font-size: 40px;
+        color: #99999970;
+        letter-spacing: 1rem;
         pointer-events: none;
         white-space: nowrap;
+        
     }
+
+    .signature-name-guide {
+      position: absolute;
+      top: 0rem;
+      left: 0rem;
+      color: rgba(0, 0, 0, 0.15);
+      text-align: center;
+      z-index: 2;
+      pointer-events: none; /* 确保不影响签名操作 */
+      user-select: none; /* 防止选中文本 */
+    }
+
+  /* 基础签字块样式 */
+    .signature-name-guide .signature-block {
+      text-align: center;
+      transition: all 0.3s ease;
+      align-items: center;
+      justify-content: center; 
+      display: flex;
+      transform: rotate(-90deg);
+      transform-origin: center;
+    }
+
+  /* 确保签名画布在最上层 */
+  .signature-canvas {
+    z-index: 1;
+  }
   </style>
 </head>
 <body>
 
     <div id="sign-block">
         <canvas id="signatureCanvas"></canvas>
-        <div id="signatureText">请在此签名</div>
+        <div id="signatureNameGuide" class="signature-name-guide">
+        </div>
+        <div id="signatureText">请清晰书写您的签名</div>
     </div>
     <div id="controls">
         <button onclick="clearCanvas()" class="clear-btn">重写</button>
@@ -115,8 +145,8 @@
     const context = canvas.getContext('2d');
     const penSizeInput = document.getElementById('penSize');
     const signatureText = document.getElementById('signatureText');
-	var startDraw = false;
-	const saveBtn = document.getElementById('saveBtn');
+	  var startDraw = false;
+	  const saveBtn = document.getElementById('saveBtn');
 
 
     // 设置 Canvas 宽高为屏幕宽高
@@ -142,6 +172,86 @@
     // 在变量声明部分添加新变量
     let drawDistance = 0; // 记录绘制的总距离
     const MIN_DRAW_DISTANCE = 200; // 最小绘制距离阈值，可根据需要调整
+    let userFullName = ""; // 用户姓名
+
+    // 根据userFullName生成签字块
+    function generateSignatureBlocks() {
+      const signatureNameGuide = document.getElementById('signatureNameGuide');
+      const signatureText = document.getElementById('signatureText');
+      
+      // 清空容器
+      signatureNameGuide.innerHTML = '';
+      
+      // 检查userFullName长度是否在2-5位之间
+      if (userFullName && userFullName.length >= 2 && userFullName.length <= 5) {
+        // 隐藏"请在此签名"提示
+        signatureText.style.display = 'none';
+        
+        // 设置容器尺寸
+        signatureNameGuide.style.width = canvas.width + 'px';
+        signatureNameGuide.style.height = canvas.height + 'px';
+        
+        // 根据姓名字符数量生成签字块
+        const chars = userFullName.split('');
+        const charCount = chars.length;
+        
+        // 动态计算签字块尺寸和字体大小，尽可能填满签名区域
+        const availableWidth = canvas.height;
+        const availableHeight = canvas.width;
+        
+        // 根据字符数量动态计算签字块尺寸
+        let blockWidth, blockHeight, fontSize, spacing;
+        
+        // 根据字符数量调整尺寸策略
+        if (charCount === 2) {
+          // 2个字：较大尺寸
+          blockWidth = Math.min(availableWidth / 2.5,availableHeight * 0.9);
+        } else if (charCount === 3) {
+          // 3个字：中等尺寸
+          blockWidth = Math.min(availableWidth / 3.5,availableHeight * 0.8);
+        } else if (charCount === 4) {
+          // 4个字：较小尺寸
+          blockWidth = Math.min(availableWidth / 4.5,availableHeight * 0.7);
+        } else { // 5个字
+          // 5个字：最小尺寸
+          blockWidth = Math.min(availableWidth / 5.5,availableHeight * 0.6);
+        }
+
+        blockHeight = blockWidth;
+        fontSize = blockHeight * 0.95;
+        spacing = (availableWidth - blockHeight * charCount) / (charCount + 1);
+        
+        // 计算总宽度和起始位置以居中显示（使用transform进行中心定位）
+        const totalWidth = charCount * blockWidth + (charCount - 1) * spacing;
+        // 使用transform进行中心定位，符合"旋转签名区域的样式适配规范"
+        const centerX = (canvas.width / 2) - ((charCount - 1) * (blockWidth + spacing)) / 2;
+        const centerY = canvas.height / 2;
+        
+        // 创建签字块
+        chars.forEach((char, index) => {
+          console.log("创建签字块:", char, index);
+          const block = document.createElement('div');
+          block.className = 'signature-block';
+          block.style.position = 'absolute';
+          block.style.width = blockWidth + 'px';
+          block.style.height = blockHeight + 'px';
+          block.style.left = (canvas.width - blockWidth)/2 + 'px';
+          // 使用transform进行中心定位
+          // block.style.left = (centerX + index * (blockWidth + spacing)) + 'px';
+          // block.style.top = centerY + 'px';
+          block.style.top = canvas.height - (index+1) * (blockWidth + spacing) + 'px';
+          block.style.fontSize = fontSize + 'px';
+          block.style.border = '1px dashed rgba(153, 153, 153, 0.3)';
+          // block.style.borderRadius = '4px';
+          block.innerHTML = `<span>${char}</span>`;
+          signatureNameGuide.appendChild(block);
+        });
+      } else {
+        // 显示"请在此签名"提示
+        console.log("不显示签字块，用户姓名为空或长度不符合要求");
+        signatureText.style.display = 'block';
+      }
+    }
 
     function draw(e) {
       if (!isDrawing) return;
@@ -183,23 +293,13 @@
 	   
     }
 
-    function drawBackgroundText() {
-        const text = '请在此签名';
-        context.font = '34px Arial';
-        context.fillStyle = '#ccc';
-        context.textAlign = 'center';
-        context.fillText(text, canvas.width / 2, canvas.height / 2);
-    }
     function resizeCanvas() {
         // canvas.width = window.innerWidth;
         // canvas.height = window.innerHeight;
         canvas.width = window.innerHeight;
         canvas.height = window.innerWidth;
-        // drawBackgroundText();
-
-        // context.translate(canvas.width / 2, canvas.height / 2);
-        // context.rotate(Math.PI / 2);
-        // context.translate(-canvas.height / 2, -canvas.width / 2);
+        // 重新生成签字块
+        generateSignatureBlocks();
     }
     // 旋转画布
     function rotateCanvas() {
@@ -221,7 +321,10 @@
 
     function clearCanvas() {
       context.clearRect(0, 0, canvas.width, canvas.height);
-      signatureText.style.display = 'block';
+      // 根据userFullName决定是否显示提示文字
+      if (!userFullName || userFullName.length < 2 || userFullName.length > 5) {
+        signatureText.style.display = 'block';
+      }
 	  
 	  startDraw = false;
 	  saveBtn.classList.add("disabled");
@@ -315,6 +418,7 @@
     
     window.addEventListener('resize', () => {
         checkOrientation();
+        resizeCanvas();
     });
 
     function  getQueryString(name) {
@@ -329,12 +433,15 @@
     function getUrlParams(){
         QRKey = getQueryString('key')
         userId = getQueryString('userId')
-        // alert(QRKey,'二维码key')
+        userFullName = getQueryString('realName')
+        // console.log("获取到的用户姓名:", userFullName);
+        // 在获取到用户姓名后重新生成签字块
+        generateSignatureBlocks();
      }
      function checkKey(){
         const xhr = new XMLHttpRequest();
         const url = "/resrun-paas/sign/ru/sign/checkKey";
-        console.log(QRKey,'请求参数key')
+        // console.log(QRKey,'请求参数key')
         const params = "key=" + QRKey
         xhr.open('GET', url + '?' + params , true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -365,15 +472,14 @@
     rotateCanvas();
     // checkOrientation();
 
+    // 先获取URL参数，再生成签字块
+    getUrlParams()
+
     // 强制自动横屏展示
     window.addEventListener('orientationchange', () => {
         rotateCanvas()
+        generateSignatureBlocks();
     });
-
-
-
-    getUrlParams()
-
 
     setTimeout(()=>{
         checkKey()

@@ -128,7 +128,7 @@
                   </p>
                   <p class="flex items-center w-full" style="margin-bottom: 10px">
                     <span>签名方式：</span>
-                    <a-tooltip :overlayStyle="{ width: '600px' }">
+                    <a-tooltip  overlayStyle="width: 450px; max-width: 500px !important;">
                           <template #title>
                             <p>不限制：个人签署时，不限制其签名类型</p>
                             <p>手写签名：个人手绘的自定义签名</p>
@@ -210,7 +210,7 @@
                   </p>
                   <p class="flex items-center w-full" style="margin-bottom: 10px">
                     <span>签名方式：</span>
-                    <a-tooltip :overlayStyle="{ width: '600px' }">
+                    <a-tooltip  overlayStyle="width: 450px; max-width: 500px !important;">
                           <template #title>
                             <p>不限制：个人签署时，不限制其签名类型</p>
                             <p>手写签名：个人手绘的自定义签名</p>
