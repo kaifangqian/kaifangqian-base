@@ -26,7 +26,7 @@
       placement="bottomLeft"
       :overlayClassName="`${prefixCls}-dropdown-overlay`"
       style="top:63px"
-      :trigger="['hover']"
+      :trigger="['click']"
       :getPopupContainer="getPopupContainer"
       @visibleChange="visibleChange"
     >
@@ -362,9 +362,10 @@ export default{
 
   .account-panel-item {
     transition: background 0.2s;
-    cursor: pointer;
+    // cursor: pointer;
     &:hover:not(.no-use) .account-header {
       background: #eaf6ff;
+      cursor: pointer;
     };
 
   }
@@ -439,7 +440,7 @@ export default{
       // border-radius: 8px;
       display: flex;
       align-items: center;
-      cursor: pointer;
+      // cursor: pointer;
       background: #fff;
       transition: border-color 0.2s, color 0.2s, background 0.2s;
       .app-iconify {
@@ -460,6 +461,7 @@ export default{
         color: #127fd2;
         border-color: #127fd2;
         background: #f4faff;
+        cursor: pointer;
       }
     }
   }

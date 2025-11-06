@@ -22,7 +22,7 @@
 
     </div>
     <a-modal v-model:visible="taskVisible" title="任务提醒" :closable="false" :maskClosable="false">
-           <p>监测到该签约文档中您还有【{{ taskInfo.taskType == 'sign' ? '签署 ' : taskInfo.taskType == 'approval' ? '审批 ' : '填写' }}】任务，是否前去处理？</p>
+           <p>监测到该签约文档中您还有【{{ taskInfo.taskType == 'sign' ? '签署 ' : taskInfo.taskType == 'approve' ? '审批 ' : '填写' }}】任务，是否前去处理？</p>
           <template #footer>
                 <a-button type="default" @click="handleNoTask">暂不处理</a-button>
                 <a-button type="primary" @click="handleGoNextTask">立即处理</a-button>
@@ -338,7 +338,8 @@ export default defineComponent({
           result = await submitApproval({signRuId:signRuId,comment:textareaValue.value});
           title = '审批已通过，点击确定关闭当前页面';
         }
-        if(result && result.code == 200){
+        console.log(result,'result',result.taskId,!callbackPage);
+        if(result){
           if(result.taskId && !callbackPage){
             taskVisible.value = true;
             taskInfo.value = result;
@@ -352,8 +353,11 @@ export default defineComponent({
                 window.open(decodeURIs(callbackPage),'_self')
               }else{
                   compState.loading = false;
-                  window.history.go(-1);
-                  window.close();
+                  // window.history.go(-1);
+                  // window.close();
+                  router.push({
+                    path: '/contract/doc',
+                  });
               }
             
             }
@@ -368,6 +372,7 @@ export default defineComponent({
       }
       //继续任务处理
       function handleGoNextTask() {
+        console.log(taskInfo.value,'taskInfo.value');
         if (taskInfo.value.taskType == 'sign') {
             router.push({
                 path: '/contract/sign',
@@ -383,7 +388,8 @@ export default defineComponent({
             }, 500)
             
         }
-        if (taskInfo.value.taskType == 'approval') {
+        if (taskInfo.value.taskType == 'approve') {
+          
             router.push({
                 path: '/contract/approval',
                 query: {

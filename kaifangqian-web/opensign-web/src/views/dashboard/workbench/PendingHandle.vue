@@ -64,7 +64,7 @@
                 <p class="upcoming-schedule">
                   <a-space :size="10">
                     <SvgIcon name="sign-schedule" style="line-height:20px"></SvgIcon>
-                    <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5"
+                    <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5" :destroyTooltipOnHide=true
                      :getPopupContainer="(triggerNode: any) => {return triggerNode.parentNode}"
                      :overlay-style="{'max-width':'800px'}">
                       <template #title>

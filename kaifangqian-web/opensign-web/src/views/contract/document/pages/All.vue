@@ -41,7 +41,7 @@
                           <SvgIcon name="sign-schedule"></SvgIcon>
                           <span>签署方：</span>
                         </a-space>
-                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5"
+                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5" :destroyTooltipOnHide=true
                          :getPopupContainer="(triggerNode: any) => {return triggerNode.parentNode}"
                          :overlay-style="{'max-width':'800px'}">
                           <template #title>
@@ -213,10 +213,11 @@ export default defineComponent({
     const overlayStyle = ref({});
 
     const instance = getCurrentInstance();
-    const eventHub = instance?.proxy?.$options?.setup?.['eventHub'] || { 
-      $on: (event: string, callback: Function) => {},
-      $off: (event: string, callback: Function) => {}
-    };
+    // const eventHub = instance?.proxy?.$options?.setup?.['eventHub'] || { 
+    //   $on: (event: string, callback: Function) => {},
+    //   $off: (event: string, callback: Function) => {}
+    // };
+    const { eventHub } = instance?.proxy;
     const rowParams = ref();
     const willResult = ref(false);
     const loading = ref(true);
@@ -580,9 +581,10 @@ export default defineComponent({
         let result = await revokeRuSignRu({signRuId:rowParams.value.signRuId, signConfirmOrderNo: "123", comment:textareaValue.value});
         if(result){
           msg.success('操作成功')
-            reload({searchInfo:{
-                ...currentParams.value
-              }
+            await loadData({
+              ...currentParams.value,
+              pageNo: props.pageinfo.pageNo,
+              pageSize: props.pageinfo.pageSize
             })
             setLoading(false)
             closeWishModal()

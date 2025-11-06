@@ -225,6 +225,9 @@
                     </div>
                   </div>
                 </div>
+                <!-- <div v-if="item.signerType == 1 && item.senderList && item.senderList.length < 1" > 
+                  <P>由 {{ item.signerName }} 下 {{item.singerUserName}} 发起</P>
+                </div> -->
                 <!-- <div v-if="item.signerType == 1 && (!item.senderList || item.senderList.length == 0)">
                   <p>由 {{ item.signerName }} 下 {{ item.singerUserName }} 发起 </p>
                 </div> -->
@@ -1143,7 +1146,9 @@
           console.log('go -1');
           // window.history.go(-1);
           // window.close();
-          router.go(-1);
+          router.push({
+            path: '/contract/doc',
+          });
         }
       }
       return {
@@ -1225,7 +1230,7 @@
     }
   }
   .receive-name {
-    min-width: 160px;
+    min-width: 260px;
   }
   .signer-area {
     padding: 10px 20px;
@@ -1259,7 +1264,7 @@
       // margin-left: 20px;
     }
     .sender-status-item {
-      min-width: 200px;
+      min-width: 260px;
       padding-left: 40px;
     }
   }

@@ -426,7 +426,7 @@
                             <div style="padding: 10px 0px 10px 0">
                               <p class="flex items-center" style="margin-bottom: 10px">
                                 <span>是否允许免意愿快捷签署：</span>
-                                <a-tooltip>
+                                <a-tooltip overlayStyle="width: 300px; max-width: 500px !important;">
                                   <template #title
                                     >签署人如果已开通免意愿快捷签署服务，则签署时，可无需进行额外的意愿认证</template
                                   >
@@ -468,7 +468,7 @@
                               </a-space>
                               <a-space class="flex items-center w-full" style="margin-bottom: 10px">
                                 <span>签名方式：</span>
-                                <a-tooltip :overlayStyle="{ width: '600px' }">
+                                <a-tooltip  overlayStyle="width: 450px; max-width: 500px !important;">
                                   <template #title>
                                     <p>不限制：个人签署时，不限制其签名类型</p>
                                     <p>手写签名：个人手绘的自定义签名</p>

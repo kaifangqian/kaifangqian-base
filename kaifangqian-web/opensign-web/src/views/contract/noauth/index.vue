@@ -24,7 +24,7 @@
   <cheader v-if="!pageLoading"/>
   <div class="sign-noauth-container">
     <Loading :loading="pageLoading" text="加载中..." />
-    <div class="sign-noauth-body" v-if="!pageLoading">
+    <div class="sign-noauth-body" v-if="(tipInfo.checkStatus != 1 || taskType == 'detail' || taskType == 'copy') && !pageLoading">
       <div class="no-auth-header">
         <SvgIcon name="sign-no-auth" size="80"/>
         <p style="font-size:18px;">无权访问</p>
@@ -126,9 +126,10 @@ export default defineComponent({
       let result = await getViewCheck({signRuId:signRuId});
        console.log("result.value",result)
       if(result){ 
-        pageLoading.value = false;
         returnSignPage();
+        return;
       }
+      pageLoading.value = false;
     }
     
     async function getCheckInfo(){
@@ -143,10 +144,11 @@ export default defineComponent({
         if (result.checkStatus === 4 || result.checkStatus === 7) {
             console.log('身份不正确，自动切换身份');
             handleChangeIdentity();
+            return;
         }
-      }else {
-        pageLoading.value = false;
       }
+      pageLoading.value = false;
+      
     }
 
     //企业实名认证

@@ -34,7 +34,7 @@
           <span class="value" v-if="signOrderType == 2">无序签署</span>
           <span class="value" v-if="signOrderType == 1">顺序签署</span>
         </li>
-        <li v-if="(sender && sender.senderList&&sender.senderList.length>0) || sender.writeStatus>-1">
+        <li v-if="(sender && sender.senderList&&sender.senderList.length>0) || sender?.writeStatus>-1">
           <span class="name">发起方</span>
           <div class="start-paty">
             <div class="sender-name">
