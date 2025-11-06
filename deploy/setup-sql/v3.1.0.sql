@@ -1,0 +1,10 @@
+use opensign;
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+INSERT INTO `sys_config` (`id`, `name`, `type`, `value`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('5coo6af-1eff-ad09-4fb4-p93b22d61608', '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）', 'personal_sign_auth', 'required', NULL, NULL, 'admin', '2025-09-23 08:28:01');
+ALTER TABLE `sign_re` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `send_type` varchar(20) NULL DEFAULT NULL COMMENT '发起类型：api(接口发起)；app（应用发起）';
+ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+SET FOREIGN_KEY_CHECKS = 1;

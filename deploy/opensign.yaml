@@ -29,7 +29,7 @@ services:
       - MYSQL_USERNAME=root
       - MYSQL_PASSWORD=[根据实际情况修改]
   api:
-    image: registry.cn-beijing.aliyuncs.com/kaifangqian/api:v3.0.2
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/api:v3.1.1
     hostname: opensign-api
     deploy:
       mode: replicated
@@ -71,7 +71,7 @@ services:
       - YD_APP_ID=QQXKZNAY
       - YD_APP_VK=MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC/bLLSeaFack/5DSnPV88Q1OLWPnb+cFwPdycGY2hLBsoOFl5e6K5/3nM/4x0WLPsVSZeG3CQU2SPDLEoVRmfVA3lNd9V14A1VfUK0+gMHuT8WGAdKFHlI+7/xuRzohvJg2LQfb2Wm03FVrSNAvSPOTnA7AOuuG1SsiB7jJ5dx1tdY6CQ3fi9Frbv6aAx3rrjbjt6G4u7ynOgO0ET/AtJTYC8/NtFUwJkalIavE+3eciPmW5Esajh9+7wdt7lh4rZE/g04cVRCzHyDpSeiDO7Utl6ePllrRGmbjqEsrl11F1eFllsfOybSYi8LpNTXthA1x7kQVv4IL+XM1/fnUdy3AgMBAAECggEAVvr6Sl8QLTvyENWlYNyibyB8riMWCMlfW3ul1OZIlobQOxR47yFFYT7gGXCGX/QyZtrYqmPPVVXRRTcTtpUWSxlX/hZsfTJAfM79B6TuyYyoGM70SPoCnmIeNqUJeLMQ4Wa2ee4xP1umjOquMRWAdpb3sifZ73PlxrvXZRoxW30dT0aKSm+WvnzHwoFv2MwrdSjQzojwRICYy3U43Zfej1ltGyC0ms4ns4VD57qIK+/XXok/GOLAmAcDE/gLclsUqG0UcWZc/8Dzrc52xt7/mPRgk7A/lWf6AiHesaUomGCS7ktq4ITmPzjcqvBsC3Cti29abNAZO5M6c70ukk0wKQKBgQDo5JvPzxqruvbfDqZfKfsPTAxfNhN/vk9yL1m9w0uOoNJTwcDCKcjdzZPlh9midkgKK8mu+Uv/kCr0YEMzQFF/iGmybFjVIg+hcuaJjm9xEKvHzBZjaFCgjVvQ2YAiUI61IJEmmZYnhwS07woxE3tJNtRXt+ePHLTQzVh4gqZhXQKBgQDSas8JfyUm8B2z5St5GkJdX8dbXIVpBP8Oa5I9uYwo0orcoPDzadZP42a+3zfjaupPhgErqDKBogFF6daz7kIBCZucg70/iZDasqTxXeagrV9HZVLoVlOVQEQ5N4sorCc5Ecaet5fSEPnGG6HCBPTM9gUHyLQEXfVlJR7D6/LxIwKBgCLgCQ0ngGDzEID6mqNpj/UMeFXRrT3V6+O3f4LROgFTx+tO+mSZCUFdxaX7n/WaLNOJFxyirGTK3APYXnfQS+QDM4DKhMr13M1afXdf4wRVcMPspfWg62H/iR5PU8bPtW8eP14+ZaPpriTCHw6WUkH2efngykY+ED2sYnE5b1zpAoGATFcF8FsZvovFKvxNDm3RgBD8wg/KMzTl2HR8pTpJOJJSYQNfB+DxKSDGqR9RJogmpF1o1U77q/572cKh67vYZIn41AsTwRaG4GGJ6Cv6PXdJJx0CvFp9jpu3ZM7bBRGYVWM2nWTchxEznYVu5XZo3mevoYhWj3MLUfvqsohLJuMCgYEAqF7dVl6vL33l2L0n1N0XkYEBIIbl9T3BF8BDc7/vldgMmuP//lLf7iAgY0SCocX5SzmFyvPUC4n+x1oMpjYXwoW3ky2oFUcn9zgWARvAsB8Pc7eqdbeHc0mI/YSvvFcFKhnM3FJJbkjzd2/B91jDbFGveyHuMbWOacgtVQpAn+o=
   web:
-    image: registry.cn-beijing.aliyuncs.com/kaifangqian/nginx:v3.0.2
+    image: registry.cn-beijing.aliyuncs.com/kaifangqian/nginx:v3.1.1
     hostname: opensign-web
     deploy:
       mode: replicated

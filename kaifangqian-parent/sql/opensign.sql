@@ -5414,7 +5414,7 @@ ALTER TABLE `sign_ru` ADD COLUMN `auto_finish` tinyint(1) NULL DEFAULT NULL COMM
 ALTER TABLE `sign_person_seal` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT 'TEMPLATE：模板生成、HAND：手写签名;';
 ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
 ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
-
+UPDATE `sys_permission` SET `delete_flag` = 0 WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
 -- 这是最后一句
 SET FOREIGN_KEY_CHECKS = 1;
 
