@@ -230,6 +230,7 @@
       const handleReset = () => {
         searchForm.value.name = '';
         searchForm.value.status = undefined;
+        searchForm.value.folderId = '';
         hasSearched.value = false;
         pagination.value.current = 1;
         loadData();
@@ -262,11 +263,11 @@
           if (searchForm.value.name) {
             params.name = searchForm.value.name;
           }
-          console.log('params', searchForm.value.status);
+          console.log('params', searchForm.value.status,shouldShowSearchForm.value);
           // 如果不显示检索条件，则将状态设置为全部
-          if(!shouldShowSearchForm.value){
-            searchForm.value.status = 0;
-          }
+          // if(!shouldShowSearchForm.value){
+          //   searchForm.value.status = 0;
+          // }
           if (searchForm.value.status !== undefined && searchForm.value.status !== null && searchForm.value.status !== 0) {
             params.status = searchForm.value.status;
           }
