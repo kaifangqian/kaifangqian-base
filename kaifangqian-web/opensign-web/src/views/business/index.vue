@@ -44,9 +44,34 @@
               class="media-input"
               @change="handleSearch"
             >
+              <a-select-option :value="0">全部</a-select-option>
               <a-select-option :value="1">启用</a-select-option>
               <a-select-option :value="2">停用</a-select-option>
             </a-select>
+          </a-form-item>
+          <a-form-item label="业务类型">
+            <a-tree-select 
+              :fieldNames="{children:'children', label:'label', value: 'id' }"
+              v-model:value="searchForm.folderId" 
+              placeholder="请选择业务类型" 
+              allow-clear
+              show-search
+              tree-default-expand-all
+              style="font-size: 12px;"
+              class="media-input"
+              :tree-data="treeData"
+              @focus="loadingTreeData"
+              @change="handleSearch"
+              tree-node-filter-prop="label"
+             
+            >
+            <template #title="{ value: val, label }">
+              <span >{{ label }}</span>
+            </template>
+              <!-- <template #title="label">
+                <template>{{ label }}</template>
+              </template> -->
+            </a-tree-select>
           </a-form-item>
           <a-form-item>
             <a-button type="primary" style="margin-left: 18px; padding: 0 40px; " @click="handleSearch">查询</a-button>
@@ -57,7 +82,7 @@
     </div>
     <!-- 滚动容器 -->
     <Scrollbar width="100%" :native="true" :noresize="true" class="business-scrollbar"
-    style="height: calc(100% - 70px - 55px);min-height: 500px;">
+    style="height: calc(100% - 70px - 55px);min-height: 500px;" > 
       <!-- 加载中状态 -->
       <div v-if="loading" class="loading-state">加载中...</div>
 
@@ -135,9 +160,9 @@
 <script lang="ts">
   import { defineComponent, ref, onMounted, computed  } from 'vue';
   import { useRouter } from 'vue-router';
-  import { getBusinessLineList } from '/@/api/contract';
+  import { getBusinessLineList, getBusinessFolderTree } from '/@/api/contract';
   import { Scrollbar } from '/@/components/Scrollbar';
-  import { Empty, Form, Input, Select, Button } from 'ant-design-vue';
+  import { Empty, Form, Input, Select, Button, TreeSelect, TreeSelectProps } from 'ant-design-vue';
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 
   const START_PATH = '/contract/start';
@@ -169,7 +194,8 @@
       // 检索表单
       const searchForm = ref({
         name: '',
-        status: undefined,
+        status: 1,
+        folderId: '',
       });
 
       // 是否显示检索条件
@@ -181,6 +207,7 @@
         current: 1,
         pageSize: DEFAULT_PAGE_SIZE,
       };
+      const treeData = ref<TreeSelectProps['treeData']>([]);
 
       // 计算是否应该显示搜索表单
       const shouldShowSearchForm = computed(() => {
@@ -208,6 +235,20 @@
         loadData();
       };
 
+      // 加载树数据
+      const loadingTreeData = async () => {
+        try {
+          const result = await getBusinessFolderTree();
+          console.log('result---', result);
+          treeData.value = result;
+          console.log('treeData---', treeData.value);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          // loadingTreeData.value = false;
+        }
+      }
+
       // 加载数据
       const loadData = async () => {
         loading.value = true;
@@ -221,9 +262,17 @@
           if (searchForm.value.name) {
             params.name = searchForm.value.name;
           }
-          if (searchForm.value.status !== undefined && searchForm.value.status !== null) {
+          console.log('params', searchForm.value.status);
+          // 如果不显示检索条件，则将状态设置为全部
+          if(!shouldShowSearchForm.value){
+            searchForm.value.status = 0;
+          }
+          if (searchForm.value.status !== undefined && searchForm.value.status !== null && searchForm.value.status !== 0) {
             params.status = searchForm.value.status;
           }
+          if (searchForm.value.folderId !== undefined && searchForm.value.folderId !== null) {
+            params.folderId = searchForm.value.folderId;
+          } 
 
           const res = await getBusinessLineList(params);
           if (res && Array.isArray(res.records)) {
@@ -320,6 +369,8 @@
         showSearchForm,
         handleSearch,
         handleReset,
+        treeData,
+        loadingTreeData,
       };
     },
   });

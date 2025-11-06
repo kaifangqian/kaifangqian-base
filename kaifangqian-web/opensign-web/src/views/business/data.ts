@@ -73,11 +73,11 @@ export const registerSearchFormSchema: FormSchema[] = [
      colProps: { span: 8 },
      componentProps:{
        options:[
-         {label:'全部',value:''},
+         {label:'全部',value:'0'},
          {label:'启用',value:'1'},
          {label:'停用',value:'2'},
        ]
-     }
+     },
    },
   
 ]

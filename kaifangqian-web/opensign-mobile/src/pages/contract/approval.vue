@@ -209,7 +209,7 @@
   
     <v-dialog v-model:show="taskVisible" title="任务提醒" :showCancelButton="false" :show-confirm-button="false"
       className="sign-task-tip-modal">
-      <p>监测到该签约文档中您还有【{{ taskInfo.taskType == 'sign' ? '签署 ' : taskInfo.taskType == 'approval' ? '审批 ' : '填写' }}】任务，是否前去处理？</p>
+      <p>监测到该签约文档中您还有【{{ taskInfo.taskType == 'sign' ? '签署 ' : taskInfo.taskType == 'approve' ? '审批 ' : '填写' }}】任务，是否前去处理？</p>
       <div :style="{ textAlign: 'center' }">
         <van-button type="default" @click="handleNoTask">暂不处理</van-button>
         <van-button type="primary" @click="handleGoNextTask">立即处理</van-button>
@@ -564,7 +564,7 @@ export default defineComponent({
           location.reload();
         }, 500);
       }
-      if (taskInfo.value.taskType == 'approval') {
+      if (taskInfo.value.taskType == 'approve') {
         router.push({
           path: '/approval',
           query: {
@@ -650,13 +650,13 @@ export default defineComponent({
         });
         title = '驳回成功！';
       } 
-      if(result && result.code == 200){
+      if(result){
         console.log('result---',result);
         Notify({ type: 'success', message: title });
-        if(result.taskId && !callbackPage){
+        if(result.result && result.result.taskId && !callbackPage && type == 'pass'){
           signLoading.value = false;
           taskVisible.value = true;
-          taskInfo.value = result;
+          taskInfo.value = result.result;
         } else if (callbackPage && typeof callbackPage == 'string') {
           window.open(decodeURIs(callbackPage), '_self');
         } else {

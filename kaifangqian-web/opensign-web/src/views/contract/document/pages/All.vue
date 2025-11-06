@@ -41,7 +41,7 @@
                           <SvgIcon name="sign-schedule"></SvgIcon>
                           <span>签署方：</span>
                         </a-space>
-                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5"
+                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5" :destroyTooltipOnHide=true
                          :getPopupContainer="(triggerNode: any) => {return triggerNode.parentNode}"
                          :overlay-style="{'max-width':'800px'}">
                           <template #title>

@@ -274,6 +274,13 @@ export function getBusinessLine(params) {
 export function getBusinessLineList(params) {
     return defHttp.get({ url: "/sign/re/queryUseList", params }, { errorMessageMode: 'none' });
 }
+
+/**
+ * @description: 获取业务线分类
+ */
+export function getBusinessFolderTree() {
+    return defHttp.get({ url: "/sign/re/folder/tree"}, { errorMessageMode: 'none' });
+}
 /**
  * @description: 删除业务线实例
  */
