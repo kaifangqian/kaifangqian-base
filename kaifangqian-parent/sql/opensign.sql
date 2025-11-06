@@ -5415,6 +5415,7 @@ ALTER TABLE `sign_person_seal` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT N
 ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
 ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
 UPDATE `sys_permission` SET `delete_flag` = 0 WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
+UPDATE `sys_permission` SET `path` = '/contract/approval/:signReId?/:signRuId?/:__full__?/:type?/:isDetail?/:from?', `component` = '/contract/approval/index' WHERE `id` = '4f0121fb-328f-4061-a1e2-efa412262a81';
 -- 这是最后一句
 SET FOREIGN_KEY_CHECKS = 1;
 

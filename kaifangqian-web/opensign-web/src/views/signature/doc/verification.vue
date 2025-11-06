@@ -81,11 +81,11 @@
           <a-divider>文档中包含{{ verifyResult.signatureDetails.length }}个电子签名</a-divider>
           <div class="result-content">
             
-            <a-collapse v-model:activeKey="activeKey" :ghost="true">
+            <Collapse v-model:activeKey="activeKey" :ghost="true">
               <template #expandIcon="{ isActive }">
                 <caret-right-outlined :rotate="isActive ? 90 : 0" />
               </template>
-              <a-collapse-panel
+              <CollapsePanel
                 :key="index"
                 :header="`电子签名${index + 1}`"
                 v-for="(item, index) in verifyResult.signatureDetails"
@@ -142,8 +142,8 @@
                     </a-form-item>
                   </div>
                 </div>
-              </a-collapse-panel>
-            </a-collapse>
+              </CollapsePanel>
+            </Collapse>
           </div>
           
         </div>
