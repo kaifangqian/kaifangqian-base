@@ -157,6 +157,9 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("signActivitiFlow")) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.B_SIGN_TASK.getCode();
+        } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && operate.equals("initiateSignTask")) {
+            threadlocalVO.setSignRuId(signRuId);
+            taskType = TaskTypeEnum.INITIATE_SIGN_TASK.getCode();
         } else if (MyStringUtils.isBlank(threadlocalVO.getTaskType()) && MyStringUtils.isNotBlank(signRuId)  && (operate.equals("reject") || operate.equals("approve"))) {
             threadlocalVO.setSignRuId(signRuId);
             taskType = TaskTypeEnum.APPROVE_TASK.getCode();
@@ -505,164 +508,173 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
     @Override
     public void computePersonalOutSignTask(List<SignRuSigner> signers, String signRuId) {
         List<SignRuTask> tasks = new ArrayList<>();
-        signers.forEach(s -> {
-            //初始化签署节点任务
-            SignRuTask task = new SignRuTask();
-            task.setSignRuId(signRuId);
-            task.setTaskType(TaskTypeEnum.SIGN_TASK.getCode());
-            task.setUserType(2);
-            task.setUserTaskId(s.getId());
-            task.setTenantName("个人租户");
-            if (s.getSignerExternalType() == 1) {
-                task.setPhone(s.getSignerExternalValue());
-                SysUser sysUser = sysUserService.getUserByPhone(s.getSignerExternalValue());
-                if (sysUser != null) {
-                    task.setUserId(sysUser.getId());
-                    task.setEmail(sysUser.getEmail());
-                    SysTenantUser tenantUser = sysTenantUserService.getPersonalTenantUser(sysUser.getId());
-                    if (tenantUser != null) {
-                        task.setTenantUserId(tenantUser.getId());
-                        task.setTenantId(tenantUser.getTenantId());
-                        task.setTaskLinkType("system");
-                        task.setSendMsgFlag(true);
-                    }
-                }
-            } else if (s.getSignerExternalType() == 2) {
-                task.setEmail(s.getSignerExternalValue());
-                SysUser sysUser = sysUserService.getUserByEmail(s.getSignerExternalValue());
-                if (sysUser != null) {
-                    task.setPhone(sysUser.getPhone());
-                    task.setUserId(sysUser.getId());
-                    SysTenantUser tenantUser = sysTenantUserService.getPersonalTenantUser(sysUser.getId());
-                    if (tenantUser != null) {
-                        task.setTenantUserId(tenantUser.getId());
-                        task.setTenantId(tenantUser.getTenantId());
-                        task.setTaskLinkType("system");
-                        task.setSendMsgFlag(true);
-                    }
-                }
-            } else {
-                task.setPhone("unknown");
-                task.setEmail("unknown");
-                task.setTaskLinkType("unknown");
-            }
-            task.setTaskStatus(1);
-            tasks.add(task);
-            //修改实例-用户操作表任务状态
-            SignRuOperator query = new SignRuOperator();
-            query.setSignRuId(signRuId);
-            query.setOperateType(2);
-            query.setSignerType(2);
-            query.setSignerId(s.getId());
-            List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);
-            if (CollUtil.isNotEmpty(operators)) {
-                SignRuOperator ruOperator = operators.get(0);
-                ruOperator.setOperateStatus(2);
-                ruOperator.setOperateTime(new Date());
-                signRuOperatorService.updateById(ruOperator);
-            }
-        });
-        signRuTaskService.saveBatch(tasks);
-        //外部签署人发送签署短信通知
-        SignRu signRu = signRuService.getById(signRuId);
-        if (signRu != null) {
-            //SysTenantInfo sysTenantInfo = sysTenantInfoService.getById(signRu.getSysTenantId());
-            SysTenantUser sysTenantUser = sysTenantUserService.getById(signRu.getSysUserId());
-            tasks.forEach(t -> {
-                Map<String, String> para1 = new HashMap<>();
-                Map<String, String> para2 = new HashMap<>();
-                //para.put("company", sysTenantInfo != null ? sysTenantInfo.getTenantName() : "未知公司");
-                para1.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
-                para1.put("contract", signRu.getSubject());
-                para2.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
-                para2.put("contract", signRu.getSubject());
-                String code1 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
-                //防止code重复
-                while (messageShortMappingService.getByCode(code1) != null) {
-                    code1 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
-                }
-                para1.put("code", code1);
-                String code2 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
-                //防止code重复
-                while (messageShortMappingService.getByCode(code2) != null) {
-                    code2 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
-                }
-                para2.put("code", code2);
 
-                //生成短连接
-                Map<String, String> mappingPara1 = new HashMap<>();
-                Map<String, String> mappingPara2 = new HashMap<>();
-                mappingPara1.put("signRuId", signRuId);
-                mappingPara1.put("taskId", t.getId());
-                mappingPara1.put("taskType", "sign");
-                mappingPara2.put("signRuId", signRuId);
-                mappingPara2.put("taskId", t.getId());
-                mappingPara2.put("taskType", "sign");
-                MessageShortMapping mapping1 = new MessageShortMapping();
-                MessageShortMapping mapping2 = new MessageShortMapping();
-                mapping1.setMegCode(code1);
-                mapping2.setMegCode(code2);
-                MessageDto messageDto = new MessageDto();
-                EmailDto emailDto = new EmailDto();
-                messageDto.setSendType(SendType.IMMEDIATELY);
-                emailDto.setSendType(SendType.IMMEDIATELY);
-                List<String> receivers1 = new ArrayList<>();
-                List<String> receivers2 = new ArrayList<>();
-                if (MyStringUtils.isNotBlank(t.getPhone())) {
-                    mappingPara1.put("phone", t.getPhone());
-                    SysConfig isEcup = commonToolsAPI.getConfigByType("sms_channel");
-                    SysConfig sendMessageConfig = commonToolsAPI.getConfigByType(SysConfigType.SENDMESSAGE.getType());
-                    if(isEcup != null && "resrun".equals(isEcup.getValue()) && sendMessageConfig != null && "true".equals(sendMessageConfig.getValue())){
-                        MsgRequest msgRequest = new MsgRequest();
-                        msgRequest.setPhoneNumbers(t.getPhone());
-                        msgRequest.setTemplateName("signTaskOut");
-                        Map<String, String> para = new HashMap<>();
-                        // todo 获取域名,补充信息
-                        para.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
-                        para.put("contract", signRu.getSubject());
-                        SysAppInfo sysAppInfo = sysAppInfoService.getById("490489ab-d8b4-414c-ad77-d856962c286f");
-                        if (sysAppInfo != null && sysAppInfo.getAppAddress() != null) {
-                            para.put("domain", sysAppInfo.getAppAddress());
-                        }
-                        para.put("code", code1);
-                        msgRequest.setParams(para);
-                        if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_PHONE.getType())) {
-                            smsSendService.sendMsg(msgRequest);
-                            mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
-                            messageShortMappingService.save(mapping1);
-                        }
-                    }else{
-                        receivers1.add(t.getPhone());
-                        messageDto.setReceivers(receivers1);
-                        messageDto.setTemplateCode("signTaskOut");
-                        messageDto.setContentParaMap(para1);
-                        if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_PHONE.getType())) {
-                            sysMessageUtil.asyncSendMessage(messageDto);
-                            mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
-                            messageShortMappingService.save(mapping1);
+        boolean isAddSignTask = true;
+        for(SignRuSigner signer : signers){
+            isAddSignTask = isHaveSignTask(signRuId, signer.getId());
+        }
+
+        if (isAddSignTask) {
+
+            signers.forEach(s -> {
+                //初始化签署节点任务
+                SignRuTask task = new SignRuTask();
+                task.setSignRuId(signRuId);
+                task.setTaskType(TaskTypeEnum.SIGN_TASK.getCode());
+                task.setUserType(2);
+                task.setUserTaskId(s.getId());
+                task.setTenantName("个人租户");
+                if (s.getSignerExternalType() == 1) {
+                    task.setPhone(s.getSignerExternalValue());
+                    SysUser sysUser = sysUserService.getUserByPhone(s.getSignerExternalValue());
+                    if (sysUser != null) {
+                        task.setUserId(sysUser.getId());
+                        task.setEmail(sysUser.getEmail());
+                        SysTenantUser tenantUser = sysTenantUserService.getPersonalTenantUser(sysUser.getId());
+                        if (tenantUser != null) {
+                            task.setTenantUserId(tenantUser.getId());
+                            task.setTenantId(tenantUser.getTenantId());
+                            task.setTaskLinkType("system");
+                            task.setSendMsgFlag(true);
                         }
                     }
+                } else if (s.getSignerExternalType() == 2) {
+                    task.setEmail(s.getSignerExternalValue());
+                    SysUser sysUser = sysUserService.getUserByEmail(s.getSignerExternalValue());
+                    if (sysUser != null) {
+                        task.setPhone(sysUser.getPhone());
+                        task.setUserId(sysUser.getId());
+                        SysTenantUser tenantUser = sysTenantUserService.getPersonalTenantUser(sysUser.getId());
+                        if (tenantUser != null) {
+                            task.setTenantUserId(tenantUser.getId());
+                            task.setTenantId(tenantUser.getTenantId());
+                            task.setTaskLinkType("system");
+                            task.setSendMsgFlag(true);
+                        }
+                    }
+                } else {
+                    task.setPhone("unknown");
+                    task.setEmail("unknown");
+                    task.setTaskLinkType("unknown");
                 }
-                if (MyStringUtils.isNotBlank(t.getEmail())) {
-                    mappingPara2.put("email", t.getEmail());
-                    receivers2.add(t.getEmail());
-                    emailDto.setReceivers(receivers2);
-                    emailDto.setTemplateCode("email_signTaskOut");
-                    SysAppInfo sysAppInfo = sysAppInfoService.getById("490489ab-d8b4-414c-ad77-d856962c286f");
-                    if (sysAppInfo != null && sysAppInfo.getAppAddress() != null) {
-                        para2.put("domain", sysAppInfo.getAppAddress());
-                    }
-                    emailDto.setContentParaMap(para2);
-                    if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_EMAIL.getType())) {
-                        sysMessageUtil.asyncSendEmail(emailDto);
-                        mapping2.setMsgPara(JacksonUtil.toJson(mappingPara2));
-                        messageShortMappingService.save(mapping2);
-                    }
-                }
-                if (t.isSendMsgFlag()) {
-                    sendSignMail(t.getTenantUserId(), signRuId, t.getId());
+                task.setTaskStatus(1);
+                tasks.add(task);
+                //修改实例-用户操作表任务状态
+                SignRuOperator query = new SignRuOperator();
+                query.setSignRuId(signRuId);
+                query.setOperateType(2);
+                query.setSignerType(2);
+                query.setSignerId(s.getId());
+                List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);
+                if (CollUtil.isNotEmpty(operators)) {
+                    SignRuOperator ruOperator = operators.get(0);
+                    ruOperator.setOperateStatus(2);
+                    ruOperator.setOperateTime(new Date());
+                    signRuOperatorService.updateById(ruOperator);
                 }
             });
+            signRuTaskService.saveBatch(tasks);
+            //外部签署人发送签署短信通知
+            SignRu signRu = signRuService.getById(signRuId);
+            if (signRu != null) {
+                //SysTenantInfo sysTenantInfo = sysTenantInfoService.getById(signRu.getSysTenantId());
+                SysTenantUser sysTenantUser = sysTenantUserService.getById(signRu.getSysUserId());
+                tasks.forEach(t -> {
+                    Map<String, String> para1 = new HashMap<>();
+                    Map<String, String> para2 = new HashMap<>();
+                    //para.put("company", sysTenantInfo != null ? sysTenantInfo.getTenantName() : "未知公司");
+                    para1.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
+                    para1.put("contract", signRu.getSubject());
+                    para2.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
+                    para2.put("contract", signRu.getSubject());
+                    String code1 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
+                    //防止code重复
+                    while (messageShortMappingService.getByCode(code1) != null) {
+                        code1 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
+                    }
+                    para1.put("code", code1);
+                    String code2 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
+                    //防止code重复
+                    while (messageShortMappingService.getByCode(code2) != null) {
+                        code2 = RandomUtil.randomString(CommonConstant.BASE_CHECK_CODES, 8);
+                    }
+                    para2.put("code", code2);
+
+                    //生成短连接
+                    Map<String, String> mappingPara1 = new HashMap<>();
+                    Map<String, String> mappingPara2 = new HashMap<>();
+                    mappingPara1.put("signRuId", signRuId);
+                    mappingPara1.put("taskId", t.getId());
+                    mappingPara1.put("taskType", "sign");
+                    mappingPara2.put("signRuId", signRuId);
+                    mappingPara2.put("taskId", t.getId());
+                    mappingPara2.put("taskType", "sign");
+                    MessageShortMapping mapping1 = new MessageShortMapping();
+                    MessageShortMapping mapping2 = new MessageShortMapping();
+                    mapping1.setMegCode(code1);
+                    mapping2.setMegCode(code2);
+                    MessageDto messageDto = new MessageDto();
+                    EmailDto emailDto = new EmailDto();
+                    messageDto.setSendType(SendType.IMMEDIATELY);
+                    emailDto.setSendType(SendType.IMMEDIATELY);
+                    List<String> receivers1 = new ArrayList<>();
+                    List<String> receivers2 = new ArrayList<>();
+                    if (MyStringUtils.isNotBlank(t.getPhone())) {
+                        mappingPara1.put("phone", t.getPhone());
+                        SysConfig isEcup = commonToolsAPI.getConfigByType("sms_channel");
+                        SysConfig sendMessageConfig = commonToolsAPI.getConfigByType(SysConfigType.SENDMESSAGE.getType());
+                        if (isEcup != null && "resrun".equals(isEcup.getValue()) && sendMessageConfig != null && "true".equals(sendMessageConfig.getValue())) {
+                            MsgRequest msgRequest = new MsgRequest();
+                            msgRequest.setPhoneNumbers(t.getPhone());
+                            msgRequest.setTemplateName("signTaskOut");
+                            Map<String, String> para = new HashMap<>();
+                            // todo 获取域名,补充信息
+                            para.put("sender", sysTenantUser != null ? sysTenantUser.getNickName() : "未知用户");
+                            para.put("contract", signRu.getSubject());
+                            SysAppInfo sysAppInfo = sysAppInfoService.getById("490489ab-d8b4-414c-ad77-d856962c286f");
+                            if (sysAppInfo != null && sysAppInfo.getAppAddress() != null) {
+                                para.put("domain", sysAppInfo.getAppAddress());
+                            }
+                            para.put("code", code1);
+                            msgRequest.setParams(para);
+                            if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_PHONE.getType())) {
+                                smsSendService.sendMsg(msgRequest);
+                                mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
+                                messageShortMappingService.save(mapping1);
+                            }
+                        } else {
+                            receivers1.add(t.getPhone());
+                            messageDto.setReceivers(receivers1);
+                            messageDto.setTemplateCode("signTaskOut");
+                            messageDto.setContentParaMap(para1);
+                            if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_PHONE.getType())) {
+                                sysMessageUtil.asyncSendMessage(messageDto);
+                                mapping1.setMsgPara(JacksonUtil.toJson(mappingPara1));
+                                messageShortMappingService.save(mapping1);
+                            }
+                        }
+                    }
+                    if (MyStringUtils.isNotBlank(t.getEmail())) {
+                        mappingPara2.put("email", t.getEmail());
+                        receivers2.add(t.getEmail());
+                        emailDto.setReceivers(receivers2);
+                        emailDto.setTemplateCode("email_signTaskOut");
+                        SysAppInfo sysAppInfo = sysAppInfoService.getById("490489ab-d8b4-414c-ad77-d856962c286f");
+                        if (sysAppInfo != null && sysAppInfo.getAppAddress() != null) {
+                            para2.put("domain", sysAppInfo.getAppAddress());
+                        }
+                        emailDto.setContentParaMap(para2);
+                        if (signReNoticeService.getByReIdAndType(signRu.getSignReId(), ReNoticeTypeEnum.SIGN_TASK_OUT_EMAIL.getType())) {
+                            sysMessageUtil.asyncSendEmail(emailDto);
+                            mapping2.setMsgPara(JacksonUtil.toJson(mappingPara2));
+                            messageShortMappingService.save(mapping2);
+                        }
+                    }
+                    if (t.isSendMsgFlag()) {
+                        sendSignMail(t.getTenantUserId(), signRuId, t.getId());
+                    }
+                });
+            }
         }
     }
 
@@ -922,7 +934,7 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                             boolean isAddSignTask = isHaveSignTask(signRuId, sender.getId());
 
                             if (isAddSignTask == false){
-                                continue;
+                                break;
                             }
 
                             if (sender.getSenderSignType() == 1) {
@@ -1150,7 +1162,7 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
                         boolean isAddSignTask = isHaveSignTask(signRuId, sender.getId());
 
                         if (isAddSignTask == false){
-                            continue;
+                            break;
                         }
 
                         if(isAddSignTask){

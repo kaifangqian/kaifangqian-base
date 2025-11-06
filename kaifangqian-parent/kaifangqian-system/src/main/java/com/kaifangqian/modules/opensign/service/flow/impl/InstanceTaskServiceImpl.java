@@ -24,15 +24,16 @@ package com.kaifangqian.modules.opensign.service.flow.impl;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.kaifangqian.modules.opensign.enums.TaskTypeEnum;
+import com.kaifangqian.modules.opensign.entity.SignRuSender;
+import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.flow.IInstanceTaskService;
+import com.kaifangqian.modules.opensign.service.ru.SignRuSenderService;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.common.system.vo.LoginUser;
 import com.kaifangqian.common.util.MySecurityUtils;
 import com.kaifangqian.exception.PaasException;
 import com.kaifangqian.modules.opensign.entity.SignRuSigner;
 import com.kaifangqian.modules.opensign.entity.SignRuTask;
-import com.kaifangqian.modules.opensign.enums.SignAuthCheckEnum;
 import com.kaifangqian.modules.opensign.mapper.SignRuTaskMapper;
 import com.kaifangqian.modules.opensign.service.re.SignReAuthService;
 import com.kaifangqian.modules.opensign.service.ru.SignRuService;
@@ -74,6 +75,8 @@ public class InstanceTaskServiceImpl implements IInstanceTaskService {
     private ISysTenantInfoService sysTenantInfoService;
     @Autowired
     private SignRuSignerService signRuSignerService;
+    @Autowired
+    private SignRuSenderService signRuSenderService;
 
 
     @Override
@@ -321,8 +324,20 @@ public class InstanceTaskServiceImpl implements IInstanceTaskService {
                 List<String> ruIds = list.stream().map(TaskListInfoRes::getSignRuId).collect(Collectors.toList());
                 if (CollUtil.isNotEmpty(ruIds)) {
                     List<SignRuSigner> ruSigners = signRuSignerService.listByRuIds(ruIds);
+
+                    //判断发起人是否有签署人，无则在签署人姓名列表中删除发起人
+                    for(int i = 0; i < ruSigners.size(); i++){
+                        if (ruSigners.get(i).getSignerType() == SignerTypeEnum.SENDER.getCode()){
+                            List<SignRuSender> ruSenders = signRuSenderService.listBySignerId(ruSigners.get(i).getId());
+                            if (CollUtil.isEmpty(ruSenders)){
+                                ruSigners.remove(i);
+                            }
+                        }
+                    }
+
                     if (CollUtil.isNotEmpty(ruSigners)) {
                         //Map<String, String> ruMap = ruSigners.stream().filter(s -> MyStringUtils.isBlank(s.getSignerName()) || s.getSignerOrder() == null).sorted(Comparator.comparing(SignRuSigner::getSignerOrder)).collect(Collectors.toMap(SignRuSigner::getSignRuId, t -> t.getSignerName(), (k1, k2) -> k1 + "、" + k2));
+
                         Map<String, String> ruMap = ruSigners.stream().sorted(Comparator.comparing(SignRuSigner::getSignerOrder)).collect(Collectors.toMap(SignRuSigner::getSignRuId, t -> t.getSignerName(), (k1, k2) -> k1 + "、" + k2));
                         for (TaskListInfoRes res : list) {
                             res.setParticipateNames(ruMap.get(res.getSignRuId()));

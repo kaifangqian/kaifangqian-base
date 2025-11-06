@@ -239,7 +239,7 @@ public class ContractDraftAndStartService extends ContractService {
         ruBusinessService.saveRuSignerForApi(createData);
 
         //驱动
-        iFlowService.complete(ru.getId(), "signActivitiFlow");
+        iFlowService.complete(ru.getId(), "initiateSignTask");
         //ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
 
     }
@@ -325,23 +325,17 @@ public class ContractDraftAndStartService extends ContractService {
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"实例状态为"+ statusEnum.getName() + ",不可撤回");
         }
 
-        LoginUser currentUser = MySecurityUtils.getCurrentUser();
-
         //操作记录
         SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
         ruOperateRecord.setSignRuId(ru.getId());
-        ruOperateRecord.setAccountId(currentUser.getId());
-        ruOperateRecord.setTenantId(currentUser.getTenantId());
-        ruOperateRecord.setTenantUserId(currentUser.getTenantUserId());
+        ruOperateRecord.setTenantId(apiDeveloperManage.getTenantId());
         ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.REVOKE.getType());
         ruOperateRecord.setActionType(SignRecordActionTypeEnum.REVOKE.getType());
         ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setOperateReason("通过API撤销");
         ruOperateRecordService.save(ruOperateRecord);
         //撤回合同
         ruCallbackService.callback(ru.getId(), "", SignCallbackTypeEnum.RECALLED);
-
-        //清空本地变量
-        MySecurityUtils.THREAD_LOCAL.remove();
 
     }
 
@@ -1306,12 +1300,13 @@ public class ContractDraftAndStartService extends ContractService {
             ruSigner.setSignerUserId(createData.getTenantUser().getId());
         }
 
-        dataSigner.setRuSigner(ruSigner);
+
         dataSigner.setSignerType(SignerTypeEnum.SENDER.getCode());
 
         List<ContractInternalNode> internalNodeList = sender.getInternalNodeList();
 
         if(CollUtil.isNotEmpty(internalNodeList)){
+            ruSigner.setSignFlag(true);
             for(ContractInternalNode node : internalNodeList){
 
                 int signOrder = Integer.parseInt(node.getSignerOrder());
@@ -1406,7 +1401,10 @@ public class ContractDraftAndStartService extends ContractService {
                 dataSender.setRuSender(ruSender);
                 dataSigner.getAddSenderList().add(dataSender);
             }
+        }else{
+            ruSigner.setSignFlag(false);
         }
+        dataSigner.setRuSigner(ruSigner);
 
         createData.getSignerList().add(dataSigner);
     }
@@ -1572,6 +1570,7 @@ public class ContractDraftAndStartService extends ContractService {
 
         List<ContractInternalNode> internalNodeList = entSigner.getInternalNodeList();
         if(internalNodeList != null && internalNodeList.size() > 0){
+            ruSigner.setSignFlag(true);
             for(ContractInternalNode node : internalNodeList){
 
                 RuDataSender dataSender = new RuDataSender();
@@ -1668,6 +1667,8 @@ public class ContractDraftAndStartService extends ContractService {
 //                dataSender.setReSenderId(reSender.getId());
                 dataSigner.getAddSenderList().add(dataSender);
             }
+        }else{
+            ruSigner.setSignFlag(false);
         }
 
         dataSigner.setRuSigner(ruSigner);

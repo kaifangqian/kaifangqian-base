@@ -204,11 +204,6 @@ public class ApiSignThreadLocalAop {
                 }
             }
 
-        }else if (MyStringUtils.isBlank(operatorAccount) && path.equals("/resrun-paas/kaifangqian/openAPI/V2/contract/recall")) {
-            ApiDeveloperManage developerManage = apiDeveloperManageService.getByToken(token);
-            LoginUser loginUser = new LoginUser();
-            loginUser.setTenantId(developerManage.getTenantId());
-            MySecurityUtils.THREAD_LOCAL.set(loginUser);
         }
 
         //初始化数据
