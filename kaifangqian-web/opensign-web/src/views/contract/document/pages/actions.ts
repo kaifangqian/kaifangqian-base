@@ -24,16 +24,24 @@ import { revokeRuSignRu, restoreRu, deleteSignRu, deleteCompleteRu} from '/@/api
 import { useMessage } from '/@/hooks/web/useMessage';
 import { getCurrentInstance} from "vue";
 import eventHub from '/@/utils/eventHub';
+import { Router } from 'vue-router';
+
+// 定义 Action 接口
+export interface Action {
+  key: string;
+  name: string;
+  callback: (params: any, router?: Router) => void;
+  params: any;
+}
+
 const { createMessage: msg, createConfirm} = useMessage();
 let requestFun,requestParams,setTable,setPage,setLoad
 
-
-
-export  async function revoke(params) {
+export function revoke(params) {
   // const instance = getCurrentInstance();
   // const { eventHub } = instance?.proxy;
   console.log("revoke")
-  eventHub.$emit('triggerConfirm',params)
+  eventHub.emit('triggerConfirm',params)
   return
   
   // let result = await revokeRuSignRu({signRuId:params.signRuId});
@@ -108,7 +116,6 @@ export function deleteComplete(params){
   })
 }
 export  function editRow(params,router) {
-  // window.open('/#/contract/start?__full__&signReId='+'&signRuId=' + params.signRuId )
   router.push({
     path:"/contract/start",
     query:{
@@ -130,7 +137,6 @@ export  async function recover(params) {
   }
 }
 export  function write(params,router) {
-  // window.open('/#/contract/params?__full__&signReId='+'&signRuId=' + params.signRuId + '&，=' + params.result.taskId + '&type='+ (params.result.startFlag?'':'receive')  + '&from=list')
   router.push({
     path:"/contract/params",
     query:{
@@ -143,8 +149,7 @@ export  function write(params,router) {
   })
   
 } 
-export  function sign (params,router) {
-  // window.open('/#/contract/sign?__full__&signReId='+'&signRuId=' + params.signRuId + '&taskId=' + params.result.taskId  + '&from=list')
+export function sign (params,router) {
   router.push({
     path:"/contract/sign",
     query:{
@@ -154,10 +159,20 @@ export  function sign (params,router) {
       from:'list'
     }
   })
-  
+}
+export function approval (params,router) {
+  router.push({
+    path:"/contract/approval",
+    query:{
+      __full__:"",
+      signRuId:params.signRuId,
+      taskId:params.result.taskId,
+      from:'list'
+    }
+  })
 }
 
-export const actions = [
+export const actions: Action[] = [
   {
     key:'revoke',
     name:'撤回',
@@ -195,6 +210,12 @@ export const actions = [
     params:{}
   },
   {
+    key:'approval',
+    name:'审批',
+    callback:approval,
+    params:{}
+  },
+  {
     key:'delete',
     name:'删除',
     callback:deleteRow,
@@ -209,8 +230,8 @@ export const actions = [
 ]
 
 
-export function mapActions(keys){
-  let acts = []
+export function mapActions(keys): Action[] {
+  let acts: Action[] = []
   keys.forEach(v=>{
     actions.map(m=>{
       if(m.key==v){
@@ -220,7 +241,8 @@ export function mapActions(keys){
   })
   return acts;
 }
-export function formatAction (row,result){
+
+export function formatAction (row,result): Action[] {
   //整合参数
   actions.map(m=>{
     m.params = {
@@ -228,7 +250,7 @@ export function formatAction (row,result){
       ...result
     }
   })
-  let actionResult:any = [];
+  let actionResult: Action[] = [];
   //发起审批中
   if(row.status==1){
     actionResult = mapActions(['edit','delete'])
@@ -268,14 +290,18 @@ export function formatAction (row,result){
   //签署中
   if(row.status==7){
     if(result.startFlag){
-      if(result.taskId){
+      if(result.taskId && result.taskType == 'sign_task'){
         actionResult = mapActions(['sign','revoke']);
+      }else if(result.taskId && result.taskType == 'approve_task'){
+        actionResult = mapActions(['approval','revoke']);
       }else{
         actionResult = mapActions(['revoke']);
       }
     }else{
-      if(result.taskId){
+      if(result.taskId && result.taskType == 'sign_task'){
         actionResult = mapActions(['sign']);
+      }else if(result.taskId && result.taskType == 'approve_task'){
+        actionResult = mapActions(['approval']);
       }else{
         actionResult = mapActions([]);
       }

@@ -142,7 +142,7 @@ function isControlPage(opt:any,allHeight:number){
   const maxX = retainDecimals(opt.maxWidth - ((opt.maxWidth - opt.width )/ 2));
   
 	var top = opt.y;
-	console.log("scope:",start,end,minX,maxX,opt);
+	// console.log("scope:",start,end,minX,maxX,opt);
 	
 	if(top>start && top< end){
     if(opt.y < startHeight){

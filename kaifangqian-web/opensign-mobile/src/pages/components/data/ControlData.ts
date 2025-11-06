@@ -204,7 +204,7 @@ export const controlListSource = [
         zoom: false,
         move: true,
         required: false,
-        format: "",
+        format: "YYYY-MM-DD",
         attr: ['name', 'format'],
         style: {
             fontSize: 14,

@@ -118,7 +118,7 @@
       });
 
       onMounted(() => {
-        console.log('app sider load', appStore.getMenuSetting.collapsed);
+        // console.log('app sider load', appStore.getMenuSetting.collapsed);
         fetch();
         // document.addEventListener('click', listenDomClick);
       });

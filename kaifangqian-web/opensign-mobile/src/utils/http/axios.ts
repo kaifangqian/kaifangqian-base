@@ -42,7 +42,7 @@ service.interceptors.request.use(
         // const appToken = session.getItem(APP_TOKEN)
         const signTaskId = session.getItem('sign_task_id')
         // const appCode = import.meta.env.VITE_GLOB_APP_CODE;
-        console.log(signTaskId, 'signTaskId---------------')
+        // console.log(signTaskId, 'signTaskId---------------')
 
         config.headers = {
             ...config.headers,
@@ -98,7 +98,7 @@ service.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             // 处理 HTTP 状态码为 401 的情况
             // 可以在这里进行跳转登录页面、刷新 token 等操作
-            Notify({ type: 'danger', message: error.response.data && error.response.data.message });
+            Notify({ type: 'danger', message: '登录状态失效，请重新登录' });
             localStorage.clear()
             router.push('/login');
             setTimeout(() => {

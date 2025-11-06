@@ -46,15 +46,37 @@
         </div>
         <!-- <a href='javascript:;' @click="handleWrite" v-if="!isDetail">快捷填写</a> -->
       </div>
-      <van-button
-        class="custom-button-primary-write"
+      <!-- 文档切换icon -->
+      <div class="sign-document-update" v-show="documentList.length > 1"> 
+        <van-button
+        class="custom-buttons"
         type="primary"
-        @click="handleWrite"
+        @click="quickHandleDocChange"
         size="small"
-        :disabled="isDetail"
-      >
-        <SvgIcon name="contract-write" size="32" />
-      </van-button>
+        >
+        <SvgIcon name="doc-update" size="28" style="text-align: center;display: flex;align-items: center;justify-content: center;"  />
+        <!-- 文档数量气泡 -->
+        <van-badge :content="documentList.length" class="document-count-badge" />
+        </van-button>
+        <div class="doc-footer-operation">
+          <span class="doc-footer-operation-text">文档切换</span>
+        </div>
+      </div>
+      <!-- 快捷填写icon -->
+       <div class="sign-contract-write"> 
+        <van-button
+          class="custom-buttons"
+          type="primary"
+          @click="handleWrite"
+          size="small"
+          :disabled="isDetail"
+        >
+          <SvgIcon name="contract-write" size="24" style="text-align: center;display: flex;align-items: center;justify-content: center;" />
+        </van-button>
+        <div class="doc-footer-operation">
+          <span class="doc-footer-operation-text">文档填写</span>
+        </div>
+      </div>
       <div class="footer-write-action">
         <van-button
           class="custom-button-minor"
@@ -406,7 +428,8 @@
 
       session.setItem('sign_task_id', taskId);
 
-      const documentList: any = ref([{ activeControl: [] }]);
+      // const documentList: any = ref([{ activeControl: [] }]);
+      const documentList: any = ref([]);
       const signerList = ref(<SignItem[]>[]);
 
       const confirmTypeInfo: any = ref({
@@ -501,9 +524,10 @@
       }
 
       async function init() {
-        console.log(Api, '接口api');
+        // console.log(Api, '接口api');
         let { result } = await Api.getDocFiles({ signRuId: signRuId });
         if (result.length) {
+          // console.log(result, '接口api-----获取文件列表');
           controlList.value = [];
           docs.value = result;
           docId.value = result[0].id;
@@ -521,28 +545,28 @@
           });
         }
       }
+
+      //文档切换
+      async function quickHandleDocChange() {
+        // 遍历文档列表，按照顺序进行切换
+        // 若当前文档是最后一个，则切换到第一个文档
+        // 若当前文档不是最后一个，则切换到下一个文档
+        const currentIndex = documentList.value.findIndex((v: any) => v.signRuDocId == docId.value);
+        let nextIndex = 0;
+        if (currentIndex < documentList.value.length - 1) {
+          nextIndex = currentIndex + 1;
+        }
+        docId.value = documentList.value[nextIndex].signRuDocId;
+        nowDocument.value = documentList.value[nextIndex];
+        handleDocChange(docId.value);
+      }
+
       //文档切换
       async function handleDocChange(val: any) {
         let matchDoc = documentList.value.find((item) => item.signRuDocId == val);
         nowDocument.value = matchDoc;
         docId.value = val;
         images.value = matchDoc.images;
-
-        // docId.value = val;
-        // images.value = [];
-        // annexId.value = docs.value.filter(v => v.id == docId.value)[0].annexId;
-        // let { result } = await Api.getDocImgsById({ annexId: annexId.value });
-        // let matchDoc = documentList.value.find(item => item.signRuDocId == docId.value);
-        // if (matchDoc) {
-        //     console.log(matchDoc, '测试文档---')
-        //     matchDoc.images = result;
-        //     //更新文档图片数量用于重新计算拖拽范围
-        //     matchDoc.pageSize = result.length;
-        //     nowDocument.value = matchDoc;
-        // }
-
-        // document.getElementsByClassName('doc-content')[0].scrollTop = 0;
-        //   // console.log(documentList,docId.value,  matchDoc,'匹配文档')
       }
       //控件定位
       function handlePosition(doc, control) {
@@ -624,8 +648,8 @@
 
       //整理文档列表
       function setDocumentList(doc: any, controls: any) {
+        // console.log(doc,"整理文档列表--------");
         const { targets, maxWidth } = pageScaling(doc.images);
-        console.log(targets, maxWidth, 'maxWidth-------');
         documentList.value.push({
           active: false,
           documentName: doc.name,
@@ -642,6 +666,7 @@
             targets[targets.length - 1].height +
             images.value.length * CanvasZoom.space,
         });
+        // console.log(documentList.value, '-----整理文档列表-----')
         nowDocument.value = documentList.value.find((v: any) => v.signRuDocId == docId.value);
         calculateControlWriteCount();
       }
@@ -771,7 +796,7 @@
       function handleDetail() {
         detailVisible.value = true;
         nextTick(() => {
-          console.log(signDetailRef.value, '子组件方法----');
+          // console.log(signDetailRef.value, '子组件方法----');
           signDetailRef.value && signDetailRef.value.getRuInfo();
         });
       }
@@ -825,22 +850,22 @@
       //提交填写
       function handleSubmitWrite() {
         if (mustWritedCount.value < allmustWriteCount.value) {
-          Notify({ type: 'warning', message: '还有必填项未填写' });
+          Notify({ type: 'danger', message: '请完成所有必填项的填写后再提交。' });
           return;
         }
         getConfirmTypeForAction({ operateType: 'submit_write' }).then(async (res) => {
-          // confirmTypeInfo.value = res;
-          // confirmAction.value = 'write';
-          // if (!willResult.value) {
-          //   confirmRef.value?.showDialog({
-          //     confirmType: confirmTypeInfo.value.confirmType,
-          //     orderNo: orderNo.value,
-          //   });
-          //   return;
-          // }
+          // 存在非必填项未填写
+          let confirmMessage = '';
+          if(optionalWritedCount.value < allOptionalWriteCount.value ){
+            confirmMessage = '您有非必填内容尚未填写。请确认是否提交？提交后将无法修改。';
+          }else{
+            confirmMessage = '请确认是否提交？提交后将无法修改。';
+          }
           Dialog.confirm({
-            title: '提交填写',
-            message: '提交后无法修改，确认提交？',
+            title: '提交填写确认',
+            message: confirmMessage,
+            confirmButtonText: '已确认，提交签署',
+            cancelButtonText: '检查填写项'
           })
             .then(async () => {
               let paramsControl = formatSubmitControl();
@@ -873,6 +898,8 @@
             .catch(() => {
               // on cancel
               loading.value = false;
+              // 关闭弹窗并触发handleWrite方法
+              handleWrite();
             });
         });
       }
@@ -959,7 +986,7 @@
       //将填写表单中控件的值赋值到渲染控件上
       function rewriteValueToControl() {
         let controls = documentList.value.flatMap((item: any) => item.activeControl);
-        console.log(controls, nowDocument.value.activeControl, '控件2343');
+        // console.log(controls, nowDocument.value.activeControl, '控件2343');
 
         nowDocument.value.activeControl.map((item) => {
           let matchControl = controls.find((v) => v.id == item.id);
@@ -1044,7 +1071,7 @@
       }
       //选择时间
       function handleWriteDatePickerChange(row) {
-        console.log(row, '控件----');
+        // console.log(row, '控件----');
         row.writeTimeVisible = true;
         currentControlDate.value = row;
       }
@@ -1054,7 +1081,7 @@
       }
       //填写
       function handleWriteChange(e: any, item: any) {
-        console.log(e, item, '变更值');
+        // console.log(e, item, '变更值');
         item.value = e.target.value;
       }
       //填写复选框
@@ -1081,7 +1108,7 @@
         }
       }
       function handleWriteType(val: string) {
-        console.log(val, 'dddddsd');
+        // console.log(val, 'dddddsd');
       }
 
       function handleConfirmSuccess(info: any) {
@@ -1151,6 +1178,7 @@
         controlList,
         hasWrite,
         handleDocChange,
+        quickHandleDocChange,
         handleRejectWrite,
         handleSubmitWrite,
         handleWriteType,
@@ -1412,25 +1440,73 @@
     font-size: 0.4rem;
     color: #ee0a24;
   }
-
-  .custom-button-primary-write {
+  .sign-contract-write { 
     position: fixed;
-    right: 32px;
+    left: 50px;
     bottom: 20%;
     z-index: 200;
+    height: 110px;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;  
+  }
+  .sign-document-update{
+    position: fixed;
+    left: 50px;
+    bottom: 28%;
+    z-index: 200;
+    height: 110px;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;  
+    // border: 1px solid rgb(229, 16, 16);
+    // padding: 10px 0;
+  }
+
+   // 添加文档数量气泡样式
+  .document-count-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+  }
+
+  .custom-buttons {
+    position: fixed;
+    margin-bottom: 10px;
+    // right: 32px;
+    // bottom: 27%;
+    // z-index: 200;
     color: #fff;
     border: none;
     border-radius: 50%;
     font-size: 18px;
     font-weight: 600;
-    height: 80px;
-    width: 80px;
+    height: 70px;
+    width: 70px;
     // padding: 0px;
     transition: box-shadow 0.2s, background 0.2s;
-    display: flex;
-    align-items: center;
+    // display: flex;
+    // align-items: center;
     justify-content: center;
-    background: linear-gradient(90deg, #0084ff, #6ebeff);
+    background: white;
+    // background: linear-gradient(90deg, #0084ff, #6ebeff);
     box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
+  }
+
+  .doc-footer-operation {
+    margin-top: 1rem;
+    // margin-bottom: 0;
+    text-align: center;
+    // z-index: 999;
+  }
+
+  .doc-footer-operation-text {
+    font-size: 16px;
+    color: #333;
+    white-space: nowrap;
   }
 </style>

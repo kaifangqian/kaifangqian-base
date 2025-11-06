@@ -40,7 +40,7 @@
           		<span>签名图案</span>
           	</div>
             <a-tabs v-model:activeKey="fromData.activeKey" @change="tabChange">
-                <a-tab-pane :key="1" tab="艺术字体">
+                <a-tab-pane :key="1" tab="模板制作">
             		<div class="wordart-content-title">
             			选择签名样式
             		</div>
@@ -119,7 +119,7 @@
             		</div>
             	</a-tab-pane>
               
-              <a-tab-pane :key="3" tab="扫描签名" force-render>
+              <a-tab-pane :key="3" tab="扫码签名" force-render>
               	<div class="signature-qr" v-if="!QRsignatureBase64">
               	  <div class="qr-area">
               	    <img :src="signatureQC" alt="QR Code" v-if="signatureQC">
@@ -130,6 +130,7 @@
               	      <span class="qr-tip"><Icon icon="ant-design:check-circle-filled" color="#25dd13" size="28"></Icon><p>扫码成功</p></span>
               	    </div>
               	  </div>
+                  <p class="qr-time">建议使用微信扫码，进行签名书写</p>
               	  <p class="qr-time">该二维码有效期为5分钟</p>
               	 
               	</div>
@@ -195,7 +196,7 @@
       const fromData = ref({
         sealName:"",
         activeKey:1,
-        sealType:1,
+        sealType:"",
         addContext:1,
         sealStyle:1,
         sealStyleTem:4,
@@ -205,6 +206,7 @@
       
       const userStore = useUserStore();
       const userInfo =  userStore.getUserInfo;
+      const tenantInfo = userStore.getTenantInfo;
       
       const [registerModal, { setModalProps,closeModal }] = useModalInner(async (data) => {
         setModalProps({ 
@@ -212,13 +214,14 @@
           width:800,
           //cancelText:'关闭' ,
           centered:true,
+          canFullscreen: false,
         });
         isUpdate.value = !!data?.isUpdate;
         fromData.value.sealName = "";
         fromData.value.activeKey = 1;
         fromData.value.annexId = "";
         fromData.value.previewImg = "";
-        fromData.value.sealType = 1;
+        fromData.value.sealType = "";
         fromData.value.addContext = 1;
         fromData.value.sealStyle = 1;
         fromData.value.sealStyleTem = 4;
@@ -262,8 +265,9 @@
             isQRSignature.value = false;
             QRKey.value = result;
             //scan_code_service
-            
-            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
+            // console.log(tenantInfo?.name,userInfo?.realname);
+            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id + '&realName=' + tenantInfo?.name || userInfo?.realname;
+            console.log(signatureUrl.value);
             generateQRCode(signatureUrl.value)
             connectSocket();
             timer.value = setTimeout(()=>{
@@ -319,6 +323,7 @@
           let params = {
             annexId:fromData.value.annexId,
             sealName: fromData.value.sealName,
+            sealType:"",
           }
           if(fromData.value.activeKey == 2){
             const { isEmpty, data } = signaturePad.value.saveSignature();
@@ -326,9 +331,17 @@
             	message.warning("签名为空，请书写后再进行添加")
             	return;
             }
+            const minLength = 600; // 最小长度阈值
+            const totalLength = calcTotalLength(signaturePad.value);
+            console.log('totalLength:', totalLength);
+            if (totalLength < minLength) {
+              message.warning("签名内容太短，请重新签名")
+              return;
+            }
             const base64 = data.split(",");
             const result = await signBase64({image:base64[1]});
             params.annexId = result;
+            params.sealType = "HAND";
           }
           if(fromData.value.activeKey == 3){
             if(!QRsignatureBase64.value){
@@ -339,12 +352,15 @@
             const base64 = QRsignatureBase64.value.split(",");
             const result = await signBase64({image:base64[1]});
             params.annexId = result;
+            params.sealType = "HAND";
+          }
+          if(fromData.value.activeKey == 1){
+            params.sealType = "TEMPLATE";
           }
           const response = await signSave(params);
-          //const res = (await addSeal(sealFrom.value)) as any;
-         if(response.code == 200){
+          if(response.code == 200){
             message.success("新增签名成功！");
-             // spinning.value = false;
+              // spinning.value = false;
             // router.push("/seals/manage")
             closeModal();
             emit("success");
@@ -354,6 +370,34 @@
           // message.warning("有必填参数未填");
         }
         
+      }
+      // 计算签名长度
+      function calcTotalLength(signaturePadInstance: any) {
+        let totalLength = 0;
+        // 获取签名数据
+        const data = signaturePadInstance.toData();
+        if (data && Array.isArray(data)) {
+          data.forEach(stroke => {
+            if (stroke && stroke.points && Array.isArray(stroke.points)) {
+              for (let i = 1; i < stroke.points.length; i++) {
+                const prevPoint = stroke.points[i - 1];
+                const currPoint = stroke.points[i];
+                if (
+                  prevPoint && currPoint &&
+                  typeof prevPoint.x === 'number' && typeof prevPoint.y === 'number' &&
+                  typeof currPoint.x === 'number' && typeof currPoint.y === 'number'
+                ) {
+                  const distance = Math.sqrt(
+                    Math.pow(currPoint.x - prevPoint.x, 2) +
+                    Math.pow(currPoint.y - prevPoint.y, 2)
+                  );
+                  totalLength += distance;
+                }
+              }
+            }
+          });
+        }
+        return totalLength;
       }
       
       function clearSignature(){
@@ -429,7 +473,7 @@
   }
   .signature-dialog-item{
   	width: 100%;
-  	padding-top: 10px;
+  	// padding-top: 10px;
   	.title{
   		line-height: 40px;
   		padding: 0 10px;
@@ -489,16 +533,21 @@
   	width:100%;
   	height: 360px;
   	border:1px solid #dedede;
+    border-radius: 10px;
   }
   .signature-bg{
   	background: url('/@/assets/images/signature-bg.png') no-repeat;
   	background-size: 70% 70%;
   	background-position: 50% 50%;
   }
+  .signature-preview{ 
+    margin-left: 60px;
+  }
   .signature-preview img{
   	border: 1px solid #ededed;
   	padding: 8px;
   	max-width: 150px;
+    // margin-left: 40px;
   }
   
   .signature-qr{
@@ -507,8 +556,8 @@
     align-items: center;
    
     .qr-area{
-      width: 200px;
-      height: 200px;
+      width: 160px;
+      height: 160px;
       margin: 0 auto;
       position: relative;
       img{
@@ -560,10 +609,15 @@
    
   }
   .QR-base64{
-    width: 100%;
+    width: 70%;
     border: 1px solid #dedede;
     text-align: center;
     margin: 0 auto;
+    border-radius: 10px;
+  }
+  .wordart-content-title{
+  	font-weight: 600;
+    margin-bottom: 10px;
   }
   
 </style>

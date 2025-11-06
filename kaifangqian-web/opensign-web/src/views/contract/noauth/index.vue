@@ -21,9 +21,10 @@
 -->
 
 <template>
-  <cheader/>
+  <cheader v-if="!pageLoading"/>
   <div class="sign-noauth-container">
-    <div class="sign-noauth-body">
+    <Loading :loading="pageLoading" text="加载中..." />
+    <div class="sign-noauth-body" v-if="(tipInfo.checkStatus != 1 || taskType == 'detail' || taskType == 'copy') && !pageLoading">
       <div class="no-auth-header">
         <SvgIcon name="sign-no-auth" size="80"/>
         <p style="font-size:18px;">无权访问</p>
@@ -103,7 +104,8 @@ export default defineComponent({
     const signRuId = route.query.signRuId;
     const taskId = route.query.taskId;
     const taskType = ref(route.query.taskType);
-    ls.set('Sign-Task-Id',taskId)
+    ls.set('Sign-Task-Id',taskId);
+    const pageLoading = ref(true);
     const [companyJoinRegister, { openModal: openCompanyJoin, closeModal: closeCompanyJoin }] =
     useModal();
   
@@ -125,7 +127,9 @@ export default defineComponent({
        console.log("result.value",result)
       if(result){ 
         returnSignPage();
+        return;
       }
+      pageLoading.value = false;
     }
     
     async function getCheckInfo(){
@@ -133,9 +137,18 @@ export default defineComponent({
       if(result){
         tipInfo.value = result;
         if(result.checkStatus === 1){
+          console.log('身份正确，直接进入');
           returnSignPage();
         }
+        // 账号正确、身份不正确
+        if (result.checkStatus === 4 || result.checkStatus === 7) {
+            console.log('身份不正确，自动切换身份');
+            handleChangeIdentity();
+            return;
+        }
       }
+      pageLoading.value = false;
+      
     }
 
     //企业实名认证
@@ -183,6 +196,9 @@ export default defineComponent({
         }
         if(taskType.value=='sign'){
           redirectPath = '/#/contract/sign?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
+        }
+        if(taskType.value=='approval'){
+          redirectPath = '/#/contract/approval?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
         }
         if(taskType.value=='copy' || taskType.value =='detail' ){
           redirectPath = '/#/contract/detail/sign?__full__&signRuId=' +  signRuId + '&taskId=' + taskId + '&from=list' + '&callbackPage=' + callbackPage;
@@ -243,9 +259,11 @@ export default defineComponent({
             await handleMenuClick(matchDepart);
           } else {
             msg.warning('未找到匹配的身份信息');
+            pageLoading.value = false;
           }
         } else {
           msg.warning('暂无可用的身份信息');
+          pageLoading.value = false;
         }
       }
       async function handleMenuClick(depart){
@@ -254,7 +272,7 @@ export default defineComponent({
           }
           const result = await userStore.selectTenantAuth(params);
           if(result){
-              msg.success('切换成功,即将跳转')
+              // msg.success('切换成功,即将跳转')
           }
       }
 
@@ -263,20 +281,6 @@ export default defineComponent({
           companyName: tipInfo.value.targetTenantName,
         });
       }
-      // async function handleJoinSubmitCall(data:any){ 
-      //       // 这里处理 handleJoinSubmit 的回调逻辑
-      //       // 加入成功，刷新租户列表，切换到目标身份下
-      //       if (data.result === 1) {
-      //           let tenantList = await getMyTenantDeparts();
-      //           let matchDepart:any = tenantList.filter((u:any)=>u.tenantName == tipInfo.value.targetTenantName);
-      //           if((matchDepart&&matchDepart.length && tipInfo.value.targetTenantName)){
-      //            handleMenuClick(matchDepart[0])
-      //           }
-      //       } else {
-      //           console.log("已申请加入，管理员开启了申请加入审核流程，请耐心等待或联系管理员及时审核");
-      //       }
-            
-      //   }
 
     return {
       tipInfo,
@@ -288,7 +292,8 @@ export default defineComponent({
       partyName,
       handleChangeIdentity,
       createCompany,
-      handleJoinEnterprise,companyJoinRegister
+      handleJoinEnterprise,companyJoinRegister,
+      pageLoading,
     }
   }
 })

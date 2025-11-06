@@ -21,6 +21,7 @@ public class ReSaveDataSigner implements Serializable {
 
     //人脸校验
     private Integer confirmType ;
+
     //签署方类型
     private Integer signerType ;
 
@@ -30,8 +31,15 @@ public class ReSaveDataSigner implements Serializable {
     //是否快速签署
     private Integer agreeSkipWillingness;
 
+    //个人签署节点实名认证类型：value字段值为：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）
+    private String personalSignAuth ;
+
+    // @ApiModelProperty("不限制：NOLIMIT；个人签名方式：TEMPLATE：模板生成、HAND：手写签名")
+    private String sealType ;
+
     //签署方数据
     private SignReSigner reSigner ;
+
     //内部节点数据
     private List<ReSaveDataSender> addSenderList = new ArrayList<>();
 

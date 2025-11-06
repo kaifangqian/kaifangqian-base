@@ -27,7 +27,7 @@
         </DocHeader>
         <div class="position-params-body">
             <DocLeft title="设置签署位置">
-                  <div class="signer-node-set">
+                  <!-- <div class="signer-node-set">
                     <p>签署位置设置方式</p>
                     <a-select ref="select"  v-model:value="controlChangeFlag" style="width: 90%;margin:10px 0">
                       <a-select-option value="necessary_and_add">强制签署（允许新增）​​</a-select-option>
@@ -42,7 +42,34 @@
                       </template>
                       <Icon icon="ant-design:question-circle-outlined" style="margin-left:10px;"/>
                     </a-tooltip>
-                  </div>
+                  </div> -->
+                  <div class="signer-node-set">
+                    <p>签署位置设置方式</p>
+                    <div class="select-with-tooltip" 
+                        @mouseenter="showSelectTooltip = true" 
+                        @mouseleave="showSelectTooltip = false">
+                        <a-select 
+                        ref="select"  
+                        v-model:value="controlChangeFlag" 
+                        style="width: 270px;margin:10px 0"
+                        >
+                        <a-select-option value="necessary_and_add">强制签署（允许新增）​​</a-select-option>
+                        <a-select-option value="necessary_no_add">强制签署（禁止新增）​​</a-select-option>
+                        <a-select-option value="not_necessary">自由签署​</a-select-option>
+                        </a-select>
+                        <a-tooltip 
+                        :visible="showSelectTooltip"
+                        :title="getControlChangeFlagTitle(controlChangeFlag)"
+                        placement="topLeft"
+                        overlayClassName="instant-tooltip"
+                        :mouseEnterDelay="0"
+                        :mouseLeaveDelay="0"
+                        :destroyTooltipOnHide="true"
+                        >
+                        <div class="tooltip-placeholder"></div>
+                        </a-tooltip>
+                    </div>
+                    </div>
                   <Controls :documentList="documentList" :signerList="signerList" :nowDocument="nowDocument" :user="signers"
                       @dragOver="controlsDragOver" @scroll="handleScroll" :chopStampUseFlag="chopStampUseFlag">
                   </Controls>
@@ -138,6 +165,7 @@ export default defineComponent({
         const hasWriteControl = ref(true);
         const isSubmitControl = ref(false);
         const chopStampUseFlag = ref(false);
+        const showSelectTooltip = ref(false);
         const compState = reactive({
             absolute: false,
             loading: false,
@@ -154,6 +182,19 @@ export default defineComponent({
         onBeforeMount(()=>{
           compState.loading = true;
         })
+
+        // 添加获取 tooltip 内容的方法
+        function getControlChangeFlagTitle(value) {
+          const tooltips = {
+            'necessary_and_add': '签署方须完成全部指定位置的签署，不可修改原位置，但允许自行新增签署区域。',
+            'necessary_no_add': '签署方须完成全部指定位置的签署，不可修改原位置，且禁止新增任何签署区域。',
+            'not_necessary': '签署方可修改、删除既有签署位置，亦可自由新增签署区域。'
+          };
+          return tooltips[value] || '';
+        }
+
+
+
         async function initSysLimit(){
           const limit = await getSystemLimit();
           chopStampUseFlag.value = limit.pagingSealUseFlag;
@@ -315,7 +356,14 @@ export default defineComponent({
                     if (item.signerType == 1 || item.signerType == 3) {
                         item.senderList = item.senderList.sort((a, b) => a.senderOrder - b.senderOrder)
                     }
+                    // 发起方企业且为审批节点时，从发起方企业内部节点中移除
+                    if(item.signerType == 1 && Array.isArray(item.senderList)) {
+                        // 过滤掉senderType为5的项
+                        item.senderList = item.senderList.filter(sender => sender.senderType != 5)
+                    }
                 })
+                console.log(signerList.value,'this.signerList-----');
+            
             }
 
         }
@@ -382,7 +430,7 @@ export default defineComponent({
                 }
               
             })
-            console.log(flatControls,'flatControls-------------')
+            // console.log(flatControls,'flatControls-------------')
             //将控件按文档分类
             let groupControls:any = [];
 
@@ -420,7 +468,7 @@ export default defineComponent({
                 }
             })
 
-            console.log(groupControls,'分组控件--')
+            // console.log(groupControls,'分组控件--')
 
             //将控件按页码配置按文档进行设置
 
@@ -528,7 +576,7 @@ export default defineComponent({
                     }
                 })
             })
-            console.log(groupControls,'分组后的控件--')
+            // console.log(groupControls,'分组后的控件--')
             //按文档进行控件设置
             for (let i = 0; i < docs.value.length; i++) {
                 let matchControl = groupControls.find(v=>v.controlDocId == docs.value[i].id)
@@ -1373,7 +1421,9 @@ export default defineComponent({
             refreshControlPosition,
             signDateFormat,chopStampUseFlag,
             showRange,
-            minTargetInfo
+            minTargetInfo,
+            showSelectTooltip,
+            getControlChangeFlagTitle,
         }
     }
 })
@@ -1392,6 +1442,18 @@ export default defineComponent({
     margin-bottom:0;
     font-size:12px;
   }
+  .select-with-tooltip {
+      position: relative;
+      
+        .tooltip-placeholder {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none; // 确保不会拦截点击事件
+        }
+      }
 }
 
 .doc-select {

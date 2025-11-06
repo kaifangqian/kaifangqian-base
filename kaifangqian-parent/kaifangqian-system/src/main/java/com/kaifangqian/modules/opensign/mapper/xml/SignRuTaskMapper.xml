@@ -314,6 +314,42 @@
         <if test="req.status != null">
             AND ru.`status` = #{req.status}
         </if>
+        <if test="req.taskType != null">
+            AND rt.task_type = #{req.taskType}
+        </if>
+        GROUP BY
+        rt.id,
+        ru.id,
+        ti.tenant_name
+        ORDER BY
+        ru.create_time DESC
+    </select>
+
+    <select id="listMyJobApproveUsers" resultType="com.kaifangqian.modules.opensign.vo.request.ru.TaskListInfoRes">
+        SELECT DISTINCT
+        rt.id as task_id,
+        ru.id AS sign_ru_id,
+        ru.`status`,
+        ru.`code`,
+        ru.`subject`,
+        ti.tenant_name AS from_tenant_name,
+        ru.create_time,
+        ru.expire_date
+        FROM
+        sign_ru_task rt
+        LEFT JOIN sign_ru ru ON rt.sign_ru_id = ru.id
+        AND ru.delete_flag = 0
+        LEFT JOIN sys_tenant_info ti ON ru.sys_tenant_id = ti.id
+        WHERE
+        rt.delete_flag = 0
+        AND rt.tenant_user_id = #{req.tenantUserId}
+        AND rt.task_status = 1
+        <if test="req.status != null">
+            AND ru.`status` = #{req.status}
+        </if>
+        <if test="req.taskType != null">
+            AND rt.task_type = #{req.taskType}
+        </if>
         GROUP BY
         rt.id,
         ru.id,

@@ -360,3 +360,87 @@ export function decodeURIs(url: any) {
     return url;
   }
 }
+
+
+/**
+ * 时间格式化
+ * @param value
+ * @param fmt
+ * @returns {*}
+ */
+export function formatDateNew(value: any, fmt: string) {
+  let getDate: Date;
+  
+  // 如果是数字或数字字符串，转换为日期对象
+  let regPos = /^\d+(\.\d+)?$/;
+  if (regPos.test(value)) {
+    getDate = new Date(Number(value));
+  } else if (value instanceof Date) {
+    getDate = value;
+  } else {
+    // 如果是日期字符串，尝试解析
+    getDate = new Date(value);
+  }
+  
+  // 检查日期是否有效
+  if (!(getDate instanceof Date) || isNaN(getDate.getTime())) {
+    console.warn('Invalid date value:', value);
+    return '';
+  }
+  
+  let o = {
+    'M+': getDate.getMonth() + 1,
+    'D+': getDate.getDate(),
+    'd+': getDate.getDate(),
+    'h+': getDate.getHours(),
+    'm+': getDate.getMinutes(),
+    's+': getDate.getSeconds(),
+    'q+': Math.floor((getDate.getMonth() + 3) / 3),
+    'S': getDate.getMilliseconds()
+  };
+  
+  if (/(y+)/.test(fmt) || /(Y+)/.test(fmt)) {
+    const year = getDate.getFullYear().toString();
+    const match = RegExp.$1;
+    if (match.length === 4) {
+      // YYYY 格式
+      fmt = fmt.replace(match, year);
+    } else {
+      // 其他年份格式（如 YY）
+      fmt = fmt.replace(match, year.substr(year.length - match.length));
+    }
+  }
+  
+  for (let k in o) {
+    if (new RegExp('(' + k + ')').test(fmt)) {
+      const match = RegExp.$1;
+      const val = o[k];
+      if (k === 'M+' || k === 'd+' || k === 'h+' || k === 'm+' || k === 's+') {
+        // 处理月份、日期、小时、分钟、秒的前导零
+        fmt = fmt.replace(match, match.length === 1 ? val : ('00' + val).substr(('' + val).length));
+      } else {
+        // 其他格式保持原样
+        fmt = fmt.replace(match, match.length === 1 ? val : ('00' + val).substr(('' + val).length));
+      }
+    }
+  }
+  
+  return fmt;
+}
+
+
+export function getTodayDateByFormat(format:string) {
+      // 根据日期格式，输出为今天的日期
+      // 支持多种日期格式，如果未指定格式则默认为'yyyy年MM月dd日'
+      if (!format) {
+        return formatDateNew(new Date(), 'yyyy年MM月dd日');
+      }
+      // 直接使用formatDateNew工具函数处理各种格式
+      try {
+        return formatDateNew(new Date(), format);
+      } catch (e) {
+        // 如果格式化失败，返回默认格式
+        console.warn('日期格式化失败，使用默认格式:', format, e);
+        return formatDateNew(new Date(), 'yyyy年MM月dd日');
+      }
+    }

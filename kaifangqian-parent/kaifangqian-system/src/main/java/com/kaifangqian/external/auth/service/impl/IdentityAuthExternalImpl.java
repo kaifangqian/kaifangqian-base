@@ -28,6 +28,7 @@ import com.kaifangqian.external.base.CommonRequest;
 import com.kaifangqian.external.base.CommonResult;
 import com.kaifangqian.modules.api.util.SignHeadersGenerator;
 import com.kaifangqian.modules.cert.service.HttpUtils;
+import com.kaifangqian.modules.opensign.enums.PersonalSealTypeEnum;
 import com.kaifangqian.modules.system.entity.*;
 import com.kaifangqian.modules.system.enums.TenantAuthStatus;
 import com.kaifangqian.modules.system.enums.TenantAuthType;
@@ -834,6 +835,7 @@ public class IdentityAuthExternalImpl implements IdentityAuthExternal {
         personSeal.setSysOrgCode(depart.getOrgCode());
         personSeal.setSysDeptId(depart.getId());
         personSeal.setDeleteFlag(false);
+        personSeal.setSealType(PersonalSealTypeEnum.TEMPLATE.getType());
 
         boolean save = personSealService.save(personSeal);
         String annexId = signFileService.saveAnnexStorage(sealByte, SignFileEnum.SEAL_FILE_PERSON, personSeal.getId());

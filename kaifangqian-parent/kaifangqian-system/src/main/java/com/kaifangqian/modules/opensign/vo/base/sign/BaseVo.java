@@ -61,7 +61,9 @@ public class BaseVo implements Serializable {
 
     // @ApiModelProperty("发起人id")
     private String startUserId ;
+
     // @ApiModelProperty("发起人名称")
     private String startUserName ;
+
 
 }

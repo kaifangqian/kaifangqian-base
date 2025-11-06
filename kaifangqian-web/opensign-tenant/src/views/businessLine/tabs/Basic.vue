@@ -296,6 +296,9 @@
                               <div v-else-if="signderItem.senderType == 1">
                                 <p>签署人：文档签署的发起人签字 </p>
                               </div>
+                              <div v-else-if="signderItem.senderType == 5">
+                                <p>审批人：{{ signderItem.senderUserName }} </p>
+                              </div>
                               <div v-else>
                                 <p>签署人：{{ signderItem.senderUserName }}</p>
                               </div>
@@ -314,16 +317,24 @@
                     </div>
                   </div>
                   <div class="signatory-action">
-                    <SvgIcon name="up" size="20" v-if="index != 0" @click="handleArrowUp(index)" />
+                    <SvgIcon
+                      name="up"
+                      size="20"
+                      v-if="index != 0"
+                      @click="handleArrowUp(index)"
+                      style="margin: 0 10px"
+                    />
                     <SvgIcon
                       name="down"
                       size="20"
+                      style="margin: 0 10px"
                       v-if="index + 1 != signerList.length"
                       @click="handleArrowDown(index)"
                     />
                     <Icon
                       icon="ant-design:delete-outlined"
                       size="20"
+                      style="margin: 0 10px"
                       @click="handleDelete(index)"
                     />
                   </div>
@@ -353,7 +364,7 @@
                           v-model:checked="item.agreeSkipWillingness"
                         />
                       </p>
-                      <a-space>
+                      <a-space class="flex items-center w-full" style="margin-bottom: 10px">
                         <!-- <span>人脸识别校验：</span>
                         <a-switch
                           :checked-value="1"
@@ -376,21 +387,76 @@
                           @change="(val) => handleVerifyTypeChange(val, item)"
                         />
                       </a-space>
+                      <a-space class="flex items-center w-full" style="margin-bottom: 10px">
+                        <span>签名方式：</span>
+                        <a-tooltip  overlayStyle="width: 450px; max-width: 500px !important;">
+                          <template #title>
+                            <p>不限制：个人签署时，不限制其签名类型</p>
+                            <p>手写签名：个人手绘的自定义签名</p>
+                            <p>模板签名：系统根据签名模板生成的电子化的个人章，例如"张三之印"</p>
+                            <!-- </div> -->
+                          </template>
+                          <Icon
+                            icon="ant-design:question-circle-outlined"
+                            style="margin-right: 10px; color: #888"
+                          />
+                        </a-tooltip>
+                        <a-radio-group v-model:value="item.sealType">
+                          <a-radio value="NOLIMIT"> 不限制 </a-radio>
+                          <a-radio value="TEMPLATE"> 模板签名 </a-radio>
+                          <a-radio value="HAND"> 手写签名 </a-radio>
+                        </a-radio-group>
+                      </a-space>
+                      <a-space
+                        class="flex items-center w-full"
+                        style="margin-bottom: 10px"
+                        v-show="authTypeShow && personalSignAuth == 'allowed'"
+                      >
+                        <span>实名认证要求：</span>
+                        <a-radio-group v-model:value="item.personalSignAuth">
+                          <a-radio value="required">
+                            须实名认证
+                            <a-tooltip>
+                              <template #title>
+                                须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+                              </template>
+                              <Icon icon="ant-design:question-circle-outlined" />
+                            </a-tooltip>
+                          </a-radio>
+                          <a-radio value="not_required">
+                            无需实名认证
+                            <a-tooltip>
+                              <template #title
+                                >无需实名认证：使用个人电子签章前，无需进行实名认证</template
+                              >
+                              <Icon icon="ant-design:question-circle-outlined" />
+                            </a-tooltip>
+                          </a-radio>
+                        </a-radio-group>
+                      </a-space>
                     </div>
                   </div>
 
                   <div class="signatory-action">
-                    <SvgIcon name="up" size="20" v-if="index != 0" @click="handleArrowUp(index)" />
+                    <SvgIcon
+                      name="up"
+                      size="20"
+                      v-if="index != 0"
+                      @click="handleArrowUp(index)"
+                      style="margin: 0 10px"
+                    />
                     <SvgIcon
                       name="down"
                       size="20"
                       v-if="index + 1 != signerList.length"
                       @click="handleArrowDown(index)"
+                      style="margin: 0 10px"
                     />
                     <Icon
                       icon="ant-design:delete-outlined"
                       size="20"
                       @click="handleDelete(index)"
+                      style="margin: 0 10px"
                     />
                   </div>
                 </div>
@@ -445,17 +511,25 @@
                     </div>
                   </div>
                   <div class="signatory-action">
-                    <SvgIcon name="up" size="20" v-if="index != 0" @click="handleArrowUp(index)" />
+                    <SvgIcon
+                      name="up"
+                      size="20"
+                      v-if="index != 0"
+                      @click="handleArrowUp(index)"
+                      style="margin: 0 10px"
+                    />
                     <SvgIcon
                       name="down"
                       size="20"
                       v-if="index + 1 != signerList.length"
                       @click="handleArrowDown(index)"
+                      style="margin: 0 10px"
                     />
                     <Icon
                       icon="ant-design:delete-outlined"
                       size="20"
                       @click="handleDelete(index)"
+                      style="margin: 0 10px"
                     />
                   </div>
                 </div>
@@ -466,13 +540,13 @@
         <div class="signer-set" v-if="basicInfo.signerType == '2'">
           <div class="set-action">
             <a-button type="link" @click="handleAddInitiator" v-if="isShowInitiatorBtn()">
-              <Icon icon="ant-design:plus-circle-outlined" />添加发起方
+              <Icon icon="ant-design:plus-outlined" />添加发起方
             </a-button>
             <a-button type="link" @click="handleAddPersonal">
-              <Icon icon="ant-design:plus-circle-outlined" />添加个人
+              <Icon icon="ant-design:plus-outlined" />添加个人
             </a-button>
             <a-button type="link" @click="handleAddEnt">
-              <Icon icon="ant-design:plus-circle-outlined" />添加企业
+              <Icon icon="ant-design:plus-outlined" />添加企业
             </a-button>
           </div>
           <a-radio-group v-model:value="basicInfo.signOrderType" class="sign-config">
@@ -725,6 +799,60 @@
         </div>
       </div>
     </a-card>
+    <a-card title="个人签署实名认证要求" size="small" class="sign-ca-card" v-show="authTypeShow">
+      <a-radio-group v-model:value="personalSignAuth">
+        <a-radio :style="radioStyle" value="required">
+          须实名认证
+          <a-tooltip>
+            <template #title>
+              须实名认证：【强烈建议】使用个人电子签章前，必须完成实名认证，符合电子签名的合法性与安全性要求
+            </template>
+            <Icon icon="ant-design:question-circle-outlined" />
+          </a-tooltip>
+        </a-radio>
+        <a-radio :style="radioStyle" value="allowed"
+          >允许不实名认证
+          <a-tooltip>
+            <template #title
+              >允许不实名认证：使用个人电子签章前，允许不进行实名认证。可在个人签署节点中指定具体的认证要求</template
+            >
+            <Icon icon="ant-design:question-circle-outlined" /> </a-tooltip
+        ></a-radio>
+        <a-radio :style="radioStyle" value="not_required">
+          无需实名认证
+          <a-tooltip>
+            <template #title>无需实名认证：使用个人电子签章前，无需进行实名认证</template>
+            <Icon icon="ant-design:question-circle-outlined" />
+          </a-tooltip>
+        </a-radio>
+      </a-radio-group>
+    </a-card>
+    <!-- 弹窗确认组件 -->
+    <a-modal
+      v-model:visible="confirmModalVisible"
+      title="非实名认证签署风险告知书"
+      @ok="confirmAuthTypeChange"
+      @cancel="cancelAuthTypeChange"
+      okText="同意"
+      cancelText="拒绝"
+      width="600px"
+    >
+      <div class="confirm-modal-content">
+        <p class="modal-title">尊敬的用户：</p>
+        <p class="modal-text">
+          为确保电子签名的合法性与安全性，在本平台使用个人电子签章前，必须完成实名认证。
+        </p>
+        <p class="modal-text">
+          如您关闭实名认证要求，用户在签署时将不再进行实名认证。系统将自动使用平台防篡改证书（非CA权威数字证书）完成签名。该证书仅能保障文件在签名后不被篡改，不具备《电子签名法》所规定的法律效力。
+        </p>
+        <p class="modal-title">
+          特别声明：建议您在确保掌握签署人真实身份的前提下，再关闭个人签署的实名认证要求。如因关闭该功能引发任何纠纷或损失，相关责任均由您所在的公司承担，与开放签（北京资源律动科技有限公司）无关。
+        </p>
+        <p class="modal-text modal-warning">
+          若点击同意按钮，则代表您已阅读并知晓非实名认证签署的风险
+        </p>
+      </div>
+    </a-modal>
     <!-- <a-card title="签署方式" size="small" class="sign-ca-card">
       <a-radio-group v-model:value="basicInfo.caSignType">
         <a-radio :style="radioStyle" :value="1"
@@ -762,10 +890,9 @@
 </template>
 
 <script lang="ts">
-  import { ref, defineComponent, reactive, unref, onMounted } from 'vue';
+  import { ref, defineComponent, reactive, unref, onMounted, watch } from 'vue';
   import { Icon, SvgIcon } from '/@/components/Icon';
   import { useModal } from '/@/components/Modal';
-  import { useAppStore } from '/@/store/modules/app';
   import { getToken } from '/@/utils/auth';
   // import { getBusinessLineBasicInfo } from '/@/api/businessLine';
   import { BasicForm, useForm } from '/@/components/Form';
@@ -781,7 +908,7 @@
   import PreviewModal from '/@/views/businessLine/modal/PreviewModal.vue';
   import AcceptModal from '/@/views/businessLine/modal/AcceptModal.vue';
 
-  import { handleDownload, uuid, findCommonItemsByKey, copyClipboard } from '/@/utils';
+  import { handleDownload, uuid, copyClipboard } from '/@/utils';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { Loading } from '/@/components/Loading';
   import { subjectData, codeData } from '/@/views/businessLine/components/data/OrderNumber';
@@ -789,10 +916,9 @@
   import { getBusinessLineInfoAll, setBusinessLineBasic } from '/@/api/businessLine';
   import { getSealInfo } from '/@/api/contract';
 
-  import { getSignConfirm } from '/@/api/sys/common';
+  import { getSignConfirm, getPlatePersonalSignAuth } from '/@/api/sys/common';
   import { getSystemLimit } from '/@/api/license';
   import { getUploadFileType, buildFileType } from '/@/api';
-  import { verify } from 'crypto';
 
   export default defineComponent({
     name: 'BusinessBasic',
@@ -845,6 +971,21 @@
       const codeExampleStr = ref('KFQ-年月日-000001');
       const subjectExampleStr = ref('开放签-劳动合同-2023年新版-年月日-000001-接收方姓名');
 
+      // 定义实名认证要求的常量
+      // const required = 'required';
+      // const allowed = 'allowed';
+      // const not_required = 'not_required';
+
+      // 添加弹窗相关的响应式变量
+      const confirmModalVisible = ref(false);
+      // 添加用于保存原始认证类型的变量
+      const originalPendingAuthType = ref('');
+
+      const personalSignAuth = ref('');
+
+      // 添加认证要求是否可见可变更的类型变量
+      const authTypeShow = ref(false);
+
       const basicInfo: any = ref({
         name: '',
         addCcerType: false,
@@ -872,7 +1013,6 @@
       });
       const { VITE_GLOB_APP_CODE } = getAppEnvConfig();
       const nameEdit = ref(false);
-      const appStore = useAppStore();
       const userStore = useUserStore();
       const userInfo = userStore.getUserInfo;
 
@@ -890,7 +1030,7 @@
       const { createMessage: msg } = useMessage();
 
       const [register, { openModal }] = useModal();
-      const [registerAccept, { openModal: openAcceptModal }] = useModal();
+      const [registerAccept, { openModal: openAcceptModal }] = useModal();1
 
       const [registerCC, { openModal: openCCModal }] = useModal();
       const [registerTpl, { openModal: openTplModal }] = useModal();
@@ -902,6 +1042,46 @@
         schemas: ccFormSchema,
         showActionButtonGroup: false,
       });
+
+      // 监听 personalSignAuth 的变化
+      watch(
+        () => personalSignAuth.value,
+        (newVal, oldVal) => {
+          // 只有在原始值未设置时才保存，确保保存的是最初的值
+          if (!originalPendingAuthType.value && oldVal) {
+            originalPendingAuthType.value = oldVal;
+          }
+
+          // 如果用户尝试从 required 改为 allowed 或 not_required，则显示确认模态框
+          if (oldVal === 'required' && (newVal === 'allowed' || newVal === 'not_required')) {
+            confirmModalVisible.value = true;
+          } else if (oldVal && newVal && oldVal !== 'required' && newVal === 'required') {
+            // 如果用户从 allowed 或 not_required 改回 required，则重置原始值
+            resetOriginalPendingAuthType();
+          }
+
+          // 当 personalSignAuth 为 'required' 或 'not_required' 时，
+          // 同步更新 signerList 及其 senderList 中的认证要求
+          if (newVal === 'required' || newVal === 'not_required') {
+            // 更新 signerList 中的每个对象
+            signerList.value.forEach((signer: any) => {
+              // 更新 signer 对象本身的认证要求
+              if (Object.prototype.hasOwnProperty.call(signer, 'personalSignAuth')) {
+                signer.personalSignAuth = newVal;
+              }
+
+              // 更新 senderList 列表中的每个对象
+              if (signer.senderList && Array.isArray(signer.senderList)) {
+                signer.senderList.forEach((sender: any) => {
+                  if (Object.prototype.hasOwnProperty.call(sender, 'personalSignAuth')) {
+                    sender.personalSignAuth = newVal;
+                  }
+                });
+              }
+            });
+          }
+        },
+      );
 
       onMounted(() => {
         getContractReInfo();
@@ -929,10 +1109,6 @@
             result.baseVo.subjectTypeRuleVo.link = '-';
           }
           if (result.baseVo.codeTypeRuleVo && result.baseVo.codeTypeRuleVo.detailVoList) {
-            // 提取 array1 中的 contentType
-            const contentTypesFromArray1 = new Set(
-              result.baseVo.codeTypeRuleVo.detailVoList.map((item) => item.contentType),
-            );
             // 遍历 array2 并修改 checked 属性
             const codeRules = result.baseVo.codeTypeRuleVo.detailVoList;
             basicInfo.value.codeTypeRuleVo.detailVoList.forEach((item) => {
@@ -946,12 +1122,6 @@
                   item.checked = false;
                 }
               }
-              // if (contentTypesFromArray1.has(item.contentType)) {
-              //     item.checked = true;
-              //     console.log("select:",apiItem);
-              // } else {
-              //     item.checked = false;
-              // }
             });
           }
           if (result.baseVo.codeTypeRuleVo?.detailVoList) {
@@ -971,10 +1141,6 @@
             });
           }
           if (result.baseVo.subjectTypeRuleVo && result.baseVo.subjectTypeRuleVo.detailVoList) {
-            // 提取 array1 中的 contentType
-            const contentTypesFromArray = new Set(
-              result.baseVo.subjectTypeRuleVo.detailVoList.map((item) => item.contentType),
-            );
             // 遍历 array2 并修改 checked 属性
             const subjectRules = result.baseVo.subjectTypeRuleVo.detailVoList;
             basicInfo.value.subjectTypeRuleVo.detailVoList.forEach((item) => {
@@ -988,11 +1154,6 @@
                   item.checked = false;
                 }
               }
-              // if (contentTypesFromArray.has(item.contentType)) {
-              //     item.checked = true;
-              // } else {
-              //     item.checked = false;
-              // }
             });
           }
           if (result.baseVo.subjectTypeRuleVo?.detailVoList) {
@@ -1017,6 +1178,32 @@
               m.content = result.baseVo.name;
             }
           });
+
+          // 添加平台和业务线个人签署认证要求的判断逻辑
+          let platePersonSignAuth = '';
+          const personalSignAuthRes = await getPlatePersonalSignAuth();
+          if (personalSignAuthRes.code == 200) {
+            platePersonSignAuth = personalSignAuthRes.result.personalSignAuthType || 'required';
+          }
+          personalSignAuth.value = result.baseVo.personalSignAuth || 'required';
+          // 根据平台认证要求设置业务线认证要求和显示状态
+          switch (platePersonSignAuth) {
+            case 'required':
+              authTypeShow.value = false;
+              personalSignAuth.value = 'required';
+              break;
+            case 'not_required':
+              authTypeShow.value = false;
+              personalSignAuth.value = 'not_required';
+              break;
+            case 'allowed':
+              authTypeShow.value = true;
+              // 保持 personalSignAuth.value  为 result.baseVo.personalSignAuth || 'required'
+              break;
+            default:
+              authTypeShow.value = false;
+              personalSignAuth.value = 'required';
+          }
 
           basicInfo.value = {
             ...result.baseVo,
@@ -1059,9 +1246,34 @@
             handleAddInitiator();
           }
           signerList.value.map((item) => {
+            // 未设置认证要求数据时，设置默认数据
+            if (!item.personalSignAuth) {
+              item.personalSignAuth =
+                basicInfo.value.personalSignAuth === 'not_required' ? 'not_required' : 'required';
+            }
+            // 未设置签名方式数据时，设置默认数据
+            if (!item.sealType) {
+              item.sealType = 'NOLIMIT';
+            }
             if (!item.senderList) {
               item.senderList = [];
             }
+            if (item.senderList && Array.isArray(item.senderList)) {
+              item.senderList.map((v) => {
+                // 未设置认证要求数据时，设置默认数据
+                if (!v.personalSignAuth) {
+                  v.personalSignAuth =
+                    basicInfo.value.personalSignAuth === 'not_required'
+                      ? 'not_required'
+                      : 'required';
+                }
+                // 未设置签名方式数据时，设置默认数据
+                if (!v.sealType) {
+                  v.sealType = 'NOLIMIT';
+                }
+              });
+            }
+
             if (item.signerType == 1) {
               item.senderList.map((v) => {
                 if (v.senderType == 4) {
@@ -1095,6 +1307,7 @@
           if (res.code == 200) {
             signConfirm.value = res.result;
           }
+          confirmOptions.value[3].disabled = !signConfirm.value;
           console.log('signConfirmRes', signConfirm.value);
           emit('change', {
             name: basicInfo.value.name,
@@ -1133,6 +1346,7 @@
             senderList: senderList,
             signConfirm: signConfirm.value,
             signReId: unref(signReId),
+            personalSignAuth: personalSignAuth.value,
           },
         });
       }
@@ -1142,6 +1356,7 @@
           record: {
             data: acceptItem,
             signConfirm: signConfirm.value,
+            personalSignAuth: personalSignAuth.value,
             // signReId: unref(signReId),
           },
         });
@@ -1176,7 +1391,7 @@
       function handleSetCodeExample() {
         codeExampleStr.value = '';
         let codeRules = cloneDeep(basicInfo.value.codeTypeRuleVo.detailVoList);
-        let strArr = [];
+        let strArr: string[] = [];
         codeRules.map((m) => {
           if (m.checked) {
             if (m.contentType == 'datetime') {
@@ -1212,7 +1427,7 @@
       function handleSetSubjectExample() {
         subjectExampleStr.value = '';
         let codeRules = cloneDeep(basicInfo.value.subjectTypeRuleVo.detailVoList);
-        let strArr = [];
+        let strArr: string[] = [];
         codeRules.map((m) => {
           if (m.checked) {
             if (m.contentType == 'datetime') {
@@ -1248,7 +1463,7 @@
         openPreviewModal(true, {
           isUpdate: false,
           record: {
-            docId: item.annexId || item.docOriginId,
+            docId: (item.annexId || item.docOriginId) as string,
             docName: item.name,
             docType: item.docType,
           },
@@ -1299,7 +1514,7 @@
         }
       }
 
-      //调整顺讯
+      //调整顺序
       function handleArrowDown(index) {
         if (index < signerList.value.length - 1) {
           // Swap the current item with the one below it
@@ -1349,9 +1564,7 @@
       }
       //删除签约方
       function handleDelete(index) {
-        console.log('11111111111111111111', signerList.value);
         signerList.value.splice(index, 1);
-        console.log('222222222222222222', signerList.value);
         loadSignerIndex();
       }
       //删除抄送人
@@ -1380,6 +1593,8 @@
           signerOrder: signerList.value.length + 1,
           senderList: [],
           verifyType: ['CAPTCHA', 'PASSWORD', 'DOUBLE'],
+          personalSignAuth: personalSignAuth.value === 'not_required' ? 'not_required' : 'required',
+          sealType: 'NOLIMIT',
         });
         setSignerOrder();
       }
@@ -1500,7 +1715,7 @@
           }
         });
         signerList.value = signerList.value;
-        console.log('send', list);
+        console.log('send----', list);
       }
       function handleEdit(element) {
         element.edit = true;
@@ -1568,7 +1783,7 @@
           });
           codeTypeRuleVoList.sort((a, b) => a.contentOrder - b.contentOrder);
           subjectTypeRuleVoList.sort((a, b) => a.contentOrder - b.contentOrder);
-          console.log('333333333333333333', signerList.value);
+          // console.log('333333333333333333', signerList.value);
           signerList.value.some((item) => {
             if (item.signerType == 3) {
               signerReceiveEntNodes = item.senderList ? item.senderList.length : 0;
@@ -1649,6 +1864,7 @@
                       ruleType: 2,
                     }
                   : {},
+              personalSignAuth: personalSignAuth.value,
             },
             fileList: fileList.value,
             signerList: cloneSignerList(),
@@ -1718,14 +1934,38 @@
         msg.success('复制成功');
       }
       // 添加验证签署意愿验证方式的函数
-      function handleVerifyTypeChange(value: string[], item: Participant) {
+      function handleVerifyTypeChange(value: string[], item: any) {
         // 当用户尝试取消所有选项时给出提示并阻止操作
-         if (value.length === 0) {
+        if (value.length === 0) {
           msg.warning('签署意愿验证方式至少需要选中一个选项');
           return;
         }
         // 只有在有有效值时才更新 verifyType
         item.verifyType = value;
+      }
+
+      // 重置原始认证类型值
+      function resetOriginalPendingAuthType() {
+        originalPendingAuthType.value = '';
+      }
+
+      // 确认变更认证类型
+      function confirmAuthTypeChange() {
+        // 用户确认变更，关闭模态框
+        confirmModalVisible.value = false;
+        // 重置原始值
+        resetOriginalPendingAuthType();
+      }
+
+      // 取消变更认证类型
+      function cancelAuthTypeChange() {
+        // 恢复原来的值
+        if (originalPendingAuthType.value) {
+          personalSignAuth.value = originalPendingAuthType.value;
+        }
+        confirmModalVisible.value = false;
+        // 重置原始值
+        resetOriginalPendingAuthType();
       }
 
       return {
@@ -1794,6 +2034,17 @@
         buildFileType,
         confirmOptions,
         handleVerifyTypeChange,
+        // 返回实名认证要求的常量
+        // required,
+        // allowed,
+        // not_required,
+        confirmModalVisible,
+        originalPendingAuthType,
+        resetOriginalPendingAuthType,
+        confirmAuthTypeChange,
+        cancelAuthTypeChange,
+        authTypeShow,
+        personalSignAuth,
       };
     },
   });
@@ -1855,7 +2106,7 @@
 
         .item-li-info {
           padding: 6px 10px;
-          border-radius: 4px;
+          // border-radius: 4px;
           border: 1px solid #e4e4e4;
           width: 700px;
           margin-left: 10px;
@@ -1893,13 +2144,14 @@
       margin-bottom: 5px;
     }
     .signatory-item {
-      background: #f2f2f25d;
+      background: #f7f8fb;
       padding: 15px 20px;
-      border-radius: 2px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
+      // border-radius: 5px;
+      border: 1px solid #ced2dc;
       .signatory-form {
         display: flex;
         align-items: center;
@@ -1920,12 +2172,13 @@
     }
 
     .initiator-info {
-      background: #f2f2f25d;
+      background: #f7f8fb;
       padding: 15px 20px;
-      border-radius: 2px;
       margin-bottom: 20px;
       display: flex;
       align-items: center;
+      // border-radius: 5px;
+      border: 1px solid #ced2dc;
       .initiator-left {
         flex: 1;
       }
@@ -2119,7 +2372,7 @@
             }
             .file-tag {
               position: absolute;
-              left: 2px;
+              left: 0px;
               top: 0;
             }
             .file-img {
@@ -2252,4 +2505,49 @@
     color: #fe9500;
     border: #fe9500 1px solid;
   }
+  :deep(.ant-card-head) {
+    background-color: #f7f8fb;
+  }
+  .confirm-modal-content {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+
+    .modal-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      text-align: justify;
+    }
+
+    .modal-warning {
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+  }
+
+  .custom-tooltip-width-specific {
+    width: 600px !important;
+    .ant-tooltip-inner {
+      width: 600px !important;
+      max-width: 600px !important;
+    }
+  }
+  // .signatory-action {
+  //   min-width: 100px;
+  //   cursor: pointer;
+  //   text-align: right;
+  //   :deep(.app-iconify) {
+  //     margin: 0 10px;
+  //   }
+  // }
+  // :deep(.resrun-svg-icon) {
+  //   margin: 0 10px;
+  // }
 </style>

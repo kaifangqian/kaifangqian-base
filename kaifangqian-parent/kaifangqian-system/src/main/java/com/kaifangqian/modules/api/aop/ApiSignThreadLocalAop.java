@@ -100,6 +100,7 @@ public class ApiSignThreadLocalAop {
         ProcTaskInfo.THREAD_LOCAL.remove();
         HttpServletRequest request = RequestHolder.getHttpServletRequest();
         request.setAttribute(ApiConstants.FROM_TYPE, ApiConstants.FROM_API);
+        String path =request.getRequestURI() ;
         String sign = request.getHeader(ApiConstants.SIGN);
         String operatorAccount = null;
         String uniqueCode = null;

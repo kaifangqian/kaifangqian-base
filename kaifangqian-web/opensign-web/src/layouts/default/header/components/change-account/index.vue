@@ -26,7 +26,7 @@
       placement="bottomLeft"
       :overlayClassName="`${prefixCls}-dropdown-overlay`"
       style="top:63px"
-      :trigger="['hover']"
+      :trigger="['click']"
       :getPopupContainer="getPopupContainer"
       @visibleChange="visibleChange"
     >
@@ -327,14 +327,14 @@ export default{
     min-height: 80px;
     overflow: auto;
     padding-bottom: 80px;
-    border-radius: 8px;
+    // border-radius: 8px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.08);
   }
 
   .account-panel {
     width: 400px;
     background: #fff;
-    border-radius: 8px;
+    // border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   }
@@ -362,9 +362,10 @@ export default{
 
   .account-panel-item {
     transition: background 0.2s;
-    cursor: pointer;
+    // cursor: pointer;
     &:hover:not(.no-use) .account-header {
       background: #eaf6ff;
+      cursor: pointer;
     };
 
   }
@@ -401,7 +402,7 @@ export default{
     a-tag {
       margin-left: 8px;
       font-size: 12px;
-      border-radius: 4px;
+      // border-radius: 4px;
       padding: 0 6px;
     }
   }
@@ -436,10 +437,10 @@ export default{
       margin: 0 16px 8px 16px;
       border: 1px solid #e0e6ed;
       padding: 10px 14px;
-      border-radius: 8px;
+      // border-radius: 8px;
       display: flex;
       align-items: center;
-      cursor: pointer;
+      // cursor: pointer;
       background: #fff;
       transition: border-color 0.2s, color 0.2s, background 0.2s;
       .app-iconify {
@@ -449,7 +450,7 @@ export default{
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 5px;
+        // border-radius: 5px;
         margin-right: 10px;
       }
       span {
@@ -460,6 +461,7 @@ export default{
         color: #127fd2;
         border-color: #127fd2;
         background: #f4faff;
+        cursor: pointer;
       }
     }
   }

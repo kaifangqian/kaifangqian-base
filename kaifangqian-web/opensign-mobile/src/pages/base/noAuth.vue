@@ -22,14 +22,15 @@
 
 <template>
     <div class="sign-noauth-container">
-        <div class="no-auth-change-account">
+        <Loading :loading="pageLoading" text="加载中..." />
+        <div class="no-auth-change-account" v-show="!pageLoading">
             <SwitchIdentity ref="switchIdentityRef" @handleJoinSubmitCall="handleJoinSubmitCall">
                 <div>
 
                 </div>
             </SwitchIdentity>
         </div>
-        <div class="sign-noauth-body">
+        <div class="sign-noauth-body" v-if="(tipInfo.checkStatus != 1 || taskType == 'detail' || taskType == 'copy') && !pageLoading">
             <div class="no-auth-header">
                 <SvgIcon name="sign-no-auth" size="60" />
                 <p style="font-size:14px; color: #555;">无权访问</p>
@@ -100,7 +101,8 @@ export default defineComponent({
         const signRuId = route.query.signRuId;
         const taskId = route.query.taskId;
         const taskType = ref(route.query.taskType);
-        session.setItem('Sign-Task-Id', taskId)
+        session.setItem('Sign-Task-Id', taskId);
+        const pageLoading = ref(true);
 
 
         onMounted(() => {
@@ -118,6 +120,7 @@ export default defineComponent({
             if (result) {
                 returnSignPage();
             }
+            pageLoading.value = false;
         }
 
         async function getCheckInfo() {
@@ -125,9 +128,18 @@ export default defineComponent({
             if (result) {
                 tipInfo.value = result;
                 if (result.checkStatus === 1) {
+                    console.log('身份正确，直接进入');
                     returnSignPage();
                 }
+                // 账号正确、身份不正确
+                if (result.checkStatus === 4 || result.checkStatus === 7) {
+                    console.log('身份不正确，自动切换身份');
+                    handleChangeIdentity();
+                    return;
+                }
             }
+            pageLoading.value = false;
+            
         }
 
         //企业实名认证
@@ -185,6 +197,10 @@ export default defineComponent({
             if (taskType.value == 'sign') {
                 // redirectPath = '/#/signContract?&signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
 				redirectPath = "/sign";
+            }
+            if (taskType.value == 'approval') {
+                // redirectPath = '/#/signContract?&signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
+				redirectPath = "/approval";
             }
             if (taskType.value == 'copy' || taskType.value == 'detail') {
                 // redirectPath = '/#/detail?signRuId=' + signRuId + '&taskId=' + taskId + '&callbackPage=' + callbackPage;;
@@ -265,9 +281,11 @@ export default defineComponent({
             switchIdentityRef.value.handleSubmit(matchDepart);
           } else {
             Notify({ type: 'warning', message: '未找到匹配的身份信息', duration: 3000 });
+            pageLoading.value = false;
           }
         } else {
           Notify({ type: 'warning', message: '暂无可用的身份信息', duration: 3000 });
+          pageLoading.value = false;
         }
       }
 
@@ -299,7 +317,8 @@ export default defineComponent({
             handleEntAuth,
             openPersonalAccount,
             handleLoginOut,
-            handleBackHome, taskType, switchIdentityRef,createCompany,handleJoinEnterprise,handleJoinSubmitCall
+            handleBackHome, taskType, switchIdentityRef,createCompany,handleJoinEnterprise,handleJoinSubmitCall,
+            pageLoading,
         }
     }
 })
@@ -312,7 +331,7 @@ export default defineComponent({
     .sign-noauth-body {
         margin-top: 180px;
         // box-shadow: 0 4px 9px 2px #eee;
-        background: #fff;
+        // background: #fff;
         padding: 40px 30px;
     }
 

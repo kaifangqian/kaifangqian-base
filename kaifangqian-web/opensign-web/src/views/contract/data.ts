@@ -261,19 +261,24 @@ export const sealColumns:BasicColumn[] =[
 export const recordColumns:BasicColumn[] =[
   {
     title:'操作人',
-    dataIndex:'operatorName'
+    dataIndex:'operatorName',
+    // 设置宽度
+    width:320
   },
   {
     title:'操作类型',
-    dataIndex:'operateType'
+    dataIndex:'operateType',
+    width:160
   },
   {
     title:'操作动作',
-    dataIndex:'actionType'
+    dataIndex:'actionType',
+    width:160
   },
   {
     title:'操作时间',
-    dataIndex:'operateTime'
+    dataIndex:'operateTime',
+    width:200
   },
   {
     title:'操作说明',

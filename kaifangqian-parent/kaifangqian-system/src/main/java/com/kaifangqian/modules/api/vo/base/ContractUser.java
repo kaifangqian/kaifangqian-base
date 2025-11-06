@@ -51,10 +51,4 @@ public class ContractUser implements Serializable {
     // @ApiModelProperty("联系方式")
     private String contact ;
 
-    // @ApiModelProperty("意愿校验方式,CAPTCHA,PASSWORD,DOUBLE,FACE")
-    private String verifyType;
-
-    // @ApiModelProperty("是否免意愿快捷签署")
-    private Integer agreeSkipWillingness;
-
 }

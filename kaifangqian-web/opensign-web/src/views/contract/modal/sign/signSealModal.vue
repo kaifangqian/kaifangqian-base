@@ -29,16 +29,14 @@
             <div class="seal-item">
               <div class="seal-img-box" @click="handleUse(item)">
                 <img class="seal-img" :src="item.signature"/>
+                <a-button class="use-btn" type="primary" @click="handleUse(item)">使用</a-button>
               </div>
               <a-tooltip>
                 <template #title> {{item.sealName}} </template>
-                    <div class="seal-name">
-                    {{item.sealName}}
-                  </div>
+                <div class="seal-name">
+                  {{item.sealName}}
+                </div>
               </a-tooltip>
-              <div class="seal-name">
-                <a-button type="link" @click="handleUse(item)">使用</a-button>
-              </div>
             </div>
           </li>
         </template>
@@ -84,7 +82,8 @@
           width: sealList.value&&sealList.value.length>0?800:600,
           height:510,
           cancelText:'关闭',
-          footer:null 
+          footer:null ,
+          canFullscreen: false,
         });
         
         
@@ -117,7 +116,7 @@
       }
 
       function handleUse(row){
-        msg.success('操作成功');
+        // msg.success('操作成功');
         emit('success', row);
       }
       return { 
@@ -133,46 +132,73 @@
 </script>
 <style lang="less" scoped>
  .seal_list{
-      display: flex;
-      flex-wrap:wrap;
-      margin-top:25px;
-      justify-content: center;
-    }
-    .no_seal_list{
-      justify-content:center;
-    }
-		.seal-item{
-			.seal-img-box{
-        width: 166px;
-        height: 166px;
-				padding: 20px;
-				border: 1px dashed #ccc;
-        margin:0 auto;
-				position: relative;
-        .seal-mask{
-          position: absolute;
-          left:0;
-          top:0;
-          right:0;
-          bottom:0;
-          background-color: rgba(187, 187, 187, 0.8);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          .seal-status-text{
-            font-size: 16px;
-          }
-			  }
+    display: flex;
+    flex-wrap:wrap;
+    margin-top:25px;
+    justify-content: center;
+  }
+  .no_seal_list{
+    justify-content:center;
+  }
+  .seal-item{
+    .seal-img-box{
+      width: 166px;
+      height: 166px;
+      padding: 20px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      margin:0 auto;
+      position: relative;
+      &:hover {
+        border-color: #1890ff;
+        background-color: #eeeeee6a;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
       }
-      .seal-name{
-				line-height: 40px;
-				text-align: center;
-				font-size: 14px;
-        width:200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-			}
+      .seal-mask{
+        position: absolute;
+        left:0;
+        top:0;
+        right:0;
+        bottom:0;
+        background-color: rgba(187, 187, 187, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        .seal-status-text{
+          font-size: 16px;
+        }
+      }
+      .seal-img {
+        transition: opacity 0.3s ease;
+      }
+      .seal-img-box:hover .seal-img {
+        opacity: 0.7;
+      }
+    }
+    
+    .use-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    
+    .seal-img-box:hover .use-btn {
+      opacity: 1;
+    }
+    
+    .seal-name{
+      line-height: 40px;
+      text-align: center;
+      font-size: 14px;
+      width:200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
   .no-data{
     font-size:14px;

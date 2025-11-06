@@ -107,7 +107,7 @@ public class RuCreateService {
         if(signReId == null || signReId.length() == 0){
             throw new PaasException("业务线id不存在");
         }
-        SignRe re = reService.getById(vo.getBaseVo().getSignReId());
+         SignRe re = reService.getById(vo.getBaseVo().getSignReId());
         if(re == null){
             throw new PaasException("业务线不存在");
         }
@@ -228,6 +228,12 @@ public class RuCreateService {
                         dataSender.setConfirmType(senderVo.getConfirmType());
                         dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                         dataSender.setVerifyType(senderVo.getVerifyType());
+
+                        if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                            dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                            dataSender.setSealType(senderVo.getSealType());
+                        }
+
                         dataSinger.getAddSenderList().add(dataSender);
                     }
                 }
@@ -253,6 +259,11 @@ public class RuCreateService {
                         dataSender.setConfirmType(senderVo.getConfirmType());
                         dataSender.setAgreeSkipWillingness(senderVo.getAgreeSkipWillingness());
                         dataSender.setVerifyType(senderVo.getVerifyType());
+
+                        if (senderVo.getSenderType() != null && !senderVo.getSenderType().equals(SenderTypeEnum.ENTERPRISE.getCode())){
+                            dataSender.setPersonalSignAuth(senderVo.getPersonalSignAuth());
+                            dataSender.setSealType(senderVo.getSealType());
+                        }
                         dataSinger.getAddSenderList().add(dataSender);
                     }
                 }
@@ -262,6 +273,8 @@ public class RuCreateService {
                 dataSinger.setConfirmType(signerVo.getConfirmType());
                 dataSinger.setAgreeSkipWillingness(signerVo.getAgreeSkipWillingness());
                 dataSinger.setVerifyType(signerVo.getVerifyType());
+                dataSinger.setPersonalSignAuth(signerVo.getPersonalSignAuth());
+                dataSinger.setSealType(signerVo.getSealType());
             }
             createData.getSignerList().add(dataSinger);
         }

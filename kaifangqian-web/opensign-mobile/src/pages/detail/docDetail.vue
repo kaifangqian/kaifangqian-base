@@ -22,7 +22,7 @@
 <template>
 	<div>
 		<div class="sign-detail-container">
-			<div class="download-btn">
+			<div class="download-btn" v-if="downloadFileType == 1">
 				<van-button type="primary" size="mini" style="width: 1.5rem;" @click="openActionSheet">下载</van-button>
 			</div>
 		    <div class="sign-info-card">
@@ -113,8 +113,8 @@
 		                                    :color="loadSignColor(item.writeStatus)">{{
 		                                        loadWriteStatus(item.writeStatus) }}</van-tag>
 		                            </div>
-		                            <div class="sender-list-area">
-		                                <span class="sub-sign-title">签署流程：</span>
+		                            <div class="sender-list-area" v-if="item.senderList && item.senderList.length > 0">
+		                                <span class="sub-sign-title" >签署流程：</span>
 		                                <div class="sender-list-info">
 		                                    <div v-for="(sendItem, sendIndex) in item.senderList" :key="sendIndex"
 		                                        class="sender-item-info">
@@ -124,11 +124,14 @@
 		                                                (sendItem.senderSignType == 1 ? '自动盖章' : sendItem.senderUserName) +
 		                                                ']' }}</span>
 		                                        </div>
-		                                        <van-tag class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{
+		                                        <van-tag v-if="sendItem.senderType != 5"  class="sign-status" :color="loadSignColor(sendItem.signStatus)">{{
 		                                            loadSignStatus(sendItem.signStatus) }}</van-tag>
+                                                <van-tag v-if="sendItem.senderType == 5"  class="sign-status" :color="loadApprovalColor(sendItem.signStatus)">{{
+                                                    loadApprovalStatus(sendItem.signStatus) }}</van-tag>
 		                                    </div>
 		                                </div>
 		                            </div>
+                                    <div style="font-size: 12px;" v-else>未参与签署</div>
 		                        </div>
 		                    </div>
 		                    <div v-if="item.signerType == 2" class="signer-item">
@@ -233,7 +236,7 @@ import Api from '@/api/contract/index';
 import { ImagePreview } from 'vant'
 import { handleDownload, getHashQueryString } from '@/utils/util';
 import { getAssetsFile } from '@/utils/pub-use';
-import { loadSignColor, loadSignStatus, loadWriteStatus } from '@/pages/transform';
+import { loadSignColor, loadSignStatus, loadWriteStatus, loadApprovalColor, loadApprovalStatus } from '@/pages/transform';
 import FileList from '@/components/FileList/index.vue'
 import DownloadActionSheet from "@/pages/components/DownloadActionSheet.vue"
 
@@ -263,6 +266,7 @@ export default defineComponent({
             { text: '下载' },
             { text: '查看' },
         ])
+        const downloadFileType = ref(2);
 		const actionSheet = ref({
 			show:false,
 			fileList:[],
@@ -308,6 +312,7 @@ export default defineComponent({
                 detailInfo.value = {
                     ...result,
                 }
+                downloadFileType.value = result.baseVo.downloadFileType;
                 if (result.baseVo.downloadFileType != 1) {
                     actions.value = [
                         { text: '查看' },
@@ -390,7 +395,10 @@ export default defineComponent({
             operatorList,
             loadDocInfo,
             handlePreview,actionSheetRef,
-            actions,actionSheet,openActionSheet
+            actions,actionSheet,openActionSheet,
+            loadApprovalColor,
+            loadApprovalStatus,
+            downloadFileType,
         }
     }
 })

@@ -445,7 +445,7 @@
             title: '温馨提示',
             content: text,
             iconType: 'warning',
-            okText: '更新',
+            okText: '去配置',
             onOk() {
               // window.open(import.meta.env.VITE_PUBLIC_PATH +'#/businessLine/config?__full__&from=list&signReId='+ record.id);
               router.push({

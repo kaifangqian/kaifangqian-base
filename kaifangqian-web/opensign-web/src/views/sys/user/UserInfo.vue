@@ -926,12 +926,12 @@
 </script>
 <style lang="less" scoped>
   .content-info {
-    height: calc(100vh - 350px);
-    overflow: auto;
+    height: calc(100vh - 300px);
+    // overflow: auto;
   }
 
   .main-center {
-    width: 1286px;
+    width: 100%;
     margin: 0 auto;
   }
   .info-list.left {
@@ -1059,10 +1059,10 @@
   }
 
   .ant-btn-primary {
-    background: linear-gradient(90deg, #1890ff, #40a9ff);
+    // background: linear-gradient(90deg, #1890ff, #40a9ff);
     border-color: transparent;
     min-width: 120px;
     // height: 30px;
-    border-radius: 4px;
+    // border-radius: 4px;
   }
 </style>

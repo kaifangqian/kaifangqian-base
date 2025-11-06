@@ -69,6 +69,7 @@ enum Api {
     SignSealVerify = '/sign/ru/run/seal/verify',
 
     ListMySignJob = '/company/task/listMySignJob',
+    ListMyApprovalJob = '/company/task/listMyApproveJob',
     ListMyFillInJob = '/company/task/listMyFillInJob',
     MyStastics = '/company/task/myStastics',
     VerifyCertificate = '/sign/ru/run/certificate/verify',
@@ -217,8 +218,12 @@ export function getListMyFillInJob(params) {
 export function getListMySignJob(params) {
     return defHttp.get({ url: Api.ListMySignJob, params }, { errorMessageMode: 'none' });
 }
-
-
+/**
+ * @description: 待我审批
+ */
+export function getListMyApprovalJob(params) {
+    return defHttp.get({ url: Api.ListMyApprovalJob, params }, { errorMessageMode: 'none' });
+}
 
 /**
  * @description: 判断当前操作人是否办理过以及当前文档状态
@@ -268,6 +273,13 @@ export function getBusinessLine(params) {
 }
 export function getBusinessLineList(params) {
     return defHttp.get({ url: "/sign/re/queryUseList", params }, { errorMessageMode: 'none' });
+}
+
+/**
+ * @description: 获取业务线分类
+ */
+export function getBusinessFolderTree() {
+    return defHttp.get({ url: "/sign/re/folder/tree"}, { errorMessageMode: 'none' });
 }
 /**
  * @description: 删除业务线实例
@@ -494,4 +506,24 @@ export function deleteCompleteRu(params) {
  */ 
 export function getMenuStastics(params) {
     return defHttp.get({ url: "/company/task/menuStastics", params }, { errorMessageMode: 'none' });
+}
+
+/**
+ * @description
+ */ 
+export function getSignNodeConfig(params) {
+    return defHttp.get({ url: "/sign/ru/run/sign/nodeConfig", params }, { errorMessageMode: 'none' });
+}
+
+/**
+ * @description: 审批驳回
+ */
+export function rejectApproval(params) {
+    return defHttp.post({ url: "/sign/ru/run/reject/check", params }, { errorMessageMode: 'none' });
+}
+/**
+ * @description: 审批通过
+ */
+export function submitApproval(params) {
+    return defHttp.post({ url: "/sign/ru/run/approve/check", params }, { errorMessageMode: 'none' });
 }

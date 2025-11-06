@@ -40,13 +40,15 @@ import java.util.List;
 public class SignReSignConfirmServiceImpl extends ServiceImpl<SignReSignConfirmMapper, SignReSignConfirm> implements SignReSignConfirmService {
 
     @Override
-    public void save(String signerId, String reId, Integer signerType,Integer isFastSign, String verifyType) {
+    public void save(String signerId, String reId, Integer signerType,Integer isFastSign, String verifyType, String personalSignAuth, String sealType) {
         SignReSignConfirm reSignConfirm = new SignReSignConfirm();
         reSignConfirm.setSignReId(reId);
         reSignConfirm.setSignerId(signerId);
         reSignConfirm.setSignerType(signerType);
         reSignConfirm.setAgreeSkipWillingness(isFastSign);
         reSignConfirm.setConfirmType(verifyType);
+        reSignConfirm.setPersonalSignAuth(personalSignAuth);
+        reSignConfirm.setSealType(sealType);
         save(reSignConfirm);
     }
 

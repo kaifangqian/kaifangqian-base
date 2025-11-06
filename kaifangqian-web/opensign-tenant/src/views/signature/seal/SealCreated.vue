@@ -115,7 +115,7 @@
                   >
                 </span>
 
-                <a-button type="link" @click="selectAdmin(1, '印章管理员')" v-if="!formDisabled"
+                <a-button type="link" @click="selectAdmin(1, '印章管理员')" v-if="!formDisabled" style="font-size: 12px"
                   >选择管理员</a-button
                 >
               </a-form-item>
@@ -138,7 +138,7 @@
                     >{{ item.authRelationName }}</a-tag
                   >
                 </span>
-                <a-button type="link" @click="selectAdmin(2, '印章使用者')" v-if="!formDisabled"
+                <a-button type="link" @click="selectAdmin(2, '印章使用者')" v-if="!formDisabled" style="font-size: 12px"
                   >选择使用者</a-button
                 >
               </a-form-item>
@@ -157,7 +157,7 @@
                     >{{ item.authRelationName }}</a-tag
                   >
                 </span>
-                <a-button type="link" @click="selectAdmin(3, '印章审计者')" v-if="!formDisabled"
+                <a-button type="link" @click="selectAdmin(3, '印章审计者')" v-if="!formDisabled" style="font-size: 12px"
                   >选择审计者</a-button
                 >
               </a-form-item>
@@ -251,6 +251,7 @@
                       v-model:value="sealFrom.middleText"
                       placeholder="请输入横排文字"
                       @change="sealPreviewInfo"
+                      class="input-width"
                     />
                   </a-form-item>
                   <a-form-item
@@ -402,14 +403,12 @@
             </div>
           </div>
         </div>
-        <div class="line" style="padding-bottom: 20px"></div>
+        <!-- <div class="line" style="padding-bottom: 20px"></div> -->
       </div>
-      <div> </div>
-      <div style="padding: 10px 0">
+      <div class="fixed-bottom-buttons">
         <a-space :size="10">
-          <!-- <a-button type="primary" @click="sealPreviewInfo" v-if="sealFrom.createType == 1">预览</a-button> -->
-          <a-button type="primary" @click="saveSeal" v-if="editType == 0">保存</a-button>
-          <a-button @click="backPage">取消</a-button>
+          <a-button @click="backPage" style="width: 100px">取消</a-button>
+          <a-button type="primary" @click="saveSeal" v-if="editType == 0" style="width: 100px">保存</a-button>
         </a-space>
       </div>
     </div>
@@ -623,6 +622,7 @@
             width: sealOptions.value.imageWidth,
             height: sealOptions.value.imageHeight,
             imageSmoothingQuality: 'high',
+            fillColor: '#FFFFFF' // 设置背景颜色为白色
           })
           .toDataURL('image/jpeg');
 
@@ -1078,8 +1078,10 @@
 <style lang="less" scoped>
   .page-content {
     padding: 5px 20px;
+    margin-bottom: 60px;
   }
   .input-width {
+    font-size: 12px;
     // width:300px !important;
   }
   .template-make {
@@ -1292,5 +1294,16 @@
     .switch-button {
       margin-top: 20px;
     }
+  }
+  .fixed-bottom-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 0;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
   }
 </style>

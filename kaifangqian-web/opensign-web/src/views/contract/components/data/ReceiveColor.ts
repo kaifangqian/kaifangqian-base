@@ -119,6 +119,7 @@ export function getColor(index:number,key:string|null){
 	}else if(index == -2){
 		return color[0];
 	}
+	index = index % color.length;
 	if(key){
 		return color[index][key];
 	}

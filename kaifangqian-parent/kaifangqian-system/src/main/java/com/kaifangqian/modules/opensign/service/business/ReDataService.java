@@ -363,11 +363,11 @@ public class ReDataService {
 //            if(signer.getConfirmType() == 1){
 //                reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_PERSONAL.getCode());
 //            }
-            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }else if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType())){
-            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.SENDER.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.SENDER.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }else if(SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType())){
-            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_ENT.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            reSignConfirmService.save(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_ENT.getCode(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }
 
         //内部签署人
@@ -390,11 +390,11 @@ public class ReDataService {
 
         if(SignerTypeEnum.RECEIVER_PERSONAL.getCode().equals(signer.getSignerType())){
             //个人
-            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_PERSONAL.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }else if(SignerTypeEnum.SENDER.getCode().equals(signer.getSignerType())){
-            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.SENDER.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.SENDER.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }else if(SignerTypeEnum.RECEIVER_ENT.getCode().equals(signer.getSignerType())){
-            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_ENT.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType());
+            updateConfirm(reSigner.getId(),reId,SignerTypeEnum.RECEIVER_ENT.getCode(),signer.getConfirmType(),signer.getAgreeSkipWillingness(),signer.getVerifyType(),signer.getPersonalSignAuth(),signer.getSealType());
         }
         //新增内部节点
         addSenderList(signer.getAddSenderList(),reSigner.getId(),reId);
@@ -441,7 +441,7 @@ public class ReDataService {
 //                if(sender.getConfirmType() == 1){
 //                    reSignConfirmService.save(reSender.getId(),reId, sender.getSignerType(), sender.getAgreeSkipWillingness(), sender.getVerifyType());
 //                }
-                reSignConfirmService.save(reSender.getId(),reId, sender.getSignerType(), sender.getAgreeSkipWillingness(), sender.getVerifyType());
+                reSignConfirmService.save(reSender.getId(),reId, sender.getSignerType(), sender.getAgreeSkipWillingness(), sender.getVerifyType(), sender.getPersonalSignAuth(),sender.getSealType());
             }
         }
     }
@@ -455,7 +455,7 @@ public class ReDataService {
                 if(!b){
                     throw new PaasException("保存发起人" + reSender.getSenderName() + "失败");
                 }
-                updateConfirm(reSender.getId(),reId,reSender.getSenderType(),sender.getConfirmType(),sender.getAgreeSkipWillingness(),sender.getVerifyType());
+                updateConfirm(reSender.getId(),reId,reSender.getSenderType(),sender.getConfirmType(),sender.getAgreeSkipWillingness(),sender.getVerifyType(),sender.getPersonalSignAuth(),sender.getSealType());
             }
         }
     }
@@ -475,7 +475,7 @@ public class ReDataService {
 
     }
 
-    public void updateConfirm(String signerId,String signReId,Integer signerType,Integer confirmType,Integer isFastSign,String verifyType){
+    public void updateConfirm(String signerId,String signReId,Integer signerType,Integer confirmType,Integer isFastSign,String verifyType,String personalSignAuth,String sealType){
 //        if(confirmType == 1){
 //            SignReSignConfirm reSignConfirm = reSignConfirmService.getByParam(signerId, signReId);
 //            if(reSignConfirm == null){
@@ -486,10 +486,12 @@ public class ReDataService {
 //        }
         SignReSignConfirm reSignConfirm = reSignConfirmService.getByParam(signerId, signReId);
         if(reSignConfirm == null){
-            reSignConfirmService.save(signerId,signReId,signerType,isFastSign,verifyType);
+            reSignConfirmService.save(signerId,signReId,signerType,isFastSign,verifyType,personalSignAuth,sealType);
         }else{
             reSignConfirm.setAgreeSkipWillingness(isFastSign);
             reSignConfirm.setConfirmType(verifyType);
+            reSignConfirm.setPersonalSignAuth(personalSignAuth);
+            reSignConfirm.setSealType(sealType);
             reSignConfirmService.updateById(reSignConfirm);
         }
     }

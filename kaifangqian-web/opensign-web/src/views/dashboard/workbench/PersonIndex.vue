@@ -38,14 +38,14 @@
           <div v-else class="no-data">
             <img src="~@/assets/images/no-data.png" alt="" />
             <p style="text-align: center">
-              <a-button type="primary" size="small" @click="handleAuthEnterPrise"
+              <a-button type="primary" size="small" style="margin-top: 15px" @click="handleAuthEnterPrise"
                 >加入/创建企业</a-button
               >
             </p>
           </div>
         </div>
       </Card>
-      <PendingHandle />
+      <PendingHandle :tenantInfo="tenantInfo"/>
     </div>
     <div class="info">
       <Card style="width: 100%">
@@ -94,7 +94,7 @@
           <ul class="content">
             <li class="content-li border-buttom">
               <div class="icon">
-                <SvgIcon size="60" name="entp-manage"></SvgIcon>
+                <SvgIcon size="40" name="entp-manage"></SvgIcon>
               </div>
               <div class="upgrade-descriptions">
                 <p class="title">企业管理</p>
@@ -109,7 +109,7 @@
           <ul class="content">
             <li class="content-li">
               <div class="icon">
-                <SvgIcon size="60" name="file-sign"></SvgIcon>
+                <SvgIcon size="40" name="file-sign"></SvgIcon>
               </div>
               <div class="upgrade-descriptions">
                 <p class="title">签发文件管理</p>
@@ -627,10 +627,12 @@
       flex-wrap: wrap;
       gap: 20px;
       padding: 20px;
+      overflow: auto;
+      max-height: 330px;
 
       .enterprise-card {
         height: 138px;
-        border-radius: 8px;
+        // border-radius: 8px;
         opacity: 1;
         flex-direction: column;
         padding: 24px;
@@ -644,8 +646,8 @@
         cursor: pointer;
 
         &:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.05);
         }
 
         .enterprise-info {
@@ -705,16 +707,16 @@
     .enterprise-info .ant-tag {
       // margin-left: 10px;
       font-size: 12px;
-      border-bottom-left-radius: 8px;
+      // border-bottom-left-radius: 8px;
       margin-right: 5px;
     }
 
     .ant-btn-primary {
-      background: linear-gradient(90deg, #1890ff, #40a9ff);
+      // background: linear-gradient(90deg, #1890ff, #40a9ff);
       border-color: transparent;
       width: 120px;
       height: 30px;
-      border-radius: 4px;
+      // border-radius: 4px;
     }
 
     .ant-btn-default {

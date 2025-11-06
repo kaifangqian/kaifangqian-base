@@ -80,9 +80,14 @@
   .@{prefix-cls} {
     position: relative;
     flex: 1 1 auto;
-    min-height: 0;
+    height: calc(100vh - 83px);
     // padding:24px;
     margin-top:@multiple-height + 2 + 63;
+
+    // @media (min-width: 0px) and (max-width: 1000px){
+      // width: 1000px;
+      overflow: auto;
+    // }
 
     &.fixed {
       width: 1200px;

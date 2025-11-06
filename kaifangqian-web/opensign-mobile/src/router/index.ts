@@ -82,6 +82,16 @@ export const layoutRoutes: Array<RouteRecordRaw> = [
     component: () => import('@/pages/contract/SignContract.vue'),
   },
   {
+    path: '/approval/:signRuId?',
+    name: '审批',
+    meta: {
+      title: '审批',
+      leftArrow: true,
+      keepAlive: true,
+    },
+    component: () => import('@/pages/contract/approval.vue'),
+  },
+  {
     path: '/wishCheck',
     name: '签署结果',
     meta: {

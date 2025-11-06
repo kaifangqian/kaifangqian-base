@@ -214,4 +214,25 @@ export default {
   async getBaseRuInfo(params: any) {
     return await http.get<Response>('/sign/ru/info/link', params, appHeader());
   },
+  async getPlatePersonalSignAuth(params: any) {
+    return await http.get<Response>('/sign/personal/auth/sys/type', params, appHeader());
+  },
+  async getSignNodeConfig(params: any) {
+    return await http.get<Response>('/sign/ru/run/sign/nodeConfig', params, appHeader());
+  },
+
+  /**
+   * @description: 审批驳回
+   */
+  async rejectApproval(params: any) {
+    return await http.post<Response>('/sign/ru/run/reject/check', params, appHeader());
+  },
+  /**
+   * @description: 审批通过
+   */
+  async submitApproval(params: any) {
+    return await http.post<Response>('/sign/ru/run/approve/check', params, appHeader());
+  }
+
+
 };

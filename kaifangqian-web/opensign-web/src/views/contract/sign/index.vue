@@ -12,7 +12,6 @@
     <div class="position-params-body">
       <DocLeft title="签署方">
         <SignStatus :signerList="signerList">
-
         </SignStatus>
         <SignControls
             v-if="!isDetail"
@@ -186,7 +185,9 @@ import {
     getConfirmType,
     getUpdateCertificate, 
     verifySignSeal,
-    getConfirmNo
+    getConfirmNo,
+    getBusinessRuInfo,
+    getSignNodeConfig
 } from '/@/api/contract/index';
 import { cloneDeep } from 'lodash-es';
 import {currentPosition, recaculateControlPosInPage, currentPositionReverse, pageScaling, paramBuildWidgets, findMinImageSize} from "/@/views/contract/components/data/ControlerMoveRange"
@@ -199,6 +200,7 @@ import { buildUUID } from '/@/utils/uuid';
 import { getHashQueryString,decodeURIs } from '/@/utils';
 import { getSystemLimit} from '/@/api/license';
 import { ControlType,CanvasZoom } from '/@/views/contract/components/data/ControlData';
+import { getPlatePersonalSignAuth } from '/@/api/sys/common';
 
 
 interface BtnFun {
@@ -262,7 +264,7 @@ export default defineComponent({
       const authCerInfo = ref({});
       const signDateType = ref(''); 
       const controlChangeFlag = ref('necessary_and_add'); //签署位置方式设置
-      const defaultHasControl = ref(false)   //默认是否制定了控件
+      const defaultHasControl = ref(false)   //默认是否指定了控件
       const signDateElement= ref({format:''}); 
       const compState = reactive({
         absolute: false,
@@ -308,6 +310,9 @@ export default defineComponent({
       const taskInfo:any = ref({
         
       })
+      const personalSignAuth = ref('');
+      // 个人签名方式
+      const sealType = ref('NOLIMIT');
       const signControlInfo:any = ref({
         type:0,
         certType:null
@@ -438,6 +443,52 @@ export default defineComponent({
             }
           })
         }
+
+        // 获取签署节点的签署要求
+        async function getSignNodeInfo(){
+          const userCheckResult = await getVerifyCertificate({signRuId});
+          console.log('userCheckResult.holderType', userCheckResult.holderType);
+          // 签署主体是个人
+          if(userCheckResult.holderType === TenantTypeEnum.PERSONAL){
+            let platePersonSignAuth = '';
+            const personalSignAuthRes = await getPlatePersonalSignAuth();
+            
+            // 获取平台总的签署要求
+            if (personalSignAuthRes.code === 200) {
+              platePersonSignAuth = personalSignAuthRes.result.personalSignAuthType;
+            }
+            
+            // 如果平台配置要求个人签署必须认证或无需认证，则直接使用该值
+            if(platePersonSignAuth === 'required' || platePersonSignAuth === 'not_required'){
+              personalSignAuth.value = platePersonSignAuth;
+            } else {
+              // 查询该签署流程的总的签署要求
+              const result = await getBusinessRuInfo({signRuId});
+              
+              if(result && result.baseVo.personalSignAuth === 'required' || result.baseVo.personalSignAuth === 'not_required'){
+                personalSignAuth.value = result.baseVo.personalSignAuth;
+              } else {
+                // 查询该签署节点的签署要求
+                const signNodeResult = await getSignNodeConfig({taskId});
+                
+                if(signNodeResult && signNodeResult.personalSignAuth){
+                  personalSignAuth.value = signNodeResult.personalSignAuth;
+                } else {
+                  personalSignAuth.value = 'required';
+                }
+              }
+            }
+          } else {
+            personalSignAuth.value = 'required';
+          }
+          // 查询该签署节点的签署要求-签名方式
+          const signNodeResult = await getSignNodeConfig({taskId});
+          if(signNodeResult && signNodeResult.sealType){
+            sealType.value = signNodeResult.sealType;
+            // console.log('个人签署签名方式：', signNodeResult.sealType);
+          }
+          
+        }
     
 
       onMounted(async ()=>{
@@ -445,6 +496,7 @@ export default defineComponent({
           compState.tip = '数据加载中...';
           compState.loading = true;
           await checkStatus()
+          await getSignNodeInfo()
           await initData()
           await generateOrderNo()
           await initSysLimit();
@@ -462,69 +514,53 @@ export default defineComponent({
         const limit = await getSystemLimit();
         chopStampUseFlag.value = limit.pagingSealUseFlag;
       }
+
       watch(
-        ()=>isSignText.value,
-        (value)=>{
-          console.log("chain",isSignText.value);
-            actions.value = [
-                {
-                    type:'default',
-                    text:'拒签',
-                    callBack:handleRejectSign,
-                    show: userAuth.value.status
-                },
-                {
-                    type:'primary',
-                    text:value?'签署':'提交签署',
-                    callBack:handleSign,
-                    show: userAuth.value.status,
-                },
-            ]
+        [() => userAuth.value, () => isSignText.value, () => personalSignAuth.value],
+        ([userAuthValue, isSignTextValue, personalSignAuthValue]) => {
+          // console.log('用户实名认证状态--：', userAuthValue.status);
+          // console.log('个人签署实名认证要求--：', personalSignAuthValue);
+          actions.value = [
+            {
+              type:'default',
+              text:'拒签',
+              callBack:handleRejectSign,
+              show: true
+            },
+            {
+              type:'primary',
+              text:isSignTextValue?'签署':'提交签署',
+              callBack:handleSign,
+              show: userAuthValue.status || personalSignAuthValue == 'not_required',
+            },
+            {
+              type:'primary',
+              text:'实名认证',
+              callBack:userHandleAuth,
+              show: !userAuthValue.status && personalSignAuthValue == 'required'
+            },
+          ];
+        }, {
+          deep: true
         }
-      )
-      watch(
-        ()=>userAuth.value,
-        (value)=>{
-            actions.value = [
-                {
-                    type:'default',
-                    text:'拒签',
-                    callBack:handleRejectSign,
-                    show: value.status
-                },
-                {
-                    type:'primary',
-                    text:isSignText.value?'签署':'提交签署',
-                    callBack:handleSign,
-                    show: value.status,
-                },
-                {
-                  type:'primary',
-                  text:'实名认证',
-                  callBack:userHandleAuth,
-                  show: !value.status
-                },
-            ]
-        },{
-            deep:true
-        }
-      )
-      watch(
-        ()=>documentList.value,
-        (list)=>{
-            let allSignControls = list.flatMap(item=>item.activeControl).filter(v=>(v.controlType=='seal' || v.controlType=='signature' || v.controlType=='chop-stamp'));
-            let signBase64Count =  allSignControls.filter(v=>{
-                return (v.sealId || v.signature || v.signatureId)
-            })
-            if(signBase64Count.length){
-                isSignText.value = false;
-            }else{
-                isSignText.value = true;
-            }
-        },{
-            deep:true
-        }
-      )
+      );
+
+    watch(
+      ()=>documentList.value,
+      (list)=>{
+          let allSignControls = list.flatMap(item=>item.activeControl).filter(v=>(v.controlType=='seal' || v.controlType=='signature' || v.controlType=='chop-stamp'));
+          let signBase64Count =  allSignControls.filter(v=>{
+              return (v.sealId || v.signature || v.signatureId)
+          })
+          if(signBase64Count.length){
+              isSignText.value = false;
+          }else{
+              isSignText.value = true;
+          }
+      },{
+          deep:true
+      }
+    )
 
       async function generateOrderNo(){
           let result = await getConfirmNo({mainId:taskId})
@@ -538,7 +574,6 @@ export default defineComponent({
         const tenantInfo = userStore.getTenantInfo;
         const userCheckResult  = await getVerifyCertificate({signRuId});
         certificateInfo.value = userCheckResult;
-        console.log("userCheckResult",userCheckResult);
         if(userCheckResult.holderType === TenantTypeEnum.ENTERPRISE){
           // 签署主体是否实名
           if (tenantInfo.authStatus === 2) {
@@ -583,7 +618,7 @@ export default defineComponent({
           }else{
             // 去个人实名
             userAuth.value.tenantType = TenantTypeEnum.PERSONAL;
-            console.log("个人未实名，去实名");
+            // console.log("个人未实名，去实名");
           }
         }
       }
@@ -888,7 +923,7 @@ export default defineComponent({
               let flatControls:any = []
               //过滤掉填写控件 
               allControls = allControls.filter(v=>['signature', 'sign-date', 'seal', 'chop-stamp'].includes(v.controlType))
-              console.log(allControls,'allControls签署控件-------------')
+              // console.log(allControls,'allControls签署控件-------------')
               //将控件按文档拆分
               allControls.map((item:any)=>{
                   if(['signature', 'sign-date', 'seal', 'chop-stamp'].includes(item.controlType) && item.propertyVoList){
@@ -928,7 +963,7 @@ export default defineComponent({
                   }
                 
               })
-              console.log(flatControls,'flatControls-------------')
+              // console.log(flatControls,'flatControls-------------')
               //将控件按文档分类
               let groupControls:any = [];
   
@@ -966,7 +1001,7 @@ export default defineComponent({
                   }
               })
   
-              console.log(groupControls,'分组控件--')
+              // console.log(groupControls,'分组控件--')
   
               //将控件按页码配置按文档进行设置
               groupControls.map(item=>{
@@ -1051,7 +1086,7 @@ export default defineComponent({
                       }
                   })
               })
-              console.log(groupControls,'分组后的控件--')
+              // console.log(groupControls,'分组后的控件--')
               //按文档进行控件设置
               for (let i = 0; i < docs.value.length; i++) {
                   let matchControl = groupControls.find(v=>v.controlDocId == docs.value[i].id)
@@ -1081,18 +1116,6 @@ export default defineComponent({
               images.value = matchDoc.images;
               document.getElementsByClassName('doc-content')[0].scrollTop = 0;
 
-
-
-        // docId.value = val;
-        // images.value = [];
-        // let result = await getDocImgs({signFileId:docId.value});
-        // if(result){
-        //   let matchDoc = documentList.value.find(item=>item.signRuDocId ==  docId.value);
-        //   matchDoc.images = result;
-        //   nowDocument.value = matchDoc;
-        //   document.getElementsByClassName('doc-content')[0].scrollTop = 0;
-        //   // console.log(documentList,docId.value,  matchDoc,'匹配文档')
-        // }
       }
 
     
@@ -1447,28 +1470,6 @@ export default defineComponent({
         }
         // 重新计算控件位置
         function refreshControlPosition(element, moveOpt) {
-            // if (!moveOpt) return;
-            // let elementOffst = {
-            //     x:element.position.left,
-            //     y:currentPosition(element.position.top,element.position.page)
-            // }
-            // console.log(element,'重新计算控件位置',elementOffst)
-
-            // documentList.value.map(v => {
-            //     v.activeControl.map(item => {
-            //         //过滤掉当前移动的控件计算其他复制的控价的位置
-            //         if (item.uid == element.uid && !item.controlClick) {
-            //             item.position = {
-            //                 left: element.controlType == 'chop-stamp' ? CanvasZoom.width - element.size.width : element.position.left,
-            //                 top: currentPositionReverse(elementOffst.y,item.position.page),
-            //                 page: item.position.page,
-            //             }
-            //             recaculateControlPosInPage({ position: item.position, size: element.size })
-                       
-            //         }
-            //     })
-            // })
-
             if (!moveOpt) return;
             console.log("moveOpt:",moveOpt);
             let pages:number[] = []
@@ -1561,8 +1562,12 @@ export default defineComponent({
       }
       // 设置同类型控件签章图片和大小
       function setSealControlImage() {
-        if(unref(signControlInfo).sealId && currentControl.value.sealId){
-           updateAllSealImg(nowDocument.value.activeControl, unref(signControlInfo).sealId, sealAnnexId.value, newSealSize.value)
+        // console.log(signControlInfo.value,'signControlInfo.value.sealId---');
+        // console.log(currentControl.value,'currentControl.value.sealId');
+        // console.log(entSealId.value,'entSealId.value---');
+        // console.log(sealAnnexId.value,'sealAnnexId.value---');
+        if((unref(signControlInfo).sealId || entSealId.value ) && currentControl.value.sealId){
+           updateAllSealImg(nowDocument.value.activeControl, unref(signControlInfo).sealId || entSealId.value, sealAnnexId.value, newSealSize.value)
         }
       }
       
@@ -1842,8 +1847,9 @@ export default defineComponent({
         }else{
           // getSignSignature()
           openSignatureModal(true,{
+            sealType:sealType.value,
             isUpdate:false,
-            recoed:{
+            record:{
 
             }
           })
@@ -1853,7 +1859,7 @@ export default defineComponent({
       }
       // 选取接收方企业签章
       async function handleSetSeal(info){
-        console.log(info)
+        // console.log(info,"handleSetSeal---")
         entSealId.value = info.sealId;
         currentControl.value.sealId = info.sealId; 
         isSignText.value = false;
@@ -1881,25 +1887,25 @@ export default defineComponent({
           // 改变图片的src
           img.src = img_url;	
           return new Promise((resolve, reject) => {
-                // 加载完成执行
-                img.onload = function(){
-                  if((sealSize.width / sealSize.height) == (img.width / img.height)){
-                    newSealSize =  sealSize
-                    
-                  }else if((sealSize.width / sealSize.height) < (img.width / img.height)){
-                    newSealSize =  {
-                      width: sealSize.width,
-                      height: img.height / (img.width / sealSize.width)
-                    }
-                    
-                  }else if((sealSize.width / sealSize.height) > (img.width / img.height)){
-                    newSealSize =  {
-                      width: img.width / (img.height / sealSize.height),
-                      height: sealSize.height
-                    }
-                  }
-                  resolve(newSealSize)
+            // 加载完成执行
+            img.onload = function(){
+              if((sealSize.width / sealSize.height) == (img.width / img.height)){
+                newSealSize =  sealSize
+                
+              }else if((sealSize.width / sealSize.height) < (img.width / img.height)){
+                newSealSize =  {
+                  width: sealSize.width,
+                  height: img.height / (img.width / sealSize.width)
                 }
+                
+              }else if((sealSize.width / sealSize.height) > (img.width / img.height)){
+                newSealSize =  {
+                  width: img.width / (img.height / sealSize.height),
+                  height: sealSize.height
+                }
+              }
+              resolve(newSealSize)
+            }
           })
       }
 
@@ -1909,7 +1915,7 @@ export default defineComponent({
         let result = await verifySignSeal({sealId:unref(signControlInfo).sealId});
         if(result.data.code==200){ 
             entSealId.value = signControlInfo.value.sealId;
-            currentControl.value.sealId = result.data.result; 
+            currentControl.value.sealId = signControlInfo.value.sealId; 
             sealAnnexId.value =  result.data.result;
             getImageIdSize(result.data.result).then(res=>{
               updateAllSealImg(nowDocument.value.activeControl, unref(signControlInfo).sealId, result.data.result, res)
@@ -2075,37 +2081,36 @@ export default defineComponent({
 
       //继续任务处理
       function handleGoNextTask() {
-            if (taskInfo.value.taskType == 'sign') {
-                router.push({
-                    path: '/contract/sign',
-                    query: {
-                        signRuId: taskInfo.value.ruId,
-                        taskId: taskInfo.value.taskId,
-                        __full__:'',
-                        callbackPage:callbackPage
-                    }
-                })
-                setTimeout(() => {
-                    location.reload()
-                }, 500)
-                
-            }
-            if (taskInfo.value.taskType == 'write') {
-                router.replace({
-                    path: '/contract/params',
-                    query: {
-                        signRuId: taskInfo.value.ruId,
-                        taskId: taskInfo.value.taskId,
-                        __full__:''
-
-                    }
-                })
-                setTimeout(() => {
-                    location.reload()
-                }, 500)
-            }
-
+        if (taskInfo.value.taskType == 'sign') {
+            router.push({
+                path: '/contract/sign',
+                query: {
+                    signRuId: taskInfo.value.ruId,
+                    taskId: taskInfo.value.taskId,
+                    __full__:'',
+                    callbackPage:callbackPage
+                }
+            })
+            setTimeout(() => {
+                location.reload()
+            }, 500)
+            
         }
+        if (taskInfo.value.taskType == 'write') {
+            router.replace({
+                path: '/contract/params',
+                query: {
+                    signRuId: taskInfo.value.ruId,
+                    taskId: taskInfo.value.taskId,
+                    __full__:''
+
+                }
+            })
+            setTimeout(() => {
+                location.reload()
+            }, 500)
+        }
+      }
         //暂不处理业务
         function handleNoTask() {
             taskVisible.value = false;
@@ -2184,7 +2189,7 @@ export default defineComponent({
       const ignoreControl = ref(false);
       //点击签署
       function handleSign(){
-        console.log("handleSign",isSignText.value);
+        // console.log("handleSign",isSignText.value);
         // 判断是否选择了设置了印章或个人签名
         if (!isSignText.value) {
           // handleSubmitSign()
@@ -2197,8 +2202,8 @@ export default defineComponent({
             });
             Modal.confirm({
               iconType: 'warning',
-              title: '提示',
-              content: `签约文件${errorText}未指定签署位置，请检查确认`,
+              title: '签署文件未全部指定签署位置',
+              content: `文件${errorText}未指定签署位置，请检查确认！`,
               okText: '继续签署',
               cancelText: '取消',
               onOk: () => {
@@ -2209,7 +2214,30 @@ export default defineComponent({
             });
             return;
           }
-          submitSignData();
+          // 判断是否是无实名认证签署
+          if(personalSignAuth.value == 'not_required'){
+            // 弹窗提示
+            createConfirm({
+              iconType: 'warning',
+              width: '600px',
+              title: '非实名认证签署风险告知书',
+              content: '<div style="font-size: 14px; line-height: 1.6; margin-top: 20px; margin-right: 38px;">' +
+                '<p style="color: #333">本次签署无需进行实名认证。如您同意，系统将使用平台防篡改证书（非CA权威数字证书）为您完成电子签名。</p>' +
+                '<p style="color: red"><strong>重要声明：</strong>平台防篡改证书仅能确保文件在签名后不被篡改，不具备《电子签名法》规定的法律效力。</p>' +
+                '<p style="color: #333;">点击“同意，继续签署”即代表您已知悉非实名认证签署的相关风险，并同意以该方式完成本次签署。</p>' +
+                '<p>如对实名认证要求有疑议，请联系签署发起方。</p>' +
+                '</div>',
+              okText: '同意，继续签署',
+              cancelText: '暂不签署',
+              onOk() {
+                submitSignData();
+              }
+            })
+          } else {
+            submitSignData();
+          }
+          
+          
         }else{
           //类型为企业签章
           if(signControlInfo.value.type==2){
@@ -2225,8 +2253,9 @@ export default defineComponent({
           }else{
             checkHasSignPos(1);
             openSignatureModal(true,{
+              sealType:sealType.value,
               isUpdate:false,
-              recoed:{}
+              record:{}
             })
           } 
         }
@@ -2240,7 +2269,7 @@ export default defineComponent({
           }
         });
         submitCheck.value.status = submitCheck.value.errorDocs.length === 0 ? 1 : 0;
-        console.log("documentList.value",documentList.value,submitCheck.value);
+        // console.log("documentList.value",documentList.value,submitCheck.value);
       }
       //控件合并
       function mergedDataFn(inputData){
@@ -2291,7 +2320,7 @@ export default defineComponent({
      async function submitSignData(){
           let paramsControl:any = [];
           let controls =  documentList.value.flatMap(item => item.activeControl);
-          console.log(controls,'所有控件-----')
+          // console.log(controls,'所有控件-----')
           controls.map(item=>{
             const matchDoc = documentList.value.filter(v =>v.signRuDocId ==item.signRuDocId)[0];
             const targets = matchDoc.targets;
@@ -2332,8 +2361,8 @@ export default defineComponent({
             })
             signCertificateVisible.value = false;
             authCertificateVisible.value = false;
-            console.log(mergedDataFn(paramsControl),'提交的控件')
-            console.log(unref(deleteIdList),'删除的控件')
+            // console.log(mergedDataFn(paramsControl),'提交的控件')
+            // console.log(unref(deleteIdList),'删除的控件')
             
             // const callbackPage = `${location.origin}/#/wishCheck`;
             const callbackPageYd = `${location.origin}/#/wishCheck?orderNo=${orderNo.value}&signRuId=${signRuId}&callbackPage=${callbackPage}`;
@@ -2379,7 +2408,9 @@ export default defineComponent({
           iconType: 'warning',
           onOk() {
             // window.history.go(-1);
-            window.close();
+            router.push({
+              path: '/contract/doc',
+            });
           }
         })
       }
@@ -2524,8 +2555,9 @@ export default defineComponent({
                           window.open(decodeURIs(callbackPage),'_self')
                         }else{
                             compState.loading = false;
-                            window.history.go(-1);
-                            window.close();
+                            router.push({
+                              path: '/contract/doc',
+                            });
                         }
                       
                       }
@@ -2629,7 +2661,9 @@ export default defineComponent({
           signDateFormat,
           doContent,
           controlChangeFlag,
-          chopStampUseFlag
+          chopStampUseFlag,
+          personalSignAuth,
+          sealType,
       }  
     }
 })

@@ -145,6 +145,7 @@
   import { getSignControlType } from '/@/api/contract';
   import { useRouter } from 'vue-router';
   import { getColor } from './data/ReceiveColor';
+import { json } from 'stream/consumers';
 
   export default defineComponent({
     name: 'SignControls',
@@ -244,6 +245,10 @@
         data.uid = parseInt(
           new Date().getMilliseconds() + '' + Math.ceil(Math.random() * 100000),
         ).toString(16);
+        // if (data.type == 'sign-date') {
+        //     data.format = 'YYYY-MM-DD';
+        //   }
+        console.log(origin, '源----',data);
         return data;
       }
       onMounted(() => {
@@ -381,6 +386,9 @@
           moveTarget.originType = moveTarget.originType;
           moveTarget.colorIndex = 7;
           moveTarget.signature = '';
+          // console.log(JSON.stringify(moveTarget), '控件位置-------')
+          
+          
           console.log(moveTarget, '控件位置');
           emit('dragOver', e, moveTarget);
           //controlMove.elementMove = moveTarget;
@@ -425,6 +433,7 @@
             }
           });
         });
+        // console.log(newControlList.value,'newControlList.value----')
         return newControlList.value;
       }
 
@@ -460,7 +469,7 @@
 
 <style lang="less" scoped>
   .sign-control-container {
-    border-top: 1px solid #f9f9f9;
+    border-top: 1px solid #e1e8ed;
     padding: 20px 0;
   }
   .disabled-control {

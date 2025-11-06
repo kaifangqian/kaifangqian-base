@@ -126,13 +126,13 @@
       console.log(getMenuTheme,'33')
       const getUserInfo = computed(() => {
         const { realname, avatar, desc } = userStore.getUserInfo || {};
-        getAvatarImg(avatar);
+        // getAvatarImg(avatar);
         return { realname, avatar: avatar || headerImg, desc };
       });
       async function getAvatarImg(id){
         if(!id) return;
-        let result =  await getImgBase64({imgId:id});
-        avatarImg.value = result.image; 
+        // let result =  await getImgBase64({imgId:id});
+        // avatarImg.value = result.image; 
 
       }
       const [register,{openModal}] = useModal();

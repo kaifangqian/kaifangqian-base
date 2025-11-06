@@ -31,6 +31,7 @@ import com.kaifangqian.modules.opensign.service.ru.SignRuSignerService;
 import com.kaifangqian.utils.MyStringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,10 +56,26 @@ public class SignRuSignerServiceImpl extends ServiceImpl<SignRuSignerMapper, Sig
     @Override
     public List<SignRuSigner> getByEntity(SignRuSigner query) {
         LambdaQueryWrapper<SignRuSigner> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MyStringUtils.isNotBlank(query.getSignRuId()), SignRuSigner::getSignRuId, query.getSignRuId()).eq(query.getSignerType() != null, SignRuSigner::getSignerType, query.getSignerType()).eq(SignRuSigner::getDeleteFlag, false);
+        queryWrapper.eq(MyStringUtils.isNotBlank(query.getSignRuId()), SignRuSigner::getSignRuId, query.getSignRuId())
+                .eq(query.getSignerType() != null, SignRuSigner::getSignerType, query.getSignerType())
+                .eq(SignRuSigner::getDeleteFlag, false);
 
         queryWrapper.orderByAsc(SignRuSigner::getSignerOrder);
 
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<SignRuSigner> getByEntityForApi(SignRuSigner query) {
+        LambdaQueryWrapper<SignRuSigner> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper
+                .eq(MyStringUtils.isNotBlank(query.getSignRuId()), SignRuSigner::getSignRuId, query.getSignRuId())
+                .eq(MyStringUtils.isNotBlank(query.getSignerName()), SignRuSigner::getSignerName, query.getSignerName())
+                .eq(query.getSignerOrder() != null, SignRuSigner::getSignerOrder, query.getSignerOrder())
+                .eq(query.getSignerType() != null, SignRuSigner::getSignerType, query.getSignerType())
+                .eq(SignRuSigner::getDeleteFlag, false);
+
+        queryWrapper.orderByAsc(SignRuSigner::getSignerOrder);
         return list(queryWrapper);
     }
 

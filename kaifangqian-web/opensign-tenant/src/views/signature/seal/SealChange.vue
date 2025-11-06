@@ -40,7 +40,7 @@
             <a-col :span="6">
               <a-form-item label="印章名称" name="sealName">
                 <!-- <a-input v-model:value="sealFrom.sealName" :disabled="formColumn.sealName === FormAuthStatus.COLUMN_READ || formDisabled" size="middle" placeholder="请输入印章名" class="input-width" /> -->
-                <span>{{ sealFrom.sealName }}</span>
+                <span class="input-width">{{ sealFrom.sealName }}</span>
               </a-form-item>
             </a-col>
             <a-col :span="6">
@@ -48,14 +48,14 @@
                 <!-- <a-select v-model:value="sealFrom.sealType" :disabled="formColumn.sealType === FormAuthStatus.COLUMN_READ || formDisabled" class="input-width"  size="middle" 
                     placeholder="请选择印章类型" @change="sealTypeChange" :options="sealType">
                   </a-select> -->
-                <span>{{ getSealType(sealFrom.sealType).label }}</span>
+                <span class="input-width">{{ getSealType(sealFrom.sealType).label }}</span>
               </a-form-item>
             </a-col>
           </a-row>
           <a-row style="width: 100%; padding-top: 0px">
             <a-col :span="6">
               <a-form-item label="所属组织" name="sealOrg">
-                <span>{{ sealFrom.entpName }}</span>
+                <span class="input-width">{{ sealFrom.entpName }}</span>
                 <!-- <a-input v-model:value="sealFrom.entpName" disabled size="middle" class="input-width" /> -->
               </a-form-item>
             </a-col>
@@ -300,15 +300,15 @@
             </div>
           </div>
         </div>
-        <div class="line" style="padding-bottom: 20px"></div>
+        <!-- <div class="line" style="padding-bottom: 20px"></div> -->
       </div>
       <div> </div>
     </div>
-    <div style="padding: 10px 0">
+    <div class="fixed-bottom-buttons">
       <a-space :size="10">
         <!-- <a-button type="primary" v-if="sealFrom.createType == 1" @click="sealPreviewInfo">预览</a-button> -->
-        <a-button type="primary" @click="saveSeal">保存</a-button>
-        <a-button @click="backPage">取消</a-button>
+        <a-button @click="backPage" style="width: 100px">取消</a-button>
+        <a-button type="primary" @click="saveSeal" style="width: 100px">保存</a-button>
       </a-space>
     </div>
   </div>
@@ -736,8 +736,10 @@
 <style lang="less" scoped>
   .page-content {
     padding: 5px 20px;
+    margin-bottom: 60px;
   }
   .input-width {
+    font-size: 12px;
     // width:300px !important;
   }
   .template-make {
@@ -946,5 +948,17 @@
       justify-content: center;
       align-items: center;
     }
+  }
+
+  .fixed-bottom-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 0;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
   }
 </style>

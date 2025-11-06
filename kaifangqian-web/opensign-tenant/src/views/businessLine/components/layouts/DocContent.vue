@@ -50,6 +50,7 @@
                               'transform: translate('+ '-50%,'+(item.target.transformHeight + (item.page+1) * 16)+'px);',
                               'width:' + item.target.width+'px;',
                               'height' + item.target.height+'px;',
+                              'border:' + '1px solid #f0f0f0',
 
                             ]">
                             <img style="width: 100%;" v-lazy="baseUrl + '/file/downloadFileStream/' + item.annexId" />
@@ -69,6 +70,12 @@
                                 'top:' + item.rangHeight + 'px',
                                 'border-bottom: 1px dashed #00a0e8',
                                 ]"></div>
+                                <!-- 页面编号角标 -->
+                            <div class="page-corner">
+                            </div>
+                            <div class="page-num">
+                            {{ item.page + 1 }}
+                            </div>
                         </div>
                     </template>
                     <draggable :list="nowDocument.activeControl" ghost-class="ghost" draggable=".test" item-key="unequalId"
@@ -242,7 +249,7 @@ export default defineComponent({
           ()=> props.nowDocument.maxWidth,
           (val)=>{
             if(val){
-              zoom.value = parseInt( (window.innerWidth - (350+380+ 10)) / val  * 100)
+              zoom.value = parseInt( (window.innerWidth - (350+380+ 100)) / val  * 100)
             }
           },
           {deep:true}
@@ -260,7 +267,7 @@ export default defineComponent({
         )
 
         const zoom = ref(134);
-        const containerWidth = ref(props.hasWriteControl? window.innerWidth -  (350+380 + 50):window.innerWidth -  (400))
+        const containerWidth = ref(props.hasWriteControl? window.innerWidth -  (350+380):window.innerWidth -  (350))
         const currentPage = ref(1);
         const handleZoom = (type:number) => {
           if(type === 1){
@@ -506,7 +513,7 @@ export default defineComponent({
 
     .doc-content {
         height: 100%;
-        border: 1px solid #eaeaea;
+        // border: 1px solid #eaeaea;
         position:relative;
         overflow-y:scroll;
         overflow-x:scroll;
@@ -659,4 +666,25 @@ export default defineComponent({
 //       z-index:2022;
 //       position:absolute;
 //     }
+
+.page-corner {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  width: 0;
+  height: 0;
+  border-color: #ccc transparent;
+  border-width: 0 0 30px 30px;
+  border-style: solid;
+}
+
+.page-num {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 9px;
+  color: #fff;
+  // padding-right: 20px;
+}
+
 </style>

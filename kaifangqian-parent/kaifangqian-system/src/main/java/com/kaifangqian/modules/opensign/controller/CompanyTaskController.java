@@ -92,8 +92,11 @@ public class CompanyTaskController {
                 tasks = signRuTaskService.getByEntity(query);
                 if (CollUtil.isNotEmpty(tasks)) {
                     result.setTaskId(tasks.get(0).getId());
+                    result.setTaskType(tasks.get(0).getTaskType());
                 }
             }
+            Boolean downloadFlag = signRuService.checkDownloadAuth(signRu.getId());
+            result.setDownloadFlag(downloadFlag);
             //}
         }
 
@@ -220,6 +223,16 @@ public class CompanyTaskController {
     public Result<IPage<TaskListInfoRes>> listMySignJob(TaskListInfoReq req, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<TaskListInfoRes> page = new Page<TaskListInfoRes>(pageNo, pageSize);
         IPage<TaskListInfoRes> result = instanceTaskService.listMySignJob(page, req);
+        instanceTaskService.setParticipateNames(result);
+        return Result.OK(result);
+    }
+
+    // @ApiOperation(value = "待我签署", notes = "待我签署")
+    @GetMapping(value = "/listMyApproveJob")
+    @ResrunLogMethod(name = "待我审批", operateType = OperateLogType.OPERATE_TYPE_1)
+    public Result<IPage<TaskListInfoRes>> listMyApproveJob(TaskListInfoReq req, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+        Page<TaskListInfoRes> page = new Page<TaskListInfoRes>(pageNo, pageSize);
+        IPage<TaskListInfoRes> result = instanceTaskService.listMyApproveJob(page, req);
         instanceTaskService.setParticipateNames(result);
         return Result.OK(result);
     }

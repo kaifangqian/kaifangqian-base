@@ -41,6 +41,8 @@ public class TaskListInfoReq {
     private String subject;
     //签约状态
     private Integer status;
+    //任务类型
+    private String taskType;
     //创建时间
     // @ApiModelProperty("创建时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

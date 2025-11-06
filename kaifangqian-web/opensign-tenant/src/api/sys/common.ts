@@ -22,7 +22,16 @@
 
 import { defHttp } from '/@/utils/http/axios';
 
-
 export function getSignConfirm() {
-  return defHttp.get({ url: "/sign/confirm/type"}, { errorMessageMode: 'none',isTransformResponse:false});
+  return defHttp.get(
+    { url: '/sign/confirm/type' },
+    { errorMessageMode: 'none', isTransformResponse: false },
+  );
+}
+
+export function getPlatePersonalSignAuth() {
+  return defHttp.get(
+    { url: '/sign/personal/auth/sys/type' },
+    { errorMessageMode: 'none', isTransformResponse: false },
+  );
 }

@@ -38,6 +38,8 @@ public enum SignRecordActionTypeEnum {
     AUTO_SIGN("auto_sign","自动盖章"),
     AUTH_SIGN("auth_sign","授权签署"),
     REVOKE("revoke","撤销合同"),
+    APPROVE_CHECK("approve_check","审批通过"),
+    REJECT_CHECK("reject_check","审批未通过"),
 
     ;
 

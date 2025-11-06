@@ -31,7 +31,7 @@
               v-model:value="searchForm.name" 
               placeholder="请输入业务线名称" 
               allow-clear
-              style="width: 320px"
+              class="media-input"
               @pressEnter="handleSearch"
             />
           </a-form-item>
@@ -40,22 +40,49 @@
               v-model:value="searchForm.status" 
               placeholder="请选择状态" 
               allow-clear
-              style="width: 220px"
+              style="font-size: 12px;"
+              class="media-input"
               @change="handleSearch"
             >
+              <a-select-option :value="0">全部</a-select-option>
               <a-select-option :value="1">启用</a-select-option>
               <a-select-option :value="2">停用</a-select-option>
             </a-select>
           </a-form-item>
+          <a-form-item label="业务类型">
+            <a-tree-select 
+              :fieldNames="{children:'children', label:'label', value: 'id' }"
+              v-model:value="searchForm.folderId" 
+              placeholder="请选择业务类型" 
+              allow-clear
+              show-search
+              tree-default-expand-all
+              style="font-size: 12px;"
+              class="media-input"
+              :tree-data="treeData"
+              @focus="loadingTreeData"
+              @change="handleSearch"
+              tree-node-filter-prop="label"
+             
+            >
+            <template #title="{ value: val, label }">
+              <span >{{ label }}</span>
+            </template>
+              <!-- <template #title="label">
+                <template>{{ label }}</template>
+              </template> -->
+            </a-tree-select>
+          </a-form-item>
           <a-form-item>
-            <a-button type="primary" style="margin-left: 18px; width:160px " @click="handleSearch">查询</a-button>
-            <a-button style="margin-left: 18px; width:160px" @click="handleReset">重置</a-button>
+            <a-button type="primary" style="margin-left: 18px; padding: 0 40px; " @click="handleSearch">查询</a-button>
+            <a-button style="margin-left: 18px; padding: 0 40px;" @click="handleReset">重置</a-button>
           </a-form-item>
         </a-form>
       </div>
     </div>
     <!-- 滚动容器 -->
-    <Scrollbar width="100%" height="100%" :native="true" :noresize="true" :class="{ 'business-scrollbar': showSearchForm }">
+    <Scrollbar width="100%" :native="true" :noresize="true" class="business-scrollbar"
+    style="height: calc(100% - 70px - 55px);min-height: 500px;" > 
       <!-- 加载中状态 -->
       <div v-if="loading" class="loading-state">加载中...</div>
 
@@ -133,9 +160,9 @@
 <script lang="ts">
   import { defineComponent, ref, onMounted, computed  } from 'vue';
   import { useRouter } from 'vue-router';
-  import { getBusinessLineList } from '/@/api/contract';
+  import { getBusinessLineList, getBusinessFolderTree } from '/@/api/contract';
   import { Scrollbar } from '/@/components/Scrollbar';
-  import { Empty, Form, Input, Select, Button } from 'ant-design-vue';
+  import { Empty, Form, Input, Select, Button, TreeSelect, TreeSelectProps } from 'ant-design-vue';
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 
   const START_PATH = '/contract/start';
@@ -167,7 +194,8 @@
       // 检索表单
       const searchForm = ref({
         name: '',
-        status: undefined,
+        status: 1,
+        folderId: '',
       });
 
       // 是否显示检索条件
@@ -179,6 +207,7 @@
         current: 1,
         pageSize: DEFAULT_PAGE_SIZE,
       };
+      const treeData = ref<TreeSelectProps['treeData']>([]);
 
       // 计算是否应该显示搜索表单
       const shouldShowSearchForm = computed(() => {
@@ -201,10 +230,25 @@
       const handleReset = () => {
         searchForm.value.name = '';
         searchForm.value.status = undefined;
+        searchForm.value.folderId = '';
         hasSearched.value = false;
         pagination.value.current = 1;
         loadData();
       };
+
+      // 加载树数据
+      const loadingTreeData = async () => {
+        try {
+          const result = await getBusinessFolderTree();
+          console.log('result---', result);
+          treeData.value = result;
+          console.log('treeData---', treeData.value);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          // loadingTreeData.value = false;
+        }
+      }
 
       // 加载数据
       const loadData = async () => {
@@ -219,14 +263,18 @@
           if (searchForm.value.name) {
             params.name = searchForm.value.name;
           }
-          if (searchForm.value.status !== undefined && searchForm.value.status !== null) {
+          console.log('params', searchForm.value.status,shouldShowSearchForm.value);
+          // 如果不显示检索条件，则将状态设置为全部
+          // if(!shouldShowSearchForm.value){
+          //   searchForm.value.status = 0;
+          // }
+          if (searchForm.value.status !== undefined && searchForm.value.status !== null && searchForm.value.status !== 0) {
             params.status = searchForm.value.status;
           }
+          if (searchForm.value.folderId !== undefined && searchForm.value.folderId !== null) {
+            params.folderId = searchForm.value.folderId;
+          } 
 
-          // const res = await getBusinessLineList({
-          //   pageNo: pagination.value.current,
-          //   pageSize: pagination.value.pageSize,
-          // });
           const res = await getBusinessLineList(params);
           if (res && Array.isArray(res.records)) {
             tableData.value = res.records;
@@ -322,6 +370,8 @@
         showSearchForm,
         handleSearch,
         handleReset,
+        treeData,
+        loadingTreeData,
       };
     },
   });
@@ -331,16 +381,38 @@
 
   .business-container {
     width: 100%;
-    max-width: 1506px;
+    // max-width: 1506px;
     margin: 0 auto;
     padding: 20px;
+    height: calc(100vh - 83px);
+    @media (min-width: 0px) and (max-width: 1280px){
+      width: 1000px;
+      .card-item {
+        width: calc(50% - 12px) !important;
+      }
+      .media-input{
+        width: 200px;
+      }
+    }
+    @media (min-width: 1280px) and (max-width: 1536px){
+      width: 1200px;
+      .media-input{
+        width: 200px;
+      }
+    }
+    @media (min-width: 1536px){
+      width: 1506px;
+      .media-input{
+        width: 280px;
+      }
+    }
 
     .search-form-container {
       background: linear-gradient(135deg, #ffffff 0%, #e4eaf96e 100%);
-      border-radius: 12px;
+      // border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       border: 1px solid #e8e8e8;
       // max-width: 1000px; 
       margin-left: auto;
@@ -360,11 +432,11 @@
         }
 
         :deep(.ant-input) {
-          border-radius: 6px;
+          // border-radius: 6px;
         }
 
         :deep(.ant-select) {
-          border-radius: 6px;
+          // border-radius: 6px;
         }
       }
     }
@@ -381,7 +453,7 @@
     .card-item {
       position: relative;
       background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
-      border-radius: 12px;
+      // border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
       padding: 24px;
       width: calc(33.33% - 66px);
@@ -399,14 +471,15 @@
         font-size: 12px;
         font-weight: bold;
         padding: 4px 12px;
-        border-bottom-left-radius: 8px;
+        // border-bottom-left-radius: 8px;
         color: white;
         width: 60px; /* 固定宽度 */
         text-align: center; /* 文字居中 */
         z-index: 2; /* 提高 z-index 确保覆盖 */
 
         &.active {
-          background: linear-gradient(to right, rgb(9, 130, 69), rgb(38, 233, 47));
+          // background: linear-gradient(to right, rgb(9, 130, 69), rgb(38, 233, 47));
+          background:  rgb(9, 130, 69);
         }
 
         &.inactive {
@@ -468,11 +541,11 @@
         display: flex;
         justify-content: center;
         align-items: center; /* 垂直居中 */
-        border-radius: 8px;
+        // border-radius: 8px;
       }
 
       .ant-btn-primary {
-        border-radius: 8px;
+        // border-radius: 8px;
         width: 60%;
         height: 40px;
         margin-top: 16px;
@@ -491,12 +564,12 @@
 
     // 分页样式
     .pagination-wrapper {
-      margin-top: 30px;
+      // margin-top: 30px;
       display: flex;
       justify-content: center;
       // background-color: #f5faff;
       padding: 10px 0;
-      border-radius: 8px;
+      // border-radius: 8px;
     }
 
 
@@ -518,16 +591,14 @@
     }
 
   // 响应式适配
-  @media (max-width: 1200px) {
-    .business-container .card-item {
-      width: calc(50% - 12px);
-    }
-  }
-
+  // @media (max-width: 1200px) and  {
+  //   .business-container .card-item {
+  //     width: calc(50% - 12px);
+  //   }
+  // }
+ 
   @media (max-width: 768px) {
-    .business-container .card-item {
-      width: 100%;
-    }
+    
 
     .card-field {
       flex-direction: column;
@@ -550,7 +621,7 @@
 
   .business-scrollbar {
     background: linear-gradient(135deg, #ffffff 0%, #e4eaf96e 100%);
-    border-radius: 12px;
+    // border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     border: 1px solid #e8e8e8;
     padding: 20px;

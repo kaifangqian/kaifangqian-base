@@ -25,26 +25,28 @@
     <a-alert type="info">
       <template #message>
         <h1>温馨提示</h1>
-        <ul style="padding-left: 20px;">
-          <li style="list-style: disc;">合同文件发起后，电子签章系统将根据签署顺序，发送短信通知接收方进行文件填写和签署，如需关闭接收方短信通知，请进行配置</li>
+        <ul style="padding-left: 20px">
+          <li style="list-style: disc"
+            >合同发起后，系统将按签署顺序自动发送短信/邮件通知。您可在此管理具体通知项，按需开启或关闭。</li
+          >
         </ul>
       </template>
     </a-alert>
     <br/>
-    <a-card title="短信通知" size="small">
+    <a-card title="短信 / 邮件通知" size="small">
       <div class="notice-box">
         <div class="notice-item">
           <div class="item-text"><p>文件填写</p></div>
           <div class="item-switch">
             <li>
               <a-space :sise="10">
-                <spam>短信</spam>
+                <span>短信</span>
                 <a-switch v-model:checked="noticeItems.writeTaskFlagPhone" />
               </a-space>
             </li>
-            <li style="padding-left:20px ;">
+            <li style="padding-left: 40px">
               <a-space>
-                <spam>邮箱</spam>
+                <span>邮件</span>
                 <a-switch v-model:checked="noticeItems.writeTaskFlagEmail" />
               </a-space>
             </li>
@@ -56,14 +58,32 @@
           <div class="item-switch">
             <li>
               <a-space :sise="10">
-                <spam>短信</spam>
+                <span>短信</span>
                 <a-switch v-model:checked="noticeItems.signTaskInFlagPhone" />
               </a-space>
             </li>
-            <li style="padding-left:20px ;">
+            <li style="padding-left:40px ;">
               <a-space>
-                <spam>邮箱</spam>
+                <span>邮件</span>
                 <a-switch v-model:checked="noticeItems.signTaskInFlagEmail" />
+              </a-space>
+            </li>
+          </div>
+        </div>
+
+        <div class="notice-item">
+          <div class="item-text"><p>文件审批（发起方内部）</p></div>
+          <div class="item-switch">
+            <li>
+              <a-space :sise="10">
+                <span>短信</span>
+                <a-switch v-model:checked="noticeItems.approvalTaskFlagPhone" />
+              </a-space>
+            </li>
+            <li style="padding-left:40px ;">
+              <a-space>
+                <span>邮件</span>
+                <a-switch v-model:checked="noticeItems.approvalTaskFlagEmail" />
               </a-space>
             </li>
           </div>
@@ -74,13 +94,13 @@
           <div class="item-switch">
              <li>
                <a-space :sise="10">
-                 <spam>短信</spam>
+                 <span>短信</span>
                  <a-switch v-model:checked="noticeItems.signTaskOutFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <span>邮件</span>
                  <a-switch v-model:checked="noticeItems.signTaskOutFlagEmail" />
                </a-space>
              </li>
@@ -92,13 +112,13 @@
           <div class="item-switch">
              <li>
                <a-space :sise="10">
-                 <spam>短信</spam>
+                 <span>短信</span>
                  <a-switch v-model:checked="noticeItems.copyBeginFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <span>邮件</span>
                  <a-switch v-model:checked="noticeItems.copyBeginFlagEmail" />
                </a-space>
              </li>
@@ -110,13 +130,13 @@
           <div class="item-switch">
              <li>
                <a-space :sise="10">
-                 <spam>短信</spam>
+                 <span>短信</span>
                  <a-switch v-model:checked="noticeItems.copySignFlagPhone" />
                </a-space>
              </li>
-             <li style="padding-left:20px ;">
+             <li style="padding-left:40px ;">
                <a-space>
-                 <spam>邮箱</spam>
+                 <span>邮件</span>
                  <a-switch v-model:checked="noticeItems.copySignFlagEmail" />
                </a-space>
              </li>
@@ -148,6 +168,8 @@
         writeTaskFlagEmail:false,
         signTaskInFlagPhone:false,
         signTaskInFlagEmail:false,
+        approvalTaskFlagPhone:false,
+        approvalTaskFlagEmail:false,
         signTaskOutFlagPhone:false,
         signTaskOutFlagEmail:false,
         copyBeginFlagPhone:false,
@@ -166,6 +188,7 @@
         console.log("props.lineFormData,",props.lineFormData);
         const noticeResponse = await getReNotice({singReId:signReId})
         noticeItems.value = {...noticeResponse}
+        // console.log("noticeItems.value,",noticeItems.value);
       }
       async function saveNoticeData(){
         const {code} = await saveReNotice(noticeItems.value);
@@ -190,20 +213,28 @@
     height: 60px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     .item-switch{
-      padding-right: 10px;
+      padding-right: 30px;
       align-content: center;
       display: flex;
+      align-items: center;
     }
     .item-text{
       flex:1;
-      font-weight: 600;
+      // font-weight: 600;
       font-size: 14px;
       line-height: 60px;
-      padding-left: 10px;
+      padding-left: 30px;
       p{
         padding:0;
         margin: 0;
       }
     }
+  }
+
+  :deep(.ant-card-head){
+    background-color: #f7f8fb;
+  }
+  :deep(.ant-card-body) {
+    padding: 0;
   }
 </style>

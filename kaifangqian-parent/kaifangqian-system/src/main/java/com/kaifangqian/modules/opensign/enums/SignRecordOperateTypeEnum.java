@@ -34,6 +34,7 @@ public enum SignRecordOperateTypeEnum {
     PRIVATE_SIGN("private_sign","个人签名"),
     ENT_SIGN("ent_sign","组织签章"),
     REVOKE("revoke","撤销合同"),
+    APPROVE("approve","签署审批"),
     ;
 
     private String type;

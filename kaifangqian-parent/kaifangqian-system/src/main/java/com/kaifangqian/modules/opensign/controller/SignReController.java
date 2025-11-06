@@ -131,11 +131,29 @@ public class SignReController {
             responseIPage.setRecords(responseList);
             return Result.OK(responseIPage) ;
         }
-        List<String> reIdList = auths.stream().map(SignReAuth::getSignReId).collect(Collectors.toList());
-        if(reIdList == null || reIdList.size() == 0){
+        List<String> signReIdList = auths.stream().map(SignReAuth::getSignReId).collect(Collectors.toList());
+        if(signReIdList == null || signReIdList.size() == 0){
             responseIPage.setRecords(responseList);
             return Result.OK(responseIPage) ;
         }
+
+        //权限数据
+        List<String> reIdList = new ArrayList<>() ;
+        if(request.getFolderId() != null && request.getFolderId().length() > 0){
+            //文件夹
+            List<SignReFolderRelation> folderRelationList = reFolderRelationService.getList(request.getFolderId(), signReIdList);
+            if(folderRelationList == null || folderRelationList.size() == 0){
+                responseIPage.setRecords(responseList);
+                return Result.OK(responseIPage) ;
+            }
+            List<String> collect = folderRelationList.stream().map(SignReFolderRelation::getSignReId).collect(Collectors.toList());
+            if(collect != null || collect.size() > 0){
+                reIdList.addAll(collect);
+            }
+        }else{
+            reIdList.addAll(signReIdList);
+        }
+
         QueryWrapper<SignRe> signReQueryWrapper = new QueryWrapper<>();
         signReQueryWrapper.lambda().eq(BaseEntity::getDeleteFlag,false);
         signReQueryWrapper.lambda().in(SignRe::getId,reIdList);

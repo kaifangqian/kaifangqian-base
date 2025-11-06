@@ -47,16 +47,16 @@
                     <div :class="['params-header',item.focus?'control-focus-header':'']">
                       <a-tooltip>
                         <template #title>点击后，定位到该参数所在文档位置</template>
-                        <SvgIcon name="location"  v-if="!item.focus" :size="24" class="control-pos"  @click="handleControlPos(docItem,item)"></SvgIcon>
-                        <SvgIcon name="location-focus" v-if="item.focus" :size="24" class="control-pos"  @click="handleControlPos(docItem,item)"></SvgIcon>
+                        <SvgIcon name="location"  v-if="!item.focus" :size="20" class="control-pos"  @click="handleControlPos(docItem,item)"></SvgIcon>
+                        <SvgIcon name="location-focus" v-if="item.focus" :size="20" class="control-pos"  @click="handleControlPos(docItem,item)"></SvgIcon>
                       </a-tooltip>
                       <span class="params-name"> <SvgIcon v-if="item.isRequired == 1" name="required" :size="16" class="control-pos"></SvgIcon>{{ item.name }}</span>
                     </div>
                     <div :class="['params-body',item.focus?'control-focus-body':'']"> 
                       <div class="params-select">
-                        <span>填写方：</span>
+                        <!-- <span>填写方：</span> -->
                         <!-- <a-select :allowClear="true" :disabled="(item.originType == 1 && item.signerId)?true:false" v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select> -->
-                        <a-select :allowClear="true"  v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select>
+                        <a-select :allowClear="true" placeholder="请选择填写方" v-model:value="item.signerId" :options="options" :fieldNames="{label:'name',value:'id'}" @change="(e)=>handleWriteChange(e, item)"></a-select>
                       </div>
                     </div>
                   </div>

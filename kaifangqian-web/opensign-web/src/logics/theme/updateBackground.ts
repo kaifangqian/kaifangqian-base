@@ -38,7 +38,6 @@ const SIDER_LIGHTEN_BG_COLOR = '--sider-dark-lighten-bg-color';
  * @param color
  */
 export function updateHeaderBgColor(color?: string) {
-  console.log(color,'--颜色---')
   const appStore = useAppStore();
   const darkMode = appStore.getDarkMode === ThemeEnum.DARK;
   if (!color) {

@@ -24,7 +24,7 @@
   <div class="doc-list-container">
     <div class="doc-content">
       <div class="doc-menu">
-        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart">
+        <a-button  v-if="tenantInfo.tenantType=='1'" type="primary" @click="handleStart" style="width:160px;height:40px">
           <Icon icon="ant-design:plus-outlined" />发起签署</a-button>
         <!-- <a-button  v-if="tenantInfo.tenantType=='1' && userType == 'core'" type="primary" @click="handleStart">
         <Icon icon="ant-design:plus-outlined" />发起签署</a-button> -->
@@ -101,7 +101,7 @@
         <div class="sign-filter-area">
           <div class="list-title">
             <h1 class="record-title">{{ listTitle }}</h1>
-            <a-button class="clear-btn" v-if="selectedKeys.includes('5')" @click="handleClear"><SvgIcon name="clear" size="22"  />清空回收站</a-button>
+            <a-button class="clear-btn" v-if="selectedKeys.includes('5')" @click="handleClear"><SvgIcon name="clear" size="16"  />清空回收站</a-button>
           </div>
           <div class="search-enter">
             <a-input-search v-model:value="formState.subject"  placeholder="请输入签约主题"  style="width: 300px"  @search="handelSearch" :allowClear="true"/>
@@ -158,7 +158,7 @@
 </template>
 
 <script lang="ts">
-import {ref, unref, toRefs, defineComponent, reactive, onMounted, watch } from "vue";
+import {ref, unref, toRefs, defineComponent, reactive, onMounted, watch, onUnmounted } from "vue";
 import { Icon,SvgIcon } from '/@/components/Icon';
 import All from './pages/All.vue';
 import { useUserStore } from '/@/store/modules/user';
@@ -198,7 +198,7 @@ export default defineComponent({
       startTime:[],
       finishTime:[],
     });
-    const listTitle = ref('收件箱');
+    const listTitle = ref('待我处理');
     
     
     const allRef =  ref<any>();
@@ -220,9 +220,78 @@ export default defineComponent({
     const state = reactive({
       rootSubmenuKeys: ['sub1', 'sub2', 'sub4'],
       openKeys: ['sub2'],
-      selectedKeys: ['1'],
-      activeMenuKey:'1'
+      selectedKeys: ['7'],
+      activeMenuKey:'7'
     });
+    
+    // Session存储的key
+    const SESSION_KEY = 'document_page_state';
+    
+    // 保存状态到sessionStorage
+    function saveStateToSession() {
+      const stateToSave = {
+        menuKey: state.activeMenuKey,
+        formState: {...formState},
+        pageinfo: {...pageinfo.value},
+        listTitle: listTitle.value,
+        selectedKeys: [...state.selectedKeys]
+      };
+      
+      try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(stateToSave));
+        console.log('状态已保存到sessionStorage');
+      } catch (error) {
+        console.error('保存状态到sessionStorage失败:', error);
+      }
+    }
+    
+    // 从sessionStorage恢复状态
+    function restoreStateFromSession() {
+      try {
+        const savedState = sessionStorage.getItem(SESSION_KEY);
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+          
+          // 恢复菜单状态
+          state.activeMenuKey = parsedState.menuKey || '7';
+          state.selectedKeys = parsedState.selectedKeys || ['7'];
+          listTitle.value = parsedState.listTitle || '待我处理';
+
+          // 个人身份，“已发送”、“草稿”、“回收站”菜单不存在，直接跳转待我处理key
+          if((parsedState.menuKey == '2' || parsedState.menuKey == '4' || parsedState.menuKey == '5') && tenantInfo.tenantType=='2'){
+            state.activeMenuKey = '7';
+            state.selectedKeys = ['7'];
+            listTitle.value = '待我处理';
+          }
+          
+          // 恢复表单状态
+          Object.assign(formState, parsedState.formState || {});
+          
+          // 恢复分页信息
+          Object.assign(pageinfo.value, parsedState.pageinfo || {
+            pageNo: 1,
+            pageSize: 10,
+            current: 1,
+          });
+          
+          console.log('状态已从sessionStorage恢复');
+          return true;
+        }
+      } catch (error) {
+        console.error('从sessionStorage恢复状态失败:', error);
+      }
+      return false;
+    }
+    
+    // 清除sessionStorage中的状态
+    function clearSessionState() {
+      try {
+        sessionStorage.removeItem(SESSION_KEY);
+        console.log('sessionStorage中的状态已清除');
+      } catch (error) {
+        console.error('清除sessionStorage中的状态失败:', error);
+      }
+    }
     const filterCount = ref(0);
     const pageinfo = ref({
       pageNo:1,
@@ -237,28 +306,57 @@ export default defineComponent({
     const [registerModal,{openModal,closeModal}] = useModal();
     const { createMessage: msg, createConfirm } = useMessage();
     const { currentRoute } = router;
-    console.log(route.query.key,'----测试hi i----')
-    if(route.query.key && route.query.key == '7'){
-      state.selectedKeys = ['7'];
-      listTitle.value = '待我处理'
-    }
+
     const userType = userStore.userInfo?.sysType;
     watch(
       ()=> route,
       (val)=>{
-        console.log(val,'1111111')
+        // console.log(val,'1111111')
         // if(val.query.key){
         //   (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:1});
         // }
       },
       {immediate:true}
     )
+    //  watch(
+    //   ()=>unref(formState),
+    //   (val)=>{
+    //     filterCount.value = countNonEmptyProperties(val);
+    //     if(!filterCount.value){
+    //       clickSearch.value = false;
+    //     }
+    //     // 当formState发生变化时，重新初始化pageinfo
+    //     pageinfo.value.pageNo = 1;
+    //     pageinfo.value.current = 1;
+        
+    //     // 保存状态到sessionStorage
+    //     saveStateToSession();
+    //   },
+    //   {deep:true}
+    //  )
+     
+     // 监听菜单key变化
+    //  watch(
+    //   ()=>state.activeMenuKey,
+    //   (val) => {
+    //     if (val) {
+    //       // 当菜单key发生变化时，重新初始化pageinfo
+    //       pageinfo.value.pageNo = 1;
+    //       pageinfo.value.current = 1;
+          
+    //       // 保存状态到sessionStorage
+    //       saveStateToSession();
+    //     }
+    //   }
+    //  )
+     
+     // 监听pageinfo变化
      watch(
-      ()=>unref(formState),
-      (val)=>{
-        filterCount.value = countNonEmptyProperties(val);
-        if(!filterCount.value){
-          clickSearch.value = false;
+      ()=>pageinfo.value,
+      (val) => {
+        if (val) {
+          // 保存状态到sessionStorage
+          saveStateToSession();
         }
       },
       {deep:true}
@@ -283,14 +381,24 @@ export default defineComponent({
       otherCount:0,
       runningCount:0
     })
+    onUnmounted(() => {
+      // 组件卸载时清除session状态
+      // clearSessionState();
+    });
+    
     onMounted(()=>{
-      // var pageNo = 1;var pageSize=10
-      // if(allRef.value.pageinfo){
-      //   pageNo = allRef.value.pageinfo.pageNo;
-      //   pageSize = allRef.value.pageinfo.pageSize;
-      // }
+      // 尝试从sessionStorage恢复状态
+      const isStateRestored = restoreStateFromSession(); 
+      // 根据是否恢复了状态来决定加载哪种数据
+      if (isStateRestored) {
+        // 如果恢复了状态，使用恢复的状态加载数据
+        (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey});
+      } else {
+        // 如果没有恢复状态，使用路由参数或默认值加载数据
+        (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key?route.query.key:'7'});
+      }
       
-      (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:route.query.key && route.query.key=='7'?7:1});
+      // console.log(state.activeMenuKey,'state.activeMenuKey');
       document.addEventListener("visibilitychange", function() {
         if(!document.hidden){
           (allRef.value as any)&&(allRef.value as any)?.loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey});
@@ -303,29 +411,39 @@ export default defineComponent({
 
     //菜单点击
     function handleMenuClick({ item, key, keyPath }){
-      if(route.query.key && route.query.key == '7'){
-        router.replace({
-          query:{
-
-          }
-        })
-      }
-      console.log(item,keyPath,keyPath,'当前点击菜单-')
+      // console.log(item,keyPath,keyPath,'当前点击菜单-')
       listTitle.value = item.title
       state.activeMenuKey = key;
+      state.selectedKeys = [key];
+      // console.log(key,'当前点击菜单-')
+      
+      // 当菜单key发生变化时，重新初始化pageinfo
+      pageinfo.value.pageNo = 1;
+      pageinfo.value.current = 1;
+      
+      // 保存当前状态到sessionStorage
+      saveStateToSession();
+      
       if(allRef.value){
-        (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:key},true);
+        // console.log(key,'当前点击菜单----');
+        (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:key},true);
       }
-
     }
     //搜索
     function handelSearch(){
       popVisible.value = false;
       clickSearch.value = true;
+      
+      // 当执行搜索时，重新初始化pageinfo
+      pageinfo.value.pageNo = 1;
+      pageinfo.value.current = 1;
+      
       if(allRef.value){
-        (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:state.activeMenuKey });
+        (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey });
       }
       
+      // 保存状态到sessionStorage
+      saveStateToSession();
     }
     //筛选条件面板
     function handleFilter(){
@@ -337,9 +455,17 @@ export default defineComponent({
       resetForm()
       popVisible.value = false;
       clickSearch.value = false;
+      
+      // 当重置表单时，重新初始化pageinfo
+      pageinfo.value.pageNo = 1;
+      pageinfo.value.current = 1;
+      
       if(allRef.value){
-        (allRef.value as any).loadData({...unref(formState),type:state.activeMenuKey });
+        (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey });
       }
+      
+      // 保存状态到sessionStorage
+      saveStateToSession();
     }
     //重置方法
     function resetForm(){
@@ -356,9 +482,7 @@ export default defineComponent({
       resetForm();
       popVisible.value = false;
     }
-    function handleBeforeVisibleChange(v){
-      console.log(v,'----')
-    }
+
     function loadDate(date){
       const startOfDay = dayjs(date[0]).startOf('day').format('YYYY-MM-DD');
       const endOfDay = dayjs(date[1]).endOf('day').format('YYYY-MM-DD');;
@@ -370,9 +494,17 @@ export default defineComponent({
         }else{
           formState[key] = '';
         }
+        
+        // 当删除标签时，重新初始化pageinfo
+        pageinfo.value.pageNo = 1;
+        pageinfo.value.current = 1;
+        
         if(allRef.value){
-          (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:state.activeMenuKey });
+          (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey });
         }
+        
+        // 保存状态到sessionStorage
+        saveStateToSession();
     }
     async function handleStart(){
       const apiLimit = await createBusinessLineAuth();
@@ -381,26 +513,6 @@ export default defineComponent({
         return;
       }
       router.push("/business")
-      // let result = await getBusinessLine({});
-      // if(result.length>1){
-      //   openModal(true,{
-      //     isUpdate:false,
-      //     record:{
-      //       list: result
-      //     }
-      //   })
-      // }else if(result.length==1){
-      //   router.push({
-      //     path:"/contract/start",
-      //     query:{
-      //       __full__:"",
-      //       signReId:result[0].id
-      //     }
-      //   })
-      //   // window.open('/#/contract/start?__full__&signReId=' + result[0].id)
-      // }else if(result.length==0){
-      //   msg.warning('您暂无发起权限，请联系企业管理员')
-      // }
     }
     function handleStartSuccess(val){
       closeModal()
@@ -428,9 +540,17 @@ export default defineComponent({
               let result = await cleanupAll({})
               if(result){
                 msg.success('清空回收站成功')
+                
+                // 当清空回收站时，重新初始化pageinfo
+                pageinfo.value.pageNo = 1;
+                pageinfo.value.current = 1;
+                
                 if(allRef.value){
-                  (allRef.value as any).loadData({...unref(formState),pageNo:1,pageSize:10,type:state.activeMenuKey });
+                  (allRef.value as any).loadData({...unref(formState),pageNo:pageinfo.value.pageNo,pageSize:pageinfo.value.pageSize,type:state.activeMenuKey });
                 }
+                
+                // 保存状态到sessionStorage
+                saveStateToSession();
               }
             }
             
@@ -450,7 +570,6 @@ export default defineComponent({
       popVisible,
       handleFilter,
       handelReset,
-      handleBeforeVisibleChange,
       handelCancel,
       listTitle,
       filterCount,
@@ -467,7 +586,16 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .doc-content{
-  width:1506px;
+  // width:1506px;
+  @media (min-width: 0px) and (max-width: 1280px){
+    width: 1000px;
+  }
+  @media (min-width: 1280px) and (max-width: 1536px){
+    width: 1200px;
+  }
+  @media (min-width: 1536px){
+    width: 1506px;
+  }
   margin:0 auto;
   display: flex;
   .doc-menu{
@@ -601,6 +729,8 @@ export default defineComponent({
     color:#999;
     margin-top:2px;
     cursor:pointer;
+    font-size: 14px;
+    margin-left: 5px;
   }
 }
 .list-title{

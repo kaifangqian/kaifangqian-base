@@ -71,7 +71,6 @@ export function useHeaderSetting() {
   const getShowDoc = computed(() => appStore.getHeaderSetting.showDoc);
 
   const getHeaderTheme = computed(() => appStore.getHeaderSetting.theme);
-  console.log(getHeaderTheme,' ---头部主题')
 
   const getShowHeader = computed(() => appStore.getHeaderSetting.show);
 

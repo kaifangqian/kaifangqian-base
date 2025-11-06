@@ -27,12 +27,17 @@
           <a-tabs v-model:activeKey="activeKey" @change="handleTabChange">
             <a-tab-pane :key="1" tab="常用签名">
                 <ul class="signer-list" v-if="signerList.length">
-                    <li v-for="(item,index) in signerList" >
-                        <div :key="index" class="title-img">   
-                            <span class="signer-title">{{ item.sealName }}</span>
-                            <img  v-if="item.base64" :src="item.base64" class="signature-img"/>
+                    <li v-for="(item,index) in signerList" :key="index">
+                        <div class="title-img">   
+                            <!-- <span class="signer-title">{{ item.sealName }}</span> -->
+                             <div class="signature-img-wrap" >
+                              <img  v-if="item.base64" :src="item.base64" class="signature-img"/>
+                              <a-button class="use-btn" type="primary" @click="handleUseSign(item)">使用</a-button>
+                              <!-- <span class="signer-title">{{ item.sealName }}</span> -->
+                             </div>
+                            
                         </div>
-                        <a-button  type="link" @click="handleUseSign(item)">使用</a-button>
+                        <!-- <a-button  type="link" @click="handleUseSign(item)">使用</a-button> -->
                     </li>
                 </ul>
                 <div v-else>
@@ -41,7 +46,7 @@
                     </p>
                   </div>
             </a-tab-pane>
-            <a-tab-pane :key="2" tab="手绘签名" forceRender>
+            <a-tab-pane :key="2" tab="手绘签名" forceRender v-if="sealType == 'NOLIMIT' || sealType == 'HAND'">
               <div class="signature-qr" v-if="!QRsignatureBase64"> 
                 <div class="qr-area">
                   <img :src="signatureQC" alt="QR Code" v-if="signatureQC">
@@ -52,14 +57,15 @@
                     <span class="qr-tip"><Icon icon="ant-design:check-circle-filled" color="#25dd13" size="28"></Icon><p>扫码成功</p></span>
                   </div>
                 </div>
-                <p class="qr-time">该二维码有效期为5分钟</p>
+                <p class="qr-time">建议使用微信扫码，进行签名书写</p>
+                <p >该二维码有效期为5分钟</p>
                
               </div>
               <div v-if="QRsignatureBase64" class="QR-base64">
                 <img :src="QRsignatureBase64" alt="QR Code" >
               </div>
               <div class="qr-actions" v-if="QRsignatureBase64">
-                <a-button type="primary"  style="margin-left:20px" @click="reQRSignature">重新签名</a-button>
+                <a-button type="default"  style="margin-left:20px" @click="reQRSignature">重新签名</a-button>
                 <a-button type="primary"  style="margin-left:20px" @click="save">保存</a-button>
               </div>
               <!-- <qrcode-vue :value="signatureUrl" :size="100" level="H" v-if="signatureUrl"/> -->
@@ -154,6 +160,8 @@
 
       const userStore = useUserStore();
       const userInfo =  userStore.getUserInfo;
+      const tenantInfo = userStore.getTenantInfo;
+      const sealType = ref('NOLIMIT');
 
       async function generateQRCode (qrCodeData){
         try{
@@ -224,23 +232,38 @@
       const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
         setModalProps({ 
           confirmLoading: false,
-          width:800,
+          width:600,
           cancelText:'关闭',
           showOkBtn:false,
           showCancelBtn:false,
+          canFullscreen: false,
           // getContainer: () => document.body.querySelector(`.signature`) || document.body, 
         });
+        console.log("data----------+++++",data,data.sealType);
+        sealType.value = data.sealType ? data.sealType : 'NOLIMIT';
         rowId.value = data.record?.sealId;
         signatureUrl.value = '';
         activeKey.value = 1;
         setTimeout(()=>{
           showPad.value = true;
         })
-        let result = await getSignatureList({});
-        console.log("signerList.value",result);
-        if(result && result.length>0){
-          signerList.value = result;
-          
+        // sealType.value = 'TEMPLATE';
+        getSignatureListByType(sealType.value);
+      });
+
+      async function getSignatureListByType(sealType: any) {
+        // NOLIMIT、TEMPLATE、HAND
+        const params = {
+          pageNo: 1,
+          pageSize: 1000
+        };
+        // 只有当sealType不是'NOLIMIT'时才添加sealType参数
+        if (sealType.value !== 'NOLIMIT') {
+          params.sealType = sealType;
+        }
+        let res = await getSignatureList(params);
+        if(res && Array.isArray(res.records)){
+          signerList.value = res.records;
           signerList.value.map(item=>{
             item.base64 = '';
             getImgBase64ById({id:item.annexId}).then(result=>{
@@ -249,11 +272,8 @@
                 }
             })
           });
-        }else{
-          handleTabChange(2)
-          activeKey.value = 2;
         }
-      });
+      }
      
 
       function onSelectChange(selectedRowKeys: (string | number)[]) {
@@ -287,7 +307,8 @@
             QRsignatureBase64.value = '';
             isQRSignature.value = false;
             QRKey.value = result;
-            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
+            signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id + '&realName=' + tenantInfo?.name || userInfo?.realname;
+            // signatureUrl.value = window.appInfo.scan_code_service.url+'?key=' + result + '&userId=' + userInfo.id;
             generateQRCode(signatureUrl.value)
             connectSocket();
             setTimeout(()=>{
@@ -360,7 +381,8 @@
         handleRefresh,
         QRSuccess,QRsignatureBase64,
         reQRSignature,
-        handleClose
+        handleClose,
+        sealType,
       };
     }
   })
@@ -380,12 +402,13 @@
   .QR-base64{
     width: 70%;
     // height: 190px;
-    border: 1px solid #999;
+    border: 1px solid #dedede;
     text-align: center;
     margin:0 auto;
+    border-radius: 10px;
   }
   .qr-actions{
-    margin-top:10px;
+    margin-top:20px;
     text-align: center;
   }
   .qr-time{
@@ -397,8 +420,8 @@
     align-items: center;
    
     .qr-area{
-      width: 200px;
-      height: 200px;
+      width: 160px;
+      height: 160px;
       margin: 0 auto;
       position: relative;
       img{
@@ -450,29 +473,34 @@
    
   }
 .signer-list{
-        padding:20px 25px;
-        padding-bottom:40px;
-        min-height:280px;
-        li{
-            display:flex;
-            justify-content:space-between;
-            align-items: center;
-            margin:10px 0;
-            .title-img{
-                display: flex;
-                align-items: center;
-                .signer-title{
-                    width: 80px;
-                }
-                img{
-                    width:100px;
-                }
-            }
-            // .signature-img{
-
-            // }
-        }
-    }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding:20px 25px;
+    padding-bottom:40px;
+    min-height:280px;
+}
+.signer-list li{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+.signer-list .title-img{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.signer-list .signer-title{
+    width: 80px;
+    text-align: center;
+    margin-top: 5px;
+}
+.signer-list .signature-img{
+    max-width: 100px;
+    max-height: 100px;
+}
    
     .signature-footer{
         footer{
@@ -523,5 +551,46 @@
             .b3{width:8px;height:8px}
         }
     }
-  
+
+    .signature-img-wrap{
+      display: flex;
+      justify-content: center;
+      align-items: center; 
+      width:120px;
+      height: 120px;
+      flex-direction:column;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      // background-color: #f9f9f9;
+      position: relative;
+      &:hover {
+        border-color: #1890ff;
+        background-color: #f9f9f9;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+      }
+      .signature-img-wrap:hover .signature-img {
+        opacity: 0.7;
+      }
+}
+
+.use-btn {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.signature-img-wrap:hover .use-btn {
+  opacity: 1;
+}
+
+.signature-img {
+  max-width: 100px;
+  max-height: 100px;
+  transition: opacity 0.3s ease;
+}
+
+.signature-img-wrap:hover .signature-img {
+  opacity: 0.7;
+}
 </style>

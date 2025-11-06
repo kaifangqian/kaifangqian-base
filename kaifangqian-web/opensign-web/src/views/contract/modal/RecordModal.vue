@@ -59,8 +59,10 @@
         setModalProps({ 
           confirmLoading: false,
           width:1200,
-          cancelText:'关闭',
+          // cancelText:'关闭',
+          showCancelBtn:false,
           showOkBtn:false, 
+          canFullscreen: false, 
         });
         signRuId.value = data.record?.signRuId;
         checkedKeys.value = [];

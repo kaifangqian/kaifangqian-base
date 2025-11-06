@@ -47,6 +47,7 @@
                'transform: translate('+ '-50%,'+(item.target.transformHeight + (item.page+1) * 16)+'px);',
                 'width:' +item.target.width+'px;',
                 'height' + item.target.height+'px;',
+                'border:' + '1px solid #f0f0f0',
               ]">
               <img style="width: 100%;height:100%" v-lazy="baseUrl + '/file/downloadFileStream/' + item.annexId" />
               <div class="img-range-line" v-if="item.showRange" :style="[
@@ -224,7 +225,7 @@ export default defineComponent({
 			// }
   },
   setup(props,{emit}) {
-    console.log(props.nowDocument ,' 当前文档内容控件')
+    // console.log(props.nowDocument ,' 当前文档内容控件')
 
     watch(
       ()=>props.nowDocument.maxWidth,

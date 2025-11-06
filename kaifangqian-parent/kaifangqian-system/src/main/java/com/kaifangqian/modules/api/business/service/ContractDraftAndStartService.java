@@ -21,12 +21,18 @@
  */
 package com.kaifangqian.modules.api.business.service;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.kaifangqian.common.vo.Result;
 import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.api.vo.base.*;
+import com.kaifangqian.modules.api.vo.request.*;
+import com.kaifangqian.modules.opensign.dto.SignTaskInfo;
+import com.kaifangqian.modules.opensign.dto.SignTaskThreadlocalVO;
 import com.kaifangqian.modules.opensign.entity.*;
 import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.business.vo.*;
+import com.kaifangqian.modules.opensign.vo.response.ru.SubmitResponse;
 import com.kaifangqian.modules.system.entity.ApiDeveloperManage;
 import com.kaifangqian.modules.system.entity.SysTenantInfo;
 import com.kaifangqian.modules.system.entity.SysTenantUser;
@@ -35,15 +41,14 @@ import com.kaifangqian.common.base.entity.BaseEntity;
 import com.kaifangqian.common.constant.ApiCode;
 import com.kaifangqian.common.system.vo.LoginUser;
 import com.kaifangqian.common.util.MySecurityUtils;
-import com.kaifangqian.modules.api.vo.base.*;
-import com.kaifangqian.modules.api.vo.request.ContractDraftRequest;
-import com.kaifangqian.modules.opensign.entity.*;
-import com.kaifangqian.modules.opensign.enums.*;
-import com.kaifangqian.modules.opensign.service.business.vo.*;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
+import com.kaifangqian.utils.IPUtil;
+import com.kaifangqian.utils.MyStringUtils;
 import com.kaifangqian.utils.UUIDGenerator;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -76,16 +81,22 @@ public class ContractDraftAndStartService extends ContractService {
 //        ContractVo contractVo = new ContractVo();
         //校验操作人
         checkAndBuildOperator(request,createData);
+
         //校验到期时间
         checkAndBuildExpireDate(request,createData);
+
         //校验并且构建业务线实例数据
         checkAndBuildBase(request,createData);
+
         //校验并且构建业务线实例签约文件数据
         checkAndBuildDocList(request,createData);
+
         //校验并且构建业务线实例签署人及其签署控件数据
         checkAndBuildSignerList(request,createData);
+
         //校验模板数据
         checkAndBuildTemplate(request,createData);
+
         //保存数据
         ruDataService.createRuData(createData);
         String startRuId = createData.getRuId() ;
@@ -99,8 +110,8 @@ public class ContractDraftAndStartService extends ContractService {
                 //生成主题和编号
                 ruBusinessService.startGenerateSubject(startRuId);
             }catch (Exception e){
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,生成主题和编号失败");
             }
-
 
             Date operateTime = new Date();
             //发起流程
@@ -110,7 +121,7 @@ public class ContractDraftAndStartService extends ContractService {
             ruCallbackService.callback(startRuId,null, SignCallbackTypeEnum.SEND_SIGNING);
             //查询是否还有任务
             Boolean allTaskComplete = ruService.allTaskComplete(startRuId);
-            if(allTaskComplete){
+            if(allTaskComplete && (request.getAutoFinish() == null || request.getAutoFinish() ==  SignFinishTypeEnum.AUTO_FINISH.getCode())){
                 //完成签署
                 ruCallbackService.callback(startRuId,null,SignCallbackTypeEnum.COMPLETE);
             }
@@ -130,6 +141,385 @@ public class ContractDraftAndStartService extends ContractService {
         MySecurityUtils.THREAD_LOCAL.remove();
         //返回
         return startRuId ;
+    }
+
+    /**
+     * @Description #添加签署节点
+     * @Param [request]
+     * @return void
+     **/
+    @Transactional(rollbackFor = Exception.class)
+    public void addSignNode(ContractDraftRequest request){
+
+        String contractId = request.getContractId();
+
+        // 接口参数校验
+        if(contractId == null || contractId.length() == 0){
+            throw new RequestParamsException(ApiCode.PARAM_MISSING,"contractId参数缺失");
+        }
+        if(contractId.length() > 64){
+            throw new RequestParamsException(ApiCode.PARAM_SIZE_INVALID,"contractId参数格式不正确，长度不合法");
+        }
+        if(contractId.contains(" ")){
+            throw new RequestParamsException(ApiCode.PARAM_SIZE_INVALID,"contractId参数格式不正确，不能包含空格");
+        }
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }else if (ru != null && ru.getStatus() == SignRuStatusEnum.DONE.getCode()){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "已完成签署，不能继续追加签署方");
+        }else if(ru != null && (ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"追加签署方接口仅支持签署完成类型为手动结束，如需追加签署方，请检查合同发起接口autoFinish字段值是否为0");
+        }
+
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
+        //创建整合数据
+        RuCreateData createData = new RuCreateData();
+
+        createData.setRuId(ru.getId());
+
+
+        SysTenantInfo tenantInfo = tenantInfoService.getById(apiDeveloperManage.getTenantId());
+        if(tenantInfo == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,账号不存在");
+        }
+        //传递保存租户数据
+        createData.setTenantInfo(tenantInfo);
+
+        // TODO 签署文件读取
+        //解析签署位置集合数据，追加到签署人原有签署控件上，保存控件数据
+        //校验签约文件数据
+        List<SignRuDoc> docList = ruDocService.listByRuId(ru.getId());
+        if(docList == null || docList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件不存在");
+        }
+        List<SignRuDocOperate> ruDocOperateList = ruDocOperateService.listByRuId(ru.getId());
+        if(ruDocOperateList == null || ruDocOperateList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件不存在");
+        }
+
+        // 构建代签署文档关联信息
+        if (request.getSignerList() != null && request.getSignerList().size() > 0){
+            for (ContractSigner signer : request.getSignerList()) {
+                List<ContractPositionParam> positionParamList = null;
+
+                if(SignerTypeEnum.SENDER.getApiName().equals(signer.getSignerType()) || SignerTypeEnum.RECEIVER_ENT.getApiName().equals(signer.getSignerType())){
+                    for (ContractInternalNode internalNode : signer.getInternalNodeList()){
+                        positionParamList = internalNode.getPositionParamList();
+
+                        if (!internalNode.getNodeType().equals(SenderTypeEnum.APPROVER.getApiName())){
+                            buildDocRelationInfo(docList,ruDocOperateList,positionParamList,createData);
+                        }
+                    }
+                }else if(SignerTypeEnum.RECEIVER_PERSONAL.getApiName().equals(signer.getSignerType())){
+                    positionParamList = signer.getPositionParamList();
+                    buildDocRelationInfo(docList,ruDocOperateList,positionParamList,createData);
+                }
+            }
+        }
+
+        //校验并且构建业务线实例签署人及其签署控件数据
+        checkAndBuildSignerList(request,createData);
+
+        //保存签署人数据
+        ruBusinessService.saveRuSignerForApi(createData);
+
+        //驱动
+        iFlowService.complete(ru.getId(), "initiateSignTask");
+        //ruCallbackService.callback(ru.getId(),null, SignCallbackTypeEnum.ADD_SIGN_NODE);
+
+    }
+
+    /**
+     * @Description #签署完成
+     * @Param [request]
+     * @return void
+     **/
+    @Transactional(rollbackFor = Exception.class)
+    public void completeSign(ContractCompleteRequest request){
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }
+
+        if (ru.getAutoFinish() == null || ru.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode()){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "的签署结束类型为系统自动结束，不能手动结束。");
+        }
+
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
+        //查询是否还有任务
+        Boolean allTaskComplete = ruService.allTaskComplete(ru.getId());
+        if (allTaskComplete) {
+            //完成签署
+            iFlowService.complete(ru.getId(), "finishFlow");
+            ruCallbackService.callback(ru.getId(), null, SignCallbackTypeEnum.COMPLETE);
+        }else{
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "还存在待完成的签署任务，不能手动结束。");
+        }
+
+    }
+
+    /**
+     * 签署撤回
+     * @param request
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void recallSign(ContractRecallRequest request){
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }
+
+        ApiDeveloperManage apiDeveloperManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(apiDeveloperManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        if(!ru.getSysTenantId().equals(apiDeveloperManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
+        if (SignRuStatusEnum.APPROVING.getCode().equals(ru.getStatus()) || SignRuStatusEnum.WRITING.getCode().equals(ru.getStatus()) ||
+                SignRuStatusEnum.SIGNING.getCode().equals(ru.getStatus()) ) {
+            ru.setStatus(SignRuStatusEnum.REVOKE.getCode());
+            boolean b = ruService.updateById(ru);
+            if (!b) {
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"合同签署撤回失败");
+            }
+        }else {
+            SignRuStatusEnum statusEnum = SignRuStatusEnum.getByCode(ru.getStatus());
+            if (statusEnum == null) {
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"实例异常，状态不存在");
+            }
+
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"实例状态为"+ statusEnum.getName() + ",不可撤回");
+        }
+
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setTenantId(apiDeveloperManage.getTenantId());
+        ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.REVOKE.getType());
+        ruOperateRecord.setActionType(SignRecordActionTypeEnum.REVOKE.getType());
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setOperateReason("通过API撤销");
+        ruOperateRecordService.save(ruOperateRecord);
+        //撤回合同
+        ruCallbackService.callback(ru.getId(), "", SignCallbackTypeEnum.RECALLED);
+
+    }
+
+    /**
+     * @Description #合同审批API接口业务处理
+     * @Param [request]
+     * @return void
+     **/
+    @Transactional(rollbackFor = Exception.class)
+    public void approveSign(ContractApproveRequest request){
+
+        ApiDeveloperManage developerManage = apiDeveloperManageService.getByToken(request.getAppAuthToken());
+
+        if(developerManage == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,token权限不存在");
+        }
+
+        //获取业务线实例数据，判断业务线实例数据是否为空，判断业务线实例数据状态是否为签署中
+        SignRu ru = ruService.getById(request.getContractId());
+
+        if (ru == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "数据不存在");
+        }
+
+        if (!ru.getSysTenantId().equals(developerManage.getTenantId())){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "资源不属于对接方，无操作权限");
+        }
+
+        // 状态合同状态是否未签署中，仅有签署中合同可进行合同审批
+        if (ru.getStatus() != null && ru.getStatus() != SignRuStatusEnum.SIGNING.getCode()){
+            // 获取合同当前状态名称
+            SignRuStatusEnum  ruStatusEnum = SignRuStatusEnum.getByCode(ru.getStatus());
+            String ruStatus = null;
+            if (ruStatusEnum != null){
+                ruStatus = ruStatusEnum.getName();
+            }
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批仅支持签署中的合同，合同id："+request.getContractId()+"状态为："+ruStatus);
+        }
+
+        // 校验合同审批人信息
+        checkContractUser(request.getSigner(),"合同审批人");
+
+        SysUser currentUser = sysUserService.getUserByName(request.getSigner().getContact());
+
+        if (currentUser == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批人：" + request.getSigner().getName() + "数据不存在");
+        }
+
+        //SysTenantUser tenantUser = tenantUserService.getPersonalTenantUser(currentUser.getId());
+
+        SysTenantUser tenantUser = tenantUserService.getTenantUser(developerManage.getTenantId(), currentUser.getId());
+
+        if (tenantUser == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同审批人：" + request.getSigner().getName() + "数据不存在");
+        }
+
+        //查询审批用户的审批任务
+        SignRuTask query = new SignRuTask();
+        query.setDeleteFlag(false);
+        query.setSignRuId(ru.getId());
+        query.setTenantUserId(tenantUser.getId());
+        query.setTaskType(TaskTypeEnum.APPROVE_TASK.getCode());
+        List<SignRuTask> ruTaskList = ruTaskService.getByEntity(query);
+        if (ruTaskList == null || ruTaskList.size() == 0) {
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,当前用户无审批任务");
+        }
+
+        List<String> signerIdList = ruTaskList.stream().map(SignRuTask::getUserTaskId).collect(Collectors.toList());
+
+        String taskId = null;
+        SignRuSender signRuSender = null;
+        String signTaskThreadTaskType = null;
+        String signTaskThreadUserTaskId = null;
+        Integer signTaskThreadUserType = null;
+
+        List<SignRuSender> senderList = ruSenderService.listByIds(signerIdList);
+        if(senderList == null || senderList.size() == 0){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签署人不存在");
+        }
+
+        //String signerId = null;
+        //获取代办人信息
+        for(SignRuSender sender : senderList){
+            SignRuOperator sroQuery = new SignRuOperator();
+            sroQuery.setSignRuId(ru.getId());
+            sroQuery.setSignerId(sender.getId());
+            sroQuery.setOperateStatus(OperateStatusEnum.WAIT_TO_FINISH.getCode());
+            List<SignRuOperator> operator = ruOperatorService.getByEntity(sroQuery);
+            if(operator != null && operator.size() > 0){
+                signRuSender = sender;
+                break;
+            }
+        }
+
+        if(signRuSender == null){
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签署人不存在");
+        }
+
+        //通过代办人，获取代办任务
+        Boolean finishFlag = true;
+        for (SignRuTask ruTask : ruTaskList) {
+            if(ruTask.getUserTaskId().equals(signRuSender.getId())){
+                taskId = ruTask.getId();
+
+                signTaskThreadTaskType = ruTask.getTaskType();
+                signTaskThreadUserTaskId = ruTask.getUserTaskId();
+                signTaskThreadUserType = ruTask.getUserType();
+
+                if (ruTask.getTaskStatus() == TaskStatusEnum.DONE.getCode()){
+                    finishFlag = true;
+                } else {
+                    finishFlag = false;
+                }
+            }
+        }
+        if (finishFlag) {
+            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,合同id：" + request.getContractId() + "已办理完成，无需重复操作");
+        }
+
+        //操作记录
+        SignRuOperateRecord ruOperateRecord = new SignRuOperateRecord();
+        ruOperateRecord.setSignRuId(ru.getId());
+        ruOperateRecord.setAccountId(tenantUser.getUserId());
+        ruOperateRecord.setTenantId(tenantUser.getTenantId());
+        ruOperateRecord.setTenantUserId(tenantUser.getId());
+
+        if (signRuSender != null && signRuSender.getSenderType() != null && signRuSender.getSenderType() == SenderTypeEnum.ENTERPRISE.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.ENT_SIGN.getType());
+        }else if (signRuSender != null && signRuSender.getSenderType() != null && signRuSender.getSenderType() == SenderTypeEnum.APPROVER.getCode()) {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.APPROVE.getType());
+        }else {
+            ruOperateRecord.setOperateType(SignRecordOperateTypeEnum.PRIVATE_SIGN.getType());
+        }
+
+        if (request.getApproval() != null && request.getApproval() == 1){
+            ruOperateRecord.setActionType(SignRecordActionTypeEnum.APPROVE_CHECK.getType());
+        }else if (request.getApproval() != null && request.getApproval() == 0){
+            ruOperateRecord.setActionType(SignRecordActionTypeEnum.REJECT_CHECK.getType());
+        }
+        ruOperateRecord.setOperateTime(new Date());
+        ruOperateRecord.setIpAddr("");
+        ruOperateRecord.setTaskId(taskId);
+        ruOperateRecord.setConfirmOrderNo("");
+        ruOperateRecord.setOperateReason(request.getComment());
+        ruOperateRecordService.save(ruOperateRecord);
+
+        //存储签署任务本地线程变量
+        SignTaskThreadlocalVO threadlocalVO = new SignTaskThreadlocalVO();
+        threadlocalVO.setSignRuId(ru.getId());
+        threadlocalVO.setTaskId(taskId);
+        threadlocalVO.setTaskType(signTaskThreadTaskType);
+        threadlocalVO.setUserTaskId(signTaskThreadUserTaskId);
+        threadlocalVO.setUserType(signTaskThreadUserType);
+        SignTaskInfo.THREAD_LOCAL.set(threadlocalVO);
+
+        //存储用户信息本地线程变量
+        LoginUser loginUser = new LoginUser();
+        BeanUtils.copyProperties(currentUser, loginUser);
+        loginUser.setTenantId(tenantUser.getTenantId());
+        loginUser.setTenantUserId(tenantUser.getId());
+        MySecurityUtils.THREAD_LOCAL.set(loginUser);
+
+        //执行签署驱动
+        if (request.getApproval() != null && request.getApproval() == 1){
+            //驱动
+            iFlowService.complete(ru.getId(), RuFlowEnum.APPROVE.getName());
+            //签署
+            ruCallbackService.callback(ru.getId(), taskId, SignCallbackTypeEnum.SUBMIT_APPROVE);
+
+            //查询是否还有任务
+            Boolean allTaskComplete = ruService.allTaskComplete(ru.getId());
+            if (allTaskComplete) {
+                //完成签署
+                ruCallbackService.callback(ru.getId(), null, SignCallbackTypeEnum.COMPLETE);
+            }
+        }else if (request.getApproval() != null && request.getApproval() == 0){
+            //驱动
+            iFlowService.complete(ru.getId(), RuFlowEnum.REJECT.getName());
+            //拒签
+            ruCallbackService.callback(ru.getId(), taskId, SignCallbackTypeEnum.SUBMIT_REFUSAL);
+        }
+        SignTaskInfo.THREAD_LOCAL.remove();
+        MySecurityUtils.THREAD_LOCAL.remove();
+
     }
 
     public void checkAndBuildSignControlList(ContractPositionParam positionParam, RuCreateData createData, String signerId, String signerNodeType){
@@ -494,7 +884,8 @@ public class ContractDraftAndStartService extends ContractService {
 
     public void checkAndBuildSignerList(ContractDraftRequest request,RuCreateData createData){
         SignRe re = reService.getById(request.getSignReId());
-        if(re.getSignerType() == SignReSignerTypeEnum.RULE.getCode()){
+
+        if(re != null && re.getSignerType() == SignReSignerTypeEnum.RULE.getCode()){
             //校验签署人列表
             List<SignReSigner> reSignerList = reSignerService.listByReId(request.getSignReId());
             if(reSignerList != null && reSignerList.size() > 0){
@@ -592,6 +983,38 @@ public class ContractDraftAndStartService extends ContractService {
             checkContractSigner(signer);
 
             if(signer.getSignerType().equals("SENDER")){
+
+                if(request.getAutoFinish() !=null && request.getAutoFinish() == SignFinishTypeEnum.MANUAL_FINISH.getCode() && CollUtil.isEmpty(signer.getInternalNodeList())){
+
+                }else{
+                    //校验
+                    checkSender(signer);
+                }
+
+                //整合数据
+                saveSender(signer,createData);
+            }else if(signer.getSignerType().equals("RECEIVER_ENT")){
+                //校验
+                checkEnt(signer);
+                //整合数据
+                saveEnt(signer,createData);
+            }else if(signer.getSignerType().equals("RECEIVER_PERSONAL")){
+                //校验
+                checkPersonal(signer);
+                //整合数据
+                savePersonalList(signer,createData);
+            }
+        }
+    }
+
+    public void addRuSignerList(ContractSignNodeRequest request, RuCreateData createData){
+        List<ContractSigner> signerList = request.getSignerList();
+
+        for(ContractSigner signer : signerList) {
+            //校验签署人数据
+            checkContractSigner(signer);
+
+            if(signer.getSignerType().equals("SENDER")){
                 //校验
                 checkSender(signer);
                 //整合数据
@@ -614,6 +1037,7 @@ public class ContractDraftAndStartService extends ContractService {
     public void checkSender(ContractSigner contractUserSender){
         checkContractSigner(contractUserSender,"SENDER");
         List<ContractInternalNode> internalNodeList = contractUserSender.getInternalNodeList();
+
         if(internalNodeList == null || internalNodeList.size() == 0){
             throw new RequestParamsException(ApiCode.PARAM_MISSING,"内部签署节点参数缺失");
         }
@@ -805,6 +1229,14 @@ public class ContractDraftAndStartService extends ContractService {
                     if(node != null){
                         //人脸,兼容V2版本接口服务
                         dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+
+                        if(node.getNodeType() != null && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+                            dataSender.setPersonalSignAuth(node.getPersonalSignAuth());
+                            if(MyStringUtils.isNotBlank(node.getSealType())){
+                                dataSender.setSealType(node.getSealType());
+                            }
+                        }
+
                         String signConfirm = node.getSignConfirm();
                         if(signConfirm != null && signConfirm.equals("FACE")){
                             dataSender.setVerifyType("FACE");
@@ -813,6 +1245,17 @@ public class ContractDraftAndStartService extends ContractService {
                         }
                         if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
                             for(ContractPositionParam positionParam : node.getPositionParamList()){
+                                if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                        positionParam.setRelationDocList(relationDocList);
+                                    }
+                                }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                        positionParam.setRelationDocList(relationDocList);
+                                    }
+                                }
                                 checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
                             }
                         }
@@ -845,85 +1288,124 @@ public class ContractDraftAndStartService extends ContractService {
 
         ruSigner.setSignerOrder(signerOrder);
         //发起人名称使用企业租户名称
-        ruSigner.setSignerName(createData.getTenantInfo().getTenantName());
-        ruSigner.setDeleteFlag(false);
-        ruSigner.setSignerUserId(createData.getTenantUser().getId());
+        if (createData.getTenantInfo() != null){
+            ruSigner.setSignerName(createData.getTenantInfo().getTenantName());
+        }else{
+            ruSigner.setSignerName(sender.getSignerName());
+        }
 
-        dataSigner.setRuSigner(ruSigner);
+        ruSigner.setDeleteFlag(false);
+
+        if(createData.getTenantUser() != null){
+            ruSigner.setSignerUserId(createData.getTenantUser().getId());
+        }
+
+
         dataSigner.setSignerType(SignerTypeEnum.SENDER.getCode());
 
         List<ContractInternalNode> internalNodeList = sender.getInternalNodeList();
 
+        if(CollUtil.isNotEmpty(internalNodeList)){
+            ruSigner.setSignFlag(true);
+            for(ContractInternalNode node : internalNodeList){
 
-        for(ContractInternalNode node : internalNodeList){
+                int signOrder = Integer.parseInt(node.getSignerOrder());
 
-            int signOrder = Integer.parseInt(node.getSignerOrder());
+                Boolean autoSignFlag = false ;
 
-            Boolean autoSignFlag = false ;
+                RuDataSender dataSender = new RuDataSender();
 
-            RuDataSender dataSender = new RuDataSender();
+                SignRuSender ruSender = new SignRuSender();
 
-            SignRuSender ruSender = new SignRuSender();
+                ruSender.setId(UUIDGenerator.generate());
+                ruSender.setSignerId(ruSigner.getId());
+                ruSender.setSenderOrder(signOrder);
 
-            ruSender.setId(UUIDGenerator.generate());
-            ruSender.setSignerId(ruSigner.getId());
-            ruSender.setSenderOrder(signOrder);
-
-            if(node.getNodeType().equals("AGENT_SIGN")){
-                ruSender.setSenderType(SenderTypeEnum.OPERATOR.getCode());
-                ruSender.setSenderName(SenderTypeEnum.OPERATOR.getName());
-                ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
-            }else if(node.getNodeType().equals("ENTERPRISE_SEAL")){
-                ruSender.setSenderType(SenderTypeEnum.ENTERPRISE.getCode());
-                ruSender.setSenderName(SenderTypeEnum.ENTERPRISE.getName());
-                if(node.getAutoSign() != null && node.getAutoSign().equals("AUTO_SIGN")){
-                    ruSender.setSenderSignType(SenderSignTypeEnum.AUTO.getCode());
-                    autoSignFlag = true ;
-                }else {
+                if(node.getNodeType().equals("AGENT_SIGN")){
+                    ruSender.setSenderType(SenderTypeEnum.OPERATOR.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.OPERATOR.getName());
+                    ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                }else if(node.getNodeType().equals("ENTERPRISE_SEAL")){
+                    ruSender.setSenderType(SenderTypeEnum.ENTERPRISE.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.ENTERPRISE.getName());
+                    if(node.getAutoSign() != null && node.getAutoSign().equals("AUTO_SIGN")){
+                        ruSender.setSenderSignType(SenderSignTypeEnum.AUTO.getCode());
+                        autoSignFlag = true ;
+                    }else {
+                        ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                    }
+                    ruSender.setSenderSealId(node.getSealId());
+                }else if(node.getNodeType().equals("LEGAL_PERSON_SIGN")){
+                    ruSender.setSenderType(SenderTypeEnum.LEGAL_PERSON.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.LEGAL_PERSON.getName());
+                    ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                }else if(node.getNodeType().equals("PERSONAL_SIGN")){
+                    ruSender.setSenderType(SenderTypeEnum.PERSONAL.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.PERSONAL.getName());
+                    ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
+                }else if(node.getNodeType().equals("APPROVER_CHECK")){
+                    ruSender.setSenderType(SenderTypeEnum.APPROVER.getCode());
+                    ruSender.setSenderName(SenderTypeEnum.APPROVER.getName());
                     ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
                 }
-                ruSender.setSenderSealId(node.getSealId());
-            }else if(node.getNodeType().equals("LEGAL_PERSON_SIGN")){
-                ruSender.setSenderType(SenderTypeEnum.LEGAL_PERSON.getCode());
-                ruSender.setSenderName(SenderTypeEnum.LEGAL_PERSON.getName());
-                ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
-            }else if(node.getNodeType().equals("PERSONAL_SIGN")){
-                ruSender.setSenderType(SenderTypeEnum.PERSONAL.getCode());
-                ruSender.setSenderName(SenderTypeEnum.PERSONAL.getName());
-                ruSender.setSenderSignType(SenderSignTypeEnum.APPOINT.getCode());
-            }
-            //非自动签署需要指定签署人
-            if(!autoSignFlag){
-                ContractUser signer = node.getSigner();
-                SysUser sysUser = sysUserService.getUserByName(signer.getContact());
-                if(sysUser == null){
-                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,账号不存在");
+
+                //非自动签署需要指定签署人
+                if(!autoSignFlag){
+                    ContractUser signer = node.getSigner();
+                    SysUser sysUser = sysUserService.getUserByName(signer.getContact());
+                    if(sysUser == null){
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,账号不存在");
+                    }
+                    //传递保存租户数据
+                    if(createData.getTenantInfo() != null){
+                        SysTenantUser tenantUser = tenantUserService.getTenantUser(createData.getTenantInfo().getId(), sysUser.getId());
+                        if(tenantUser == null){
+                            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,经办人不存在");
+                        }
+                        ruSender.setSenderUserId(tenantUser.getId());
+                    }
+
                 }
-                //传递保存租户数据
-                SysTenantUser tenantUser = tenantUserService.getTenantUser(createData.getTenantInfo().getId(), sysUser.getId());
-                if(tenantUser == null){
-                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,经办人不存在");
+                ruSender.setDeleteFlag(false);
+                dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+                if(MyStringUtils.isNotBlank(node.getNodeType()) && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+                    String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+                    String personalSignAuth = setSignNodeConfig(node.getPersonalSignAuth(), personalSignAuthPlatform);
+                    dataSender.setPersonalSignAuth(personalSignAuth);
+                    dataSender.setSealType(node.getSealType());
                 }
-                ruSender.setSenderUserId(tenantUser.getId());
-            }
-            ruSender.setDeleteFlag(false);
-            dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
-            //人脸
-            String signConfirm = node.getSignConfirm();
-            if(signConfirm != null && signConfirm.equals("FACE")){
-                dataSender.setVerifyType("FACE");
-            }else {
-                dataSender.setVerifyType(node.getVerifyType());
-            }
-            //控件数据
-            if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
-                for(ContractPositionParam positionParam : node.getPositionParamList()){
-                    checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
+                //人脸
+                String signConfirm = node.getSignConfirm();
+                if(signConfirm != null && signConfirm.equals("FACE")){
+                    dataSender.setVerifyType("FACE");
+                }else {
+                    dataSender.setVerifyType(node.getVerifyType());
                 }
+                //控件数据
+                if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
+                    for(ContractPositionParam positionParam : node.getPositionParamList()){
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
+                        checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
+                    }
+                }
+                dataSender.setRuSender(ruSender);
+                dataSigner.getAddSenderList().add(dataSender);
             }
-            dataSender.setRuSender(ruSender);
-            dataSigner.getAddSenderList().add(dataSender);
+        }else{
+            ruSigner.setSignFlag(false);
         }
+        dataSigner.setRuSigner(ruSigner);
+
         createData.getSignerList().add(dataSigner);
     }
 
@@ -931,7 +1413,10 @@ public class ContractDraftAndStartService extends ContractService {
 
         RuDataSigner dataSigner = new RuDataSigner();
 
-        int signerOrder = Integer.parseInt(personalSinger.getSignerOrder());
+        int signerOrder =0;
+        if(MyStringUtils.isNotBlank(personalSinger.getSignerOrder())){
+            signerOrder = Integer.parseInt(personalSinger.getSignerOrder());
+        }
 
         SignRuSigner ruSigner = new SignRuSigner();
 
@@ -954,6 +1439,11 @@ public class ContractDraftAndStartService extends ContractService {
         }
         ruSigner.setDeleteFlag(false);
         dataSigner.setAgreeSkipWillingness(personalSinger.getAgreeSkipWillingness());
+
+        String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+        String personalSignAuth = setSignNodeConfig(personalSinger.getPersonalSignAuth(), personalSignAuthPlatform);
+        dataSigner.setPersonalSignAuth(personalSignAuth);
+        dataSigner.setSealType(personalSinger.getSealType());
         //人脸
         String signConfirm = personalSinger.getSignConfirm();
         if(signConfirm != null && signConfirm.equals("FACE")){
@@ -964,6 +1454,18 @@ public class ContractDraftAndStartService extends ContractService {
         //控件数据
         if(personalSinger.getPositionParamList() != null && personalSinger.getPositionParamList().size() > 0){
             for(ContractPositionParam contractPositionParam : personalSinger.getPositionParamList()){
+                if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                    if (contractPositionParam.getRelationDocList() == null || contractPositionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                        contractPositionParam.setRelationDocList(relationDocList);
+                    }
+                }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                    if (contractPositionParam.getRelationDocList() == null || contractPositionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                        contractPositionParam.setRelationDocList(relationDocList);
+                    }
+                }
+
                 checkAndBuildSignControlList(contractPositionParam,createData,ruSigner.getId(),personalSinger.getSignerType());
             }
         }
@@ -1009,11 +1511,28 @@ public class ContractDraftAndStartService extends ContractService {
                 //控件数据
                 if(contractSigner.getPositionParamList() != null && contractSigner.getPositionParamList().size() > 0){
                     for(ContractPositionParam positionParam : contractSigner.getPositionParamList()){
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
                         checkAndBuildSignControlList(positionParam,createData,ruSigner.getId(),contractSigner.getSignerType());
                     }
 
                 }
                 dataSigner.setAgreeSkipWillingness(contractSigner.getAgreeSkipWillingness());
+                dataSigner.setPersonalSignAuth(contractSigner.getPersonalSignAuth());
+
+                if(MyStringUtils.isNotBlank(contractSigner.getSealType())){
+                    dataSigner.setSealType(contractSigner.getSealType());
+                }
+
                 //人脸
                 String signConfirm = contractSigner.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1035,7 +1554,11 @@ public class ContractDraftAndStartService extends ContractService {
     public void saveEnt(ContractSigner entSigner,RuCreateData createData){
         RuDataSigner dataSigner = new RuDataSigner();
 
-        int signerOrder = Integer.parseInt(entSigner.getSignerOrder());
+        int signerOrder =0;
+        if(MyStringUtils.isNotBlank(entSigner.getSignerOrder())){
+            signerOrder = Integer.parseInt(entSigner.getSignerOrder());
+        }
+
         SignRuSigner ruSigner = new SignRuSigner();
         ruSigner.setId(UUIDGenerator.generate());
         ruSigner.setSignRuId(createData.getRuId());
@@ -1047,6 +1570,7 @@ public class ContractDraftAndStartService extends ContractService {
 
         List<ContractInternalNode> internalNodeList = entSigner.getInternalNodeList();
         if(internalNodeList != null && internalNodeList.size() > 0){
+            ruSigner.setSignFlag(true);
             for(ContractInternalNode node : internalNodeList){
 
                 RuDataSender dataSender = new RuDataSender();
@@ -1105,6 +1629,13 @@ public class ContractDraftAndStartService extends ContractService {
                 ruSender.setDeleteFlag(false);
 
                 dataSender.setAgreeSkipWillingness(node.getAgreeSkipWillingness());
+                //计算签署人的实名认证类型
+                if(MyStringUtils.isNotBlank(node.getNodeType()) && !node.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getApiName())){
+                    String personalSignAuthPlatform = ruBusinessService.getSystemPersonalSignAuthType();
+                    String personalSignAuth = setSignNodeConfig(node.getPersonalSignAuth(), personalSignAuthPlatform);
+                    dataSender.setPersonalSignAuth(personalSignAuth);
+                    dataSender.setSealType(node.getSealType());
+                }
                 //人脸
                 String signConfirm = node.getSignConfirm();
                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1115,6 +1646,19 @@ public class ContractDraftAndStartService extends ContractService {
                 //控件数据
                 if(node.getPositionParamList() != null && node.getPositionParamList().size() > 0){
                     for(ContractPositionParam positionParam : node.getPositionParamList()){
+
+                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                positionParam.setRelationDocList(relationDocList);
+                            }
+                        }
+
                         checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),node.getNodeType());
                     }
                 }
@@ -1123,6 +1667,8 @@ public class ContractDraftAndStartService extends ContractService {
 //                dataSender.setReSenderId(reSender.getId());
                 dataSigner.getAddSenderList().add(dataSender);
             }
+        }else{
+            ruSigner.setSignFlag(false);
         }
 
         dataSigner.setRuSigner(ruSigner);
@@ -1202,6 +1748,13 @@ public class ContractDraftAndStartService extends ContractService {
                                 }
 
                                 dataSigner.setAgreeSkipWillingness(contractInternalNode.getAgreeSkipWillingness());
+                                if(contractInternalNode.getNodeType() != null && !contractInternalNode.getNodeType().equals(SenderTypeEnum.ENTERPRISE.getName())){
+                                    dataSigner.setPersonalSignAuth(contractInternalNode.getPersonalSignAuth());
+                                    if(MyStringUtils.isNotBlank(contractInternalNode.getSealType())){
+                                        dataSigner.setSealType(contractInternalNode.getSealType());
+                                    }
+                                }
+
                                 //人脸
                                 String signConfirm = contractInternalNode.getSignConfirm();
                                 if(signConfirm != null && signConfirm.equals("FACE")){
@@ -1211,6 +1764,17 @@ public class ContractDraftAndStartService extends ContractService {
                                 }
                                 if(contractInternalNode.getPositionParamList() != null && contractInternalNode.getPositionParamList().size() > 0){
                                     for(ContractPositionParam positionParam : contractInternalNode.getPositionParamList()){
+                                        if (createData.getDocList() != null && createData.getDocList().size() == 1){
+                                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                                positionParam.setRelationDocList(relationDocList);
+                                            }
+                                        }else if (createData.getDocList() != null && createData.getDocList().size() > 1){
+                                            if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                                                List<ContractRelationDoc> relationDocList = getContractRelationDocs(createData);
+                                                positionParam.setRelationDocList(relationDocList);
+                                            }
+                                        }
                                         checkAndBuildSignControlList(positionParam,createData,ruSender.getId(),contractInternalNode.getNodeType());
                                     }
                                 }
@@ -1237,6 +1801,14 @@ public class ContractDraftAndStartService extends ContractService {
         }
     }
 
+    private static @NotNull List<ContractRelationDoc> getContractRelationDocs(RuCreateData createData) {
+        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+        ContractRelationDoc relationDoc =new ContractRelationDoc();
+        relationDoc.setDocId(createData.getDocList().get(0).getRuDoc().getId());
+        relationDoc.setDocType(String.valueOf(createData.getDocList().get(0).getRuDoc().getDocType()));
+        relationDocList.add(relationDoc);
+        return relationDocList;
+    }
 
 
     /**
@@ -1333,6 +1905,19 @@ public class ContractDraftAndStartService extends ContractService {
         signRu.setSysUserId(createData.getTenantUser().getId());
         signRu.setSysTenantId(createData.getTenantUser().getTenantId());
         signRu.setSysAccountId(createData.getTenantUser().getUserId());
+
+        //自动完成类型
+        if (request.getAutoFinish() != null){
+            if (request.getAutoFinish().equals(SignFinishTypeEnum.AUTO_FINISH.getCode())){
+                signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
+            }else if (request.getAutoFinish().equals(SignFinishTypeEnum.MANUAL_FINISH.getCode())){
+                signRu.setAutoFinish(SignFinishTypeEnum.MANUAL_FINISH.getCode());
+            }else {
+                signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
+            }
+        }else {
+            signRu.setAutoFinish(SignFinishTypeEnum.AUTO_FINISH.getCode());
+        }
         //签署顺序
         if(request.getSignOrderType() != null){
             if(request.getSignOrderType().equals("ORDER")){
@@ -1365,6 +1950,8 @@ public class ContractDraftAndStartService extends ContractService {
                 signRu.setControlChangeFlag(ControlChangeFlagEnum.NECESSARY_AND_ADD.getType());
             }
         }
+
+        signRu.setSendType(request.getSendType());
 
         signRu.setStatus(SignRuStatusEnum.DRAFT.getCode());
 
@@ -1415,7 +2002,120 @@ public class ContractDraftAndStartService extends ContractService {
         loginUser.setTenantUserId(tenantUser.getId());
         MySecurityUtils.THREAD_LOCAL.set(loginUser);
 
+    }
 
+    /**
+     * 根据系统配置、签署实例、签署节点校验并设置签署节点配置
+     * @param personalSignAuthNode
+     * @param personalSignAuthPlatform
+     */
+    private String setSignNodeConfig(String personalSignAuthNode, String personalSignAuthPlatform){
+
+        // 默认设置为需实名
+        String finalPersonalSignAuth = PersonalSignAuthTypeEnum.REQUIRED.getType();
+
+        // 获取平台级个人实名类型配置，如果配置了，则使用配置的，否则设置为需实名
+        if (MyStringUtils.isNotBlank(personalSignAuthPlatform)) {
+            // 如果平台配置为无须实名或需实名，则直接使用平台的配置
+            if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                    personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                finalPersonalSignAuth = personalSignAuthPlatform;
+            }
+            // 如果平台配置为允许不实名认证，则判断签署实例的实名认证要求
+            else if (personalSignAuthPlatform.equals(PersonalSignAuthTypeEnum.ALLOWED.getType())) {
+                if (MyStringUtils.isNotBlank(personalSignAuthNode)) {
+                    // 如果签署实例为无须实名或需实名，则直接签署实例的配置
+                    if (personalSignAuthNode.equals(PersonalSignAuthTypeEnum.NOT_REQUIRED.getType()) ||
+                            personalSignAuthNode.equals(PersonalSignAuthTypeEnum.REQUIRED.getType())) {
+                        finalPersonalSignAuth = personalSignAuthNode;
+                    }
+                }
+            }
+        }
+        return finalPersonalSignAuth;
+    }
+
+    private void buildDocRelationInfo(List<SignRuDoc> docList,List<SignRuDocOperate> ruDocOperateList,List<ContractPositionParam> positionParamList, RuCreateData createData){
+        if (positionParamList != null && positionParamList.size() > 0){
+            for (ContractPositionParam positionParam : positionParamList) {
+                if (docList.size() == 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getDocOriginId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }else if (docList.size() > 1){
+                    if (positionParam.getRelationDocList() == null || positionParam.getRelationDocList().size() == 0){
+                        List<ContractRelationDoc> relationDocList = new ArrayList<>();
+                        ContractRelationDoc relationDoc =new ContractRelationDoc();
+                        relationDoc.setDocId(docList.get(0).getDocOriginId());
+                        relationDoc.setDocType(String.valueOf(docList.get(0).getDocType()));
+                        relationDocList.add(relationDoc);
+                        positionParam.setRelationDocList(relationDocList);
+                    }
+                }
+
+                List<ContractRelationDoc> relationDocList = positionParam.getRelationDocList();
+                for(ContractRelationDoc contractRelationDoc : relationDocList){
+                    String docId = null ;
+                    SignRuDoc ruDataRuDoc = null ;
+                    byte[] fileByte = null ;
+                    String annexId = null ;
+                    if(contractRelationDoc.getDocType().equals("1")){
+                        //上传的
+                        for(SignRuDoc ruDoc : docList){
+                            if(ruDoc.getDocOriginId().equals(contractRelationDoc.getDocId())){
+                                ruDataRuDoc = ruDoc ;
+                                docId = ruDoc.getId();
+                                for(SignRuDocOperate ruDocOperate : ruDocOperateList){
+                                    if(ruDocOperate.getDocId().equals(docId) && ruDocOperate.getIsCurrent() == SignCurrentEnum.IS_CURRENT.getCode()){
+                                        annexId = ruDocOperate.getAnnexId();
+                                    }
+                                }
+                            }
+                        }
+                    }else {
+                        //模板
+                        for(SignRuDoc ruDoc : docList){
+                            if(ruDoc.getDocOriginId().equals(contractRelationDoc.getDocId())) {
+                                docId = ruDoc.getId() ;
+                                ruDataRuDoc = ruDoc ;
+                                Date time = null ;
+                                for(SignRuDocOperate ruDocOperate : ruDocOperateList){
+                                    if(ruDocOperate.getDocId().equals(ruDoc.getId()) && ruDocOperate.getIsCurrent() == SignCurrentEnum.NOT_CURRENT.getCode()){
+                                        if(time == null){
+                                            time = ruDocOperate.getCreateTime();
+                                            annexId = ruDocOperate.getAnnexId();
+                                        }
+                                        if(ruDocOperate.getCreateTime().before(time)){
+                                            time = ruDocOperate.getCreateTime();
+                                            annexId = ruDocOperate.getAnnexId();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(annexId == null){
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,关联文档不存在");
+                    }
+                    fileByte = signFileService.getByteById(annexId);
+                    if(docId == null || ruDataRuDoc == null || fileByte == null){
+                        throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,关联文档不存在");
+                    }
+                    //关联关系
+                    createData.getAddDocAnnex2RuDocMap().put(contractRelationDoc.getDocId(),docId);
+                    //文档数据
+                    RuDataDoc ruDataDoc = new RuDataDoc();
+                    ruDataDoc.setRuDoc(ruDataRuDoc);
+                    ruDataDoc.setFileByte(fileByte);
+                    createData.getDocList().add(ruDataDoc);
+                }
+            }
+        }
     }
 
 

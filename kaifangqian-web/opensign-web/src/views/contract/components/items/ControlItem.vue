@@ -286,7 +286,7 @@
 
           <template v-else-if="element.format">
             <div class="setting-sign-date">
-              <span>{{ element.format }}</span>
+              <span>{{ isSign ? element.today : element.format }}</span>
             </div>
           </template>
           <span v-else>{{ element.title }}</span>
@@ -375,8 +375,8 @@
           ref="datePicker"
           v-model:value="element.value"
           :placeholder="element.format"
-          :format="element.format"
-          :value-format="element.format"
+          :format="element.format?.toUpperCase()"
+          :value-format="element.format?.toUpperCase()"
           :class="['control-date-picker','control-text-'+ element.style.textAlign]"
           :style="[
             'width:100%;height:100%; resize: none;padding:0',
@@ -479,8 +479,9 @@ import { moveRange, currentPosition, currentPositionReverse } from '../data/Cont
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
 import { getAppEnvConfig } from '/@/utils/env';
 import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
-// import { throttle, debounce } from '/@/utils'
+import { getTodayDateByFormat } from '/@/utils'
 import { useMessage } from '/@/hooks/web/useMessage';
+import { json } from 'stream/consumers';
 
 var ControlPage: any = null;
 
@@ -544,6 +545,7 @@ export default defineComponent({
     const isMoving = ref(false);
     const { VITE_GLOB_API_URL } = getAppEnvConfig();
     const baseUrl = ref(VITE_GLOB_API_URL);
+    const today = ref();
     const moveDis = ref({
       x: 0,
       y: 0,
@@ -898,12 +900,15 @@ export default defineComponent({
     }
      //日期格式设置
      function handleSignDateFormat(e,element) {
-            console.log(e,element,'点击---')
-            element.format = e.key;
-            if(element.isBatch){
-                emit('signDateFormat', element)
-            }
+        console.log(e,element,'点击---')
+        element.format = e.key;
+        // 获取今天日期
+        element.today = getTodayDateByFormat(element.format);
+        if(element.isBatch){
+            emit('signDateFormat', element)
         }
+    }
+
     function formItemFocus() {
       if (props.element.disabled) {
         return;
@@ -996,33 +1001,13 @@ export default defineComponent({
           // props.element.value = dayjs(props.element.value);
         }
       }
-      // console.log('initData:contr计算前:', props.element);
-      //   props.element.position.top = currentPositionReverse(  props.element.position.top,  props.element.position.page);
-      // console.log('initData:contr计算后:', props.element);
-      // import dayjs from 'dayjs';
-      // cursor: pointer;
-      // if(props.element.controlType == ControlType.Radio){
-      //   console.log("Radio:",props.element);
-      //  ControlPage  = defineAsyncComponent(() =>import('../controls/Radio.vue'))
-      // }else if(props.element.controlType == ControlType.LineText){
-      //   ControlPage= '';
-      // //  ControlPage  = defineAsyncComponent(() =>import('../controls/LineText.vue'))
-      // }else if(props.element.controlType == ControlType.MultilineText){
-      //   ControlPage= '';
-      // //  ControlPage  = defineAsyncComponent(() =>import('../controls/MultilineText.vue'))
-      // }else if(props.element.controlType == ControlType.Number){
-      // //  ControlPage  = defineAsyncComponent(() =>import('../controls/Number.vue'))
-      // ControlPage= '';
-      // }else if(props.element.controlType == ControlType.Date){
-      // //  ControlPage  = defineAsyncComponent(() =>import('../controls/Date.vue'))
-      // ControlPage= '';
-      // }else if(props.element.controlType == ControlType.CheckBox){
-      //  ControlPage  = defineAsyncComponent(() =>import('../controls/CheckBox.vue'))
-      // }else if(props.element.controlType == ControlType.DropdownList){
-      //  ControlPage  = defineAsyncComponent(() =>import('../controls/DropdownList.vue'))
-      // }else if(props.element.controlType == ControlType.Image){
-      //  ControlPage  = defineAsyncComponent(() =>import('../controls/Image.vue'))
-      // }
+
+      // console.log('签署日期控件格式处理-----',props.element.controlType,props.isSign);
+      // 签署日期控件格式处理
+      if (props.element.controlType == ControlType.SignDate && props.isSign) {
+        props.element.today = getTodayDateByFormat(props.element.format);
+      }
+      console.log(props.element.controlType,props.element);
     }
     function addSeal(seal: any) {
       //props.element.dataId = dataId;
@@ -1072,6 +1057,7 @@ export default defineComponent({
       isMoving,
       ControlPage,
       handleSignDateFormat,
+      today,
     };
   },
 });

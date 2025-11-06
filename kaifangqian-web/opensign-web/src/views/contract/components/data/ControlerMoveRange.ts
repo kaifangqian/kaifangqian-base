@@ -302,7 +302,7 @@ export function pageScaling(images:any[], allMinWidth?:number){
     item.target = target;
     targets.push(target);
     transformHeight += item.target.height;
-    console.log(minWidthTarget.imageWidth,'图片高度---')
+    // console.log(minWidthTarget.imageWidth,'图片高度---')
   })
   return {targets:targets,maxWidth:maxWidth,minWidth:minWidthTarget.imageWidth};
 }

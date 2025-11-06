@@ -22,6 +22,8 @@
 package com.kaifangqian.modules.opensign.service.cmd;
 
 import cn.hutool.core.collection.CollUtil;
+import com.kaifangqian.modules.opensign.enums.OperateTypeEnum;
+import com.kaifangqian.modules.opensign.enums.SignFinishTypeEnum;
 import com.kaifangqian.modules.opensign.interceptor.SignCommand;
 import com.kaifangqian.modules.opensign.interceptor.SignCommandContext;
 import com.kaifangqian.modules.opensign.service.flow.IFlowService;
@@ -69,7 +71,11 @@ public class ConfirmSignCmd implements SignCommand<TaskCmdInfo> {
         //修改实例-用户操作表任务状态
         SignRuOperator query = new SignRuOperator();
         query.setSignRuId(signCommandContext.getSignRuId());
-        query.setOperateType(2);
+        if (signRuTask.getTaskType().equals(TaskTypeEnum.SIGN_TASK.getCode())) {
+            query.setOperateType(OperateTypeEnum.SIGN.getCode());
+        }else if(signRuTask.getTaskType().equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+            query.setOperateType(OperateTypeEnum.APPROVE.getCode());
+        }
         query.setSignerType(signCommandContext.getUserType());
         query.setSignerId(signCommandContext.getUserTaskId());
         List<SignRuOperator> operators = signRuOperatorService.getByEntity(query);
@@ -96,7 +102,7 @@ public class ConfirmSignCmd implements SignCommand<TaskCmdInfo> {
             ruQuery.setSignRuId(signCommandContext.getSignRuId());
             ruQuery.setTaskStatus(1);
             List<SignRuTask> list = signRuTaskService.getByEntity(ruQuery);
-            if (CollUtil.isEmpty(list)) {
+            if (CollUtil.isEmpty(list) && (signRu.getAutoFinish() == null || signRu.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode())) {
                 return getNextCmd(signCommandContext);
             }
         } else if (signRu.getSignOrderType() == 1) {
@@ -143,11 +149,11 @@ public class ConfirmSignCmd implements SignCommand<TaskCmdInfo> {
                 }
             }
             //计算是否执行下一个命令
-            SignRuTask query2 = new SignRuTask();
-            query2.setSignRuId(signCommandContext.getSignRuId());
-            query2.setTaskStatus(1);
-            List<SignRuTask> tasks = signRuTaskService.getByEntity(query2);
-            if (CollUtil.isEmpty(tasks)) {
+            SignRuTask isNextTaskQuery = new SignRuTask();
+            isNextTaskQuery.setSignRuId(signCommandContext.getSignRuId());
+            isNextTaskQuery.setTaskStatus(1);
+            List<SignRuTask> tasks = signRuTaskService.getByEntity(isNextTaskQuery);
+            if (CollUtil.isEmpty(tasks) && (signRu.getAutoFinish() == null || signRu.getAutoFinish() == SignFinishTypeEnum.AUTO_FINISH.getCode())) {
                 return getNextCmd(signCommandContext);
             }
         }

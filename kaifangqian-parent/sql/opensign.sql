@@ -5274,7 +5274,7 @@ ALTER TABLE `tenant_auth_log` ADD COLUMN `auth_method` tinyint(2) DEFAULT NULL C
 
 
 
--- V3.0.0版本
+-- V3.0.0版本 -2025-08-09  开放签与云盾初次发布上线
 
 -- 修改签署业务端菜单名称
 UPDATE `sys_permission` SET `name` = '验签' WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
@@ -5391,16 +5391,30 @@ UPDATE `job_info` SET `status` = 1 WHERE `id` = 16;
 UPDATE `job_info` SET `status` = 1 WHERE `id` = 17;
 
 
--- v3.0.1
+-- v3.0.1  -2025-09-09 项目包名修改
 ALTER TABLE operate_log MODIFY COLUMN module_name varchar(255);
 update sys_fill_rule  set rule_class = REPLACE(rule_class, 'com.resrun', 'com.kaifangqian');
 update job_info  set processor_info = REPLACE(processor_info, 'com.resrun', 'com.kaifangqian');
 
--- v3.0.2
+-- v3.0.2  -2025-09-19 调整菜单
 INSERT INTO `sys_permission` (`id`, `app_id`, `name`, `menu_type`, `parent_id`, `sort_no`, `path`, `component`, `perms`, `icon`, `route_flag`, `hidden_flag`, `keep_alive_flag`, `internal_or_external`, `description`, `status`, `rule_flag`, `form_table_id`, `create_by`, `create_time`, `update_by`, `update_time`, `delete_flag`, `delete_by`, `delete_time`, `auth_visible`, `fast_icon`, `fast_icon_address`, `fast_flag`) VALUES ('850397f1-2ac9-40c2-a19f-8ddfe180523b', '70588803-52e4-433d-a61f-0a68e1febd72', '运营管理权限', 2, '', 0, NULL, NULL, 'system:manage', NULL, 0, 0, 0, 0, NULL, 1, 1, NULL, 'admin', '2025-09-02 14:40:41', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 0);
 INSERT INTO `sys_app_version_permission` (`id`, `app_info_id`, `app_version_id`, `permission_id`, `delete_flag`, `delete_by`, `delete_time`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('e83c31cd-250b-4d33-b24b-0cc9fb67cb17', '70588803-52e4-433d-a61f-0a68e1febd72', '2e1f31de-651b-49da-a89c-03f6b5daa9be', '850397f1-2ac9-40c2-a19f-8ddfe180523b', 0, NULL, NULL, NULL, '2025-09-04 14:17:42', NULL, NULL);
 INSERT INTO `sys_auth_group_permission` (`id`, `group_id`, `app_id`, `permission_id`, `permission_perms`, `permission_data_id`) VALUES ('c4b7c959-c3da-421e-a5d0-3c8f237dc588', '07b3e2cd-eb1b-4e07-8844-685478909734', '70588803-52e4-433d-a61f-0a68e1febd72', '850397f1-2ac9-40c2-a19f-8ddfe180523b', NULL, NULL);
 
+-- v3.1    -2025-10-15 增加非实名认证签署
+INSERT INTO `sys_config` (`id`, `name`, `type`, `value`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('5coo6af-1eff-ad09-4fb4-p93b22d61608', '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）', 'personal_sign_auth', 'required', NULL, NULL, 'admin', '2025-09-23 08:28:01');
+ALTER TABLE `sign_re` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+ALTER TABLE `sign_ru` ADD COLUMN `send_type` varchar(20) NULL DEFAULT NULL COMMENT '发起类型：api(接口发起)；app（应用发起）';
+ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
+
+-- v3.1.1    -2025-11-01 添加动态签署节点、审批、个人签名类型
+ALTER TABLE `sign_ru` ADD COLUMN `auto_finish` tinyint(1) NULL DEFAULT NULL COMMENT '签署实例结束类型：0:手动结束；1:自动结束；';
+ALTER TABLE `sign_person_seal` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT 'TEMPLATE：模板生成、HAND：手写签名;';
+ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
+ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
+UPDATE `sys_permission` SET `delete_flag` = 0 WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
 -- 这是最后一句
 SET FOREIGN_KEY_CHECKS = 1;
 

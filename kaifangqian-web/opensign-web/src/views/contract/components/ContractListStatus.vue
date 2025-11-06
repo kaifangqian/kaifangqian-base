@@ -34,7 +34,7 @@
           <span class="value" v-if="signOrderType == 2">无序签署</span>
           <span class="value" v-if="signOrderType == 1">顺序签署</span>
         </li>
-        <li v-if="sender">
+        <li v-if="(sender && sender.senderList&&sender.senderList.length>0) || sender?.writeStatus>-1">
           <span class="name">发起方</span>
           <div class="start-paty">
             <div class="sender-name">
@@ -48,7 +48,8 @@
                 <a-space :size="20">
                   <span class="sub-name" style="width: 200px;">{{item.senderName}}（{{item.senderSignType==1? '自动盖章': item.senderUserName }}）</span>
                   <!-- <a-tag color="success">待签署</a-tag> -->
-                  <a-tag class="sign-status" :color="loadSignColor(item.signStatus)" >{{ loadSignStatus(item.signStatus) }}</a-tag>
+                  <a-tag v-if="item.senderType == 5" class="sign-status" :color="loadApprovalColor(item.signStatus)" >{{ loadApprovalStatus(item.signStatus) }}</a-tag>
+                  <a-tag v-if="item.senderType != 5" class="sign-status" :color="loadSignColor(item.signStatus)" >{{ loadSignStatus(item.signStatus) }}</a-tag>
                 </a-space>
               </li>
             </div>
@@ -74,7 +75,7 @@
                 <a-space :size="20">
                   <span class="sub-name" style="width: 250px;">{{item.signerName}}</span>
                   <!-- <a-tag color="success">待签署</a-tag> -->
-                  <a-tag v-if="item.writeStatus>-1" class="sign-status" :color="loadSignColor(item.writeStatus)">{{ loadWriteStatus(sender.writeStatus) }}</a-tag>
+                  <a-tag v-if="item.writeStatus>-1" class="sign-status" :color="loadSignColor(item.writeStatus)">{{ loadWriteStatus(item.writeStatus) }}</a-tag>
                 </a-space>
               </div>
               <div class="sneder-sub">
@@ -101,7 +102,7 @@
   import {ref,defineComponent, onMounted} from "vue"
   import {Loading} from "/@/components/Loading"
   import {  getScheduleStatus } from '/@/api/contract';
-  import { loadRuStatus, loadSignColor, loadSignStatus,loadWriteStatus } from '/@/views/contract/document/transform';
+  import { loadRuStatus, loadSignColor, loadSignStatus,loadWriteStatus,loadApprovalColor,loadApprovalStatus } from '/@/views/contract/document/transform';
   import { Scrollbar } from '/@/components/Scrollbar';
   const props = defineProps({
     signRuId:{
@@ -157,7 +158,7 @@
         background-color: rgba(0,0,0,0.05);
         height: 100%;
         padding: 10px;
-        border-radius: 5px;
+        // border-radius: 5px;
       }
       .start-paty .sneder-sub{
         padding-left: 50px;

@@ -24,7 +24,7 @@
     <div class="doc-control-container">
         <ul>
             <li v-for="(item, index) in signerList" :key="index">
-                <div v-if="item.signerType == 1">
+                <div v-if="item.signerType == 1 && item.senderList && item.senderList.length>0">
                     <div class="signer-name">
                         <span class="sender-line"></span>
                         <span>发起方：{{ item.signerName }}</span>
@@ -137,7 +137,7 @@
                             <template #item="{ element }">
                                 <div class="control-item">
                                     <div :class="['control-li control-move']" :style="[
-                                        'z-index:2020',
+                                        // 'z-index:2020',
                                         'borderColor:' + getColor(senderLength + index - 1, 'background'),
                                         'color:' + getColor(senderLength + index - 1, 'background'),
                                     ]">
@@ -203,7 +203,7 @@
                                     <div class="control-item">
                                       <template v-if="!(element.type == ControlType.ChopStamp && !element.chopStampUse)">
                                         <div :class="['control-li control-move']" :style="[
-                                            'z-index:2020',
+                                            // 'z-index:2020',
                                             'borderColor:' + getColor(sendItem.colorIndex, 'background'),
                                             'color:' + getColor(sendItem.colorIndex, 'background'),
                                         ]">
@@ -634,6 +634,11 @@ export default defineComponent({
     user-select: none;
     /* 标准语法 */
     cursor: grab;
+}
+.signer-name {
+  margin-top:10px;
+  // border-top: 1px solid #e1e8ed;
+  // padding: 40px 0;
 }
 </style>
 

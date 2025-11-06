@@ -41,13 +41,13 @@
                           <SvgIcon name="sign-schedule"></SvgIcon>
                           <span>签署方：</span>
                         </a-space>
-                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5"
+                        <a-tooltip placement="top" color="#fff" :mouseEnterDelay="0.5" :destroyTooltipOnHide=true
                          :getPopupContainer="(triggerNode: any) => {return triggerNode.parentNode}"
                          :overlay-style="{'max-width':'800px'}">
                           <template #title>
                             <ContractListStatus :signRuId="item.signRuId" :signOrder="1" />
                           </template>
-                          <span class="pointer schedule-hover">{{item.participateNames?item.participateNames:'张三'}}</span>
+                          <span class="pointer schedule-hover">{{item.participateNames}}</span>
                         </a-tooltip>
                       </a-descriptions-item>
                     </a-descriptions>
@@ -63,7 +63,7 @@
                         </a-button>
                       </a>
                       <template #overlay>
-                        <a-menu v-if="(!!actionList && actionList.length>0) || (item.startFlag && loadShowExpireDate(item))">
+                        <a-menu v-if="(!!actionList && actionList.length>0) || (item.startFlag && loadShowExpireDate(item)) || item.downloadFlag">
                           <a-menu-item v-for="(item,index) in actionList" :key="index" @click="item.callback(item.params,router)">
                             <a-button type="link" >{{ item.name }}</a-button>
                           </a-menu-item>
@@ -78,6 +78,9 @@
                               </template>
                               <a-button type="link" @click="handleShowPop(item)">{{loadExpireDateText(item)}}</a-button>
                             </a-popover>
+                          </a-menu-item>
+                          <a-menu-item v-if="item.downloadFlag">
+                            <a-button type="link" @click="handleDownload(item)">下载</a-button>
                           </a-menu-item>
                         </a-menu>
                         <a-menu v-else>
@@ -156,9 +159,28 @@ import {
 } from '/@/api/doc';
 import { Icon,SvgIcon } from '/@/components/Icon';
 import { loadRuStatus } from '../transform';
-import { formatAction, tableReload,testRevoke } from './actions';
-import { getConfirmType, getConfirmNo } from '/@/api/contract';
+import { formatAction, tableReload,testRevoke, Action } from './actions';
+import { getConfirmType, getConfirmNo, getBusinessRuInfo } from '/@/api/contract';
 import ContractListStatus from "/@/views/contract/components/ContractListStatus.vue";
+import { handleRuDownload } from '/@/utils';
+import { any } from "vue-types";
+
+interface TaskListInfoRes {
+  taskId?: string;
+  signRuId: string;
+  status: number;
+  code?: string;
+  subject: string;
+  fromTenantName: string;
+  participateNames?: string;
+  createTime: string;
+  expireDate?: string;
+  startFlag?: boolean;
+  downloadFlag?: boolean;
+  popVisible?: boolean;
+  [key: string]: any; // 允许其他动态属性
+}
+
 export default defineComponent({
   name:"All",
   components:{
@@ -166,8 +188,6 @@ export default defineComponent({
     Icon,Scrollbar,
     WishModal,SvgIcon,
     ContractListStatus,
-    Icon,
-    WishModal,
     Modal, Input, Button,
   },
   props:{
@@ -183,37 +203,25 @@ export default defineComponent({
   },
   setup(props) {
     const router = useRouter();
-    const actionList:any = ref([])
-    const dataSource = ref([])
+    const actionList = ref<Action[]>([])
+    const dataSource = ref<TaskListInfoRes[]>([])
     const requestMethod = ref()
     const currentParams = ref({})
     const popVisible = ref(false)
     const expireDate = ref<Dayjs | null>(dayjs());
+    const orderNo = ref<string>('');
+    const overlayStyle = ref({});
 
     const instance = getCurrentInstance();
+    // const eventHub = instance?.proxy?.$options?.setup?.['eventHub'] || { 
+    //   $on: (event: string, callback: Function) => {},
+    //   $off: (event: string, callback: Function) => {}
+    // };
+    const { eventHub } = instance?.proxy;
     const rowParams = ref();
     const willResult = ref(false);
     const loading = ref(true);
-    const { eventHub } = instance?.proxy;
-    const orderNo =ref('')
 
-    const confirmTypeInfo:any = ref({
-        confirmType:'face',
-        personalAccountStatus:'',
-    })
-
-    // const pageinfo = ref({
-    //   pageNo:1,
-    //   pageSize:10,
-    //   current:1,
-    //   total:0,
-    // });
-
-    const overlayStyle = ref({
-      width:'137px',
-      marginTop:'18px',
-      // left:'1522px!important'
-    })
     const { createMessage: msg,} = useMessage();
     const getPopupContainer = ()=> {
       return document.getElementById('recordAct') ||  document.body;
@@ -309,10 +317,14 @@ export default defineComponent({
         })
       }
       onUnmounted(()=>{
-        eventHub.$off('triggerConfirm',triggerConfirmFun)
+        if(eventHub && typeof eventHub.$off === 'function') {
+          eventHub.$off('triggerConfirm',triggerConfirmFun)
+        }
       })
       onMounted(()=>{
-        eventHub.$on('triggerConfirm',triggerConfirmFun)
+        if(eventHub && typeof eventHub.$on === 'function') {
+          eventHub.$on('triggerConfirm',triggerConfirmFun)
+        }
       })
 
       function getConfirmTypeForAction(params,signRuId){
@@ -366,6 +378,15 @@ export default defineComponent({
         if(params.type==11){
           requestMethod.value = getInvalidList
         }
+        
+        // 使用pageinfo中的分页参数
+        const pageParams = {
+          ...params,
+          pageNo: resetPage ? 1 : (props.pageinfo.pageNo || params.pageNo || 1),
+          pageSize: props.pageinfo.pageSize || params.pageSize || 10,
+          type: undefined
+        };
+        
         loading.value = true;
         tableReload(requestMethod.value, params, setTableData, setPagination, setLoading)
         // setLoading(true)
@@ -373,8 +394,8 @@ export default defineComponent({
         if(resetPage){
             // setPagination({current:1})
         }
-        beforeFetch(params)
-        let result = await requestMethod.value({...params,type:undefined});
+        beforeFetch(pageParams)
+        let result = await requestMethod.value(pageParams);
         if(result){
           result.records.map(v=>{
             if(v){
@@ -384,6 +405,8 @@ export default defineComponent({
           dataSource.value = result.records;
           // setTableData(result.records)
           props.pageinfo.total =  result.total;
+          // 更新当前页
+          props.pageinfo.current = pageParams.pageNo;
         }
         loading.value = false;
         // let list = getDataSource();
@@ -409,7 +432,6 @@ export default defineComponent({
       }
       async function handleSee(row){
         if(row.status==1){
-          // window.open('/#/contract/start?__full__&signRuId=' + row.signRuId + '&,')
           router.push({
             path:"/contract/start",
             query:{
@@ -429,96 +451,7 @@ export default defineComponent({
           })
         }
         return;
-        if(row.status==5){
-          // window.open('/#/contract/params?__full__&signRuId=' + row.signRuId + '&isDetail=true' + '&from=list')
-          // 如果文档处于填写中，且当前用户无填写权限，则查看时，直接进入到【文档详情】页面
-          let result = await getCheckOperates({signRuId:row.signRuId});
-          if(result){
-            if(result.taskId){
-              // window.open('/#/contract/params?__full__&signRuId=' + row.signRuId + '&isDetail=false&type=receive&taskId='+result.taskId + '&from=list')
-              router.push({
-                path:"/contract/params",
-                query:{
-                  __full__:"",
-                  signRuId:row.signRuId,
-                  isDetail:'false',
-                  type:'receive',
-                  taskId:result.taskId,
-                  from:'list'
-                }
-              })
-              
-            }else{
-              // window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-              router.push({
-                path:"/contract/detail/sign",
-                query:{
-                  __full__:"",
-                  signRuId:row.signRuId,
-                  from:'list'
-                }
-              })
-              
-            }
-          }
-          return;
-        }
-        if(row.status==7){
-          // 如果文档处于签署中，且当前用户无签署权限，则查看时，直接进入到【文档详情】页面
-          let result = await getCheckOperates({signRuId:row.signRuId});
-          if(result){
-            if(result.taskId){
-              // window.open('/#/contract/sign?__full__&signRuId=' + row.signRuId + '&from=list&taskId='+result.taskId)
-              router.push({
-                path:"/contract/sign",
-                query:{
-                  __full__:"",
-                  signRuId:row.signRuId,
-                  from:'list',
-                  taskId:result.taskId
-                }
-              })
-              
-            }else{
-              // window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-              router.push({
-                path:"/contract/detail/sign",
-                query:{
-                  __full__:"",
-                  signRuId:row.signRuId,
-                  from:'list',
-                }
-              })
-            }
-          }
-          return;
-        }
-        router.push({
-          path:"/contract/detail/sign",
-          query:{
-            __full__:"",
-            signRuId:row.signRuId,
-            from:'list',
-          }
-        })
-        // if(row.status==2 || row.status==3 ){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-        // }
-        // if(row.status==4){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-        // }
-        // if(row.status==6 || row.status==8 || row.status==9){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId)
-        // }
-        // if(row.status==10){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-        // }
-        // if(row.status==11){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId +  '&from=list')
-        // }
-        // if(row.status==12){
-        //   window.open('/#/contract/detail/sign?__full__&signRuId=' + row.signRuId + '&from=list')
-        // }
+
       }
 
       function handleChange(pagination){
@@ -555,6 +488,7 @@ export default defineComponent({
         }
         return show;
       }
+      
 
      async function shortcutJump(row){
        let result = await getCheckOperates({signRuId:row.signRuId});
@@ -564,7 +498,7 @@ export default defineComponent({
        if(action && action.length>0){
          for(var i=0;i<action.length;i++){
            const item = action[i];
-           if(item.key == 'sign' || item.key == 'write'){
+           if(item.key == 'sign' || item.key == 'write' || item.key == 'approval'){
              item.callback(item.params,router)
              operationFlag = true;
              break;
@@ -577,18 +511,39 @@ export default defineComponent({
        }
        // console.log("shortcutJump:",action);
      }
-     async  function handleAction(row){
+     async function handleAction(row){
         expireDate.value = null;
         let result = await getCheckOperates({signRuId:row.signRuId});
         if(result){
           row.startFlag = result.startFlag;
+          row.downloadFlag = result.downloadFlag;
+          row.taskType = result.taskType;
           row ={
             ...row,
             result
           }
+          console.log(row,'row------')
           actionList.value = formatAction(row,result)
         }
       }
+
+     async function handleDownload(row){
+        let result = await getBusinessRuInfo({ signRuId: row.signRuId  });
+        if (result) {
+          if (result.fileList.length > 1) {
+            // 多文件，循环遍历，将文件id集合放入参数中
+            const ruDocIdList: string[] = [];
+            result.fileList.forEach((item: any) => {
+              return ruDocIdList.push(item.id);
+            });
+            handleRuDownload({ ruDocIdList: ruDocIdList, signRuId: row.signRuId });
+          } else {
+            handleRuDownload({ ruDocIdList: result.fileList[0].id, signRuId: row.signRuId });
+          }
+        }
+      }
+
+
 
       function searchReload(params){
         console.log("searchReload",params);
@@ -626,22 +581,25 @@ export default defineComponent({
         let result = await revokeRuSignRu({signRuId:rowParams.value.signRuId, signConfirmOrderNo: "123", comment:textareaValue.value});
         if(result){
           msg.success('操作成功')
-            reload({searchInfo:{
-                ...currentParams.value
-              }
+            await loadData({
+              ...currentParams.value,
+              pageNo: props.pageinfo.pageNo,
+              pageSize: props.pageinfo.pageSize
             })
             setLoading(false)
             closeWishModal()
         }
       }
       async function onPaginationChange(val){
+        // 更新pageinfo
+        props.pageinfo.pageNo = val;
+        props.pageinfo.current = val;
+        
         await loadData({
           ...currentParams.value,
           pageNo:val,
           pageSize:props.pageinfo.pageSize
         })
-        props.pageinfo.current =  val;
-        
       }
     return {
       registerTable,
@@ -667,7 +625,8 @@ export default defineComponent({
       router,onPaginationChange,
       registerWish,loading,
       handleConfirmSuccess,
-      simpleImage: Empty.PRESENTED_IMAGE_SIMPLE
+      simpleImage: Empty.PRESENTED_IMAGE_SIMPLE,
+      handleDownload,
     }
   }
 })
@@ -749,6 +708,9 @@ export default defineComponent({
     text-align: right;
     :deep(.ant-dropdown-menu-item){
       padding:0;
+    }
+    :deep(.ant-dropdown){
+      position: relative;
     }
   }
   .signatory-line{

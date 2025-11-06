@@ -46,6 +46,9 @@ public class QueryUseListRequest implements Serializable {
     // @ApiModelProperty("状态")
     private Integer status ;
 
+    // @ApiModelProperty("文件夹ID")
+    private String folderId;
+
     // @ApiModelProperty("页码")
     private Integer pageNo = 1;
 

@@ -11,4 +11,4 @@ ADD ./handwriting /data/opensign-web/handwriting
 ADD ./nginx-config/nginx.conf /etc/nginx/nginx.conf
 ADD ./nginx-config/default.template /etc/nginx/conf.d/default.template
 
-ENTRYPOINT envsubst '$API_SERVER_NAME'  < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'
+ENTRYPOINT envsubst '$API_SERVER_NAME $DOMAIN_NAME'  < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'

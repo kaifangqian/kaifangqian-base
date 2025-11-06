@@ -338,12 +338,12 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
             SysTenantUser tenantUser = iSysTenantUserService.getPersonalTenantUser(sysUser.getId());
             if (tenantUser != null) {
                 //解析数据库已有数据做绑定表：sign_ru_relation
-                flowService.bindOutUserRelation(vo.getPhone(), null, tenantUser.getId(), "register");
+                flowService.bindOutUserRelation(vo.getPhone(), vo.getEmail(), tenantUser.getId(), "register");
                 //解析数据库已有数据做绑定表：sign_ru_task
                 //绑定手机号：账号ID
-                flowService.bindOutUserTask(null, vo.getPhone(), null, null, null, sysUser.getId(), null, null, "register");
+                flowService.bindOutUserTask(null, vo.getPhone(), vo.getEmail(), null, null, sysUser.getId(), null, null, "register");
                 //绑定手机号+租户名（个人租户）：租户ID，租户账号ID
-                flowService.bindOutUserTask("个人租户", vo.getPhone(), null, null, null, tenantUser.getUserId(), tenantUser.getTenantId(), tenantUser.getId(), "register");
+                flowService.bindOutUserTask("个人租户", vo.getPhone(), vo.getEmail(), null, null, tenantUser.getUserId(), tenantUser.getTenantId(), tenantUser.getId(), "register");
             }
             return tenantUser;
         }
@@ -447,6 +447,8 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
 
                     String pTenantId = sysTenantInfoService.addTenantAndAddApp(sysTenantInfoVO).getTenantId();
 
+                    SysTenantUser personalTenantUser = iSysTenantUserService.getTenantUser(pTenantId, sysUser.getId());
+
                     TenantInfoExtend infoExtend = new TenantInfoExtend();
                     infoExtend.setName(register.getName());
                     infoExtend.setAuthStatus(TenantAuthStatus.STATUS0.getStatus());
@@ -465,6 +467,16 @@ public class TenantInfoExtendServiceImpl extends ServiceImpl<TenantInfoExtendMap
                     infoExtend.setTenantId(pTenantId);
                     infoExtend.setTenantType(TenantType.PERSONAL.getType());
                     save(infoExtend);
+
+                    if (tenantUser != null) {
+                        //解析数据库已有数据做绑定表：sign_ru_relation
+                        flowService.bindOutUserRelation(register.getMobile(), register.getEmail(), tenantUser.getId(), "register");
+                        //解析数据库已有数据做绑定表：sign_ru_task
+                        //绑定手机号：账号ID
+                        flowService.bindOutUserTask(null, register.getMobile(), register.getEmail(), null, null, sysUser.getId(), null, null, "register");
+                        //绑定手机号+租户名（个人租户）：租户ID，租户账号ID
+                        flowService.bindOutUserTask("个人租户", register.getMobile(), register.getEmail(), null, null, sysUser.getId(), pTenantId, personalTenantUser.getId(), "register");
+                    }
                 }
             }
         } else {

@@ -58,18 +58,11 @@ import com.kaifangqian.modules.api.entity.ApiCallbackPageUrl;
 import com.kaifangqian.modules.api.business.service.ContractService;
 import com.kaifangqian.modules.api.service.ApiCallbackPageUrlService;
 import com.kaifangqian.modules.api.service.IApiCallbackService;
-import com.kaifangqian.modules.api.vo.base.*;
-import com.kaifangqian.modules.api.vo.request.*;
-import com.kaifangqian.modules.api.vo.response.*;
 import com.kaifangqian.modules.opensign.constant.SignCommonConstant;
-import com.kaifangqian.modules.opensign.entity.*;
-import com.kaifangqian.modules.opensign.enums.*;
 import com.kaifangqian.modules.opensign.service.business.PdfConvertService;
 import com.kaifangqian.modules.opensign.service.business.PdfEncryptionService;
 import com.kaifangqian.modules.opensign.service.business.RuBusinessService;
 import com.kaifangqian.modules.opensign.service.business.RuSignService;
-import com.kaifangqian.modules.opensign.service.re.*;
-import com.kaifangqian.modules.opensign.service.ru.*;
 import com.kaifangqian.modules.opensign.service.template.SignTemplateControlService;
 import com.kaifangqian.modules.opensign.service.template.SignTemplateRecordService;
 import com.kaifangqian.modules.opensign.service.template.SignTemplateService;
@@ -80,8 +73,6 @@ import com.kaifangqian.modules.opensign.vo.base.sign.TaskSearchFor3rdVO;
 import com.kaifangqian.modules.storage.StorageService;
 import com.kaifangqian.modules.storage.entity.AnnexStorage;
 import com.kaifangqian.modules.storage.service.IAnnexStorageService;
-import com.kaifangqian.modules.system.entity.*;
-import com.kaifangqian.modules.system.service.*;
 import com.kaifangqian.utils.DateUtil;
 import com.kaifangqian.utils.MyStringUtils;
 import com.kaifangqian.utils.UUIDGenerator;
@@ -538,6 +529,7 @@ public class ContractController {
         String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
         ContractDraftRequest request = JSON.parseObject(cachedRequestBody, ContractDraftRequest.class);
 
+        request.setSendType(ContractSendTypeEnum.API.getType());
         String contractId = contractDraftAndStartService.contractDraftAndStart(request);
         if(contractId == null || contractId.length() == 0){
             return ApiCommonRes.error(ApiCode.UNKNOWN);
@@ -562,6 +554,68 @@ public class ContractController {
         return ApiCommonRes.ok() ;
     }
 
+    // @ApiOperation(value = "添加合同签署节点", notes = "添加合同签署节点")
+    @PostMapping("/contract/signer/add")
+    @ResponseBody
+    public ApiCommonRes<?> addContractSignNode()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractDraftRequest request = JSON.parseObject(cachedRequestBody, ContractDraftRequest.class);
+
+        contractDraftAndStartService.addSignNode(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
+    // @ApiOperation(value = "合同签署审批", notes = "合同签署审批")
+    @PostMapping("/contract/approval")
+    @ResponseBody
+    public ApiCommonRes<?> contractSignApprove()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractApproveRequest request = JSON.parseObject(cachedRequestBody, ContractApproveRequest.class);
+
+        contractDraftAndStartService.approveSign(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
+    @PostMapping("/contract/finish")
+    @ResponseBody
+    public ApiCommonRes<?> completeSign()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractCompleteRequest request = JSON.parseObject(cachedRequestBody, ContractCompleteRequest.class);
+
+        contractDraftAndStartService.completeSign(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
+    @PostMapping("/contract/recall")
+    @ResponseBody
+    public ApiCommonRes<?> recallSign()  {
+        String cachedRequestBody = apiSignThreadLocalAop.getRequestBodyCache().get();
+        ContractRecallRequest request = JSON.parseObject(cachedRequestBody, ContractRecallRequest.class);
+
+        contractDraftAndStartService.recallSign(request);
+
+        SignContract signContract = new SignContract();
+        signContract.setContractId(request.getContractId());
+
+        return ApiCommonRes.ok(signContract) ;
+    }
+
+
+
+
+
 
 //    // @ApiOperation(value = "获取合同草稿编辑页面", notes = "获取合同草稿编辑页面")
 //    @GetMapping("/contract/modifyUrl")
@@ -576,7 +630,6 @@ public class ContractController {
     @GetMapping("/contract/tasks")
     @ResponseBody
     public ApiCommonRes<ContractTasksResponse> contractTasks(ContractTasksRequest request) {
-
 
         String contractId = request.getContractId();
         if(contractId == null || contractId.length() == 0){
@@ -608,6 +661,8 @@ public class ContractController {
                         task.setTaskType("SIGN");
                     }else if(ruTask.getTaskType().equals(TaskTypeEnum.WRITE_TASK.getCode())){
                         task.setTaskType("WRITE");
+                    }else if(ruTask.getTaskType().equals(TaskTypeEnum.APPROVE_TASK.getCode())){
+                        task.setTaskType("APPROVE");
                     }
                     else {
                         continue;
