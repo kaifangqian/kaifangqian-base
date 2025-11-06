@@ -2,7 +2,7 @@ spring:
   application:
     name: resrun-paas
   profiles:
-    active: prod
+    active: dev
   main:
     allow-circular-references: true
 aj:

@@ -213,7 +213,6 @@ public class SelectKeywords extends PDFTextStripper {
             float[] resu = new float[3];
             String sWord = newWord.substring(newWord.lastIndexOf(' ') + 1);
             if (!"".equals(sWord)) {
-                System.out.println(sWord);
                 if (sWord.contains(seekA[0])) {
                     resu[2] = getCurrentPageNo();// (595,842)
                     resu[0] = (float) (roundVal(Float.valueOf(itext.getXDirAdj())) + 0.0F);
