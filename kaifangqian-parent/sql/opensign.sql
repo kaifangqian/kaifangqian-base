@@ -5409,7 +5409,7 @@ ALTER TABLE `sign_ru` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT N
 ALTER TABLE `sign_ru` ADD COLUMN `send_type` varchar(20) NULL DEFAULT NULL COMMENT '发起类型：api(接口发起)；app（应用发起）';
 ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
 
--- v3.2    -2025-11-01 添加动态签署节点、审批、个人签名类型
+-- v3.1.1    -2025-11-01 添加动态签署节点、审批、个人签名类型
 ALTER TABLE `sign_ru` ADD COLUMN `auto_finish` tinyint(1) NULL DEFAULT NULL COMMENT '签署实例结束类型：0:手动结束；1:自动结束；';
 ALTER TABLE `sign_person_seal` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT 'TEMPLATE：模板生成、HAND：手写签名;';
 ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
