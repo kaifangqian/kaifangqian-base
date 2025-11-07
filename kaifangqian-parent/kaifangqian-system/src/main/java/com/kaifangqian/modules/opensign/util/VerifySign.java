@@ -41,16 +41,15 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.bouncycastle.asn1.*;
-import org.bouncycastle.asn1.cms.Attribute;
-import org.bouncycastle.asn1.cms.AttributeTable;
-import org.bouncycastle.asn1.cms.ContentInfo;
-import org.bouncycastle.asn1.cms.SignedData;
+import org.bouncycastle.asn1.cms.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.util.ASN1Dump;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.*;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoVerifierBuilder;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jcajce.provider.digest.SM3;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -67,10 +66,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.security.*;
+import java.security.cert.*;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.List;
 
@@ -190,7 +188,15 @@ public class VerifySign {
                             signatureDetail.setCertName(subject);
                             //是否被篡改
                             try {
-                                boolean bc = signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(cert));
+
+
+                                SubjectPublicKeyInfo spki = cert.getSubjectPublicKeyInfo();
+                                byte[] encodedKey = spki.getEncoded();
+                                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
+                                KeyFactory keyFactory = KeyFactory.getInstance(spki.getAlgorithm().getAlgorithm().getId());
+                                PublicKey publicKey = keyFactory.generatePublic(keySpec);
+                                boolean bc = signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(publicKey));
+
                                 signatureDetail.setValidate(bc);
                                 if(bc){
                                     pdfSignInfo.setPdfSingResult(SignStatus.SIGN_STATUS_RIGHT.getCode());
@@ -205,7 +211,6 @@ public class VerifySign {
 
 
                     }catch (Exception e){
-//                        e.printStackTrace();
                         parseRawASN1(sig,origPDF,signatureDetail);
                         pdfSignInfo.setPdfSingResult(signatureDetail.getPdfSingResult());
                     }
@@ -324,8 +329,8 @@ public class VerifySign {
         // checkSignIsValid("/Users/huaiyong/Desktop/B.pdf");
 //        File file = new File("F://download//电信电子发票202308142220 (1).pdf");
 //        File file = new File("F://download//版权登记申请代理委托合同.pdf");
-//                File file = new File("E://work//tem/pdfbox/sign-out.pdf");
-        File file = new File("E://work//tem/pdfbox/sign-2.pdf");
+                File file = new File("E://work//tem/pdfbox/sign-out-rsa.pdf");
+//        File file = new File("E://work//tem/pdfbox/申请人-组庭通知书_2025_35.pdf");
 
         FileInputStream fis = new FileInputStream(file);
         ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);
