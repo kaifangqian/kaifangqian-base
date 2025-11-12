@@ -1,5 +1,5 @@
-https://gitee.com/activity/2025opensource?ident=ICGZXQ
-开放签开源项目**正在参加 Gitee 2025 最受欢迎的开源软件投票活动**，感谢各位朋友能帮我们投上宝贵一票，谢谢[Worship]
+https://gitee.com/activity/2025opensource?ident=ICGZXQ  
+开放签开源项目**正在参加 Gitee 2025 最受欢迎的开源软件投票活动**，感谢各位朋友能帮我们投上宝贵一票，谢谢[Worship]  
 投票可以为大家开通云盾授权服务，进行免费使用！
 
 # 开放签电子签章系统
