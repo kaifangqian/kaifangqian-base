@@ -93,6 +93,7 @@ kaifangqian-base/
 
 **推荐linux系统，服务器配置4核八G**
 
+-【推荐】EazyDevelop快速一键私有化部署：https://eazydevelop.eazytec-cloud.com/templates/dev-template-4fb918-1763537840?q=183of_1VmfPI_1OHgqL
 - 原生部署：（下载源码，自行打包）https://docs.kaifangqian.com/docs/deploy/native
 - docker部署：（下载仓库中deploy文件）https://docs.kaifangqian.com/docs/deploy/docker 
  
