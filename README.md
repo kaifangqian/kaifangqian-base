@@ -87,7 +87,7 @@ kaifangqian-base/
 ## 环境要求
 - **JDK**: 1.8+ (小于17)
 - **Maven**: 3.x
-- **MySQL**: 8.0.27+
+- **MySQL**: 5.7+
 - **Redis**: 任意版本
 - **IDE**: IntelliJ IDEA (必须安装Lombok插件)
 
