@@ -108,7 +108,6 @@ kaifangqian-base/
 
 ## 加入社群
 请大家帮忙点击下“star”，我们将全力以赴迭代系统功能。  
-点击“star”的用户，优先审核加入官方社群。
 
 ![输入图片说明](doc/%E7%A4%BE%E5%8C%BA%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%A4%BE%E5%8C%BA%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png)
 
