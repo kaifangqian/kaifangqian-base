@@ -363,12 +363,16 @@ public class ContractController {
         }
         String orgNo = null ;
         String phone = null ;
+        String email = null ;
         try {
             orgNo = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, request.getIdentity());
             if(account.getContactType().equals("MOBILE")){
                 phone = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, account.getContact());
             }else if(MyStringUtils.isNotBlank(request.getMobile())){
                 phone = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, request.getMobile());
+            }
+            if(account.getContactType().equals("EMAIL")){
+                email = RsaUtils.encryptByPublicKey(SignCommonConstant.PUBLICKEYSTRING, account.getContact());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -381,9 +385,7 @@ public class ContractController {
         infoExtend.setName(account.getName());
         infoExtend.setOrganizationNo(orgNo);
         infoExtend.setPhone(phone);
-        if(account.getContactType().equals("EMAIL")){
-            infoExtend.setEmail(account.getContact());
-        }
+        infoExtend.setEmail(email);
         if(infoExtend.getAuthStatus() != null && infoExtend.getAuthStatus() == TenantAuthStatus.STATUS2.getStatus()){
             infoExtend.setAuthStatus(TenantAuthStatus.STATUS2.getStatus());
         }else{

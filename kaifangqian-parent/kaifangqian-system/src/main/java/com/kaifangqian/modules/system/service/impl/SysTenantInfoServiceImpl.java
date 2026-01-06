@@ -123,18 +123,22 @@ public class SysTenantInfoServiceImpl extends ServiceImpl<SysTenantInfoMapper, S
         if (CollUtil.isNotEmpty(list)) {
             list.forEach(l -> {
                 String phone = l.getPhone();
+                String phoneTemp = l.getPhone();
                 try {
                     phone = RsaUtils.decryptByPrivateKey(SignCommonConstant.PRIVATEKEYSTRING, phone);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    phone = phoneTemp;
+                    //throw new RuntimeException(e);
                 }
                 l.setPhone(phone);
 
                 String email = l.getEmail();
+                String emailTemp = l.getEmail();
                 try {
                     email = RsaUtils.decryptByPrivateKey(SignCommonConstant.PRIVATEKEYSTRING, email);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    email = emailTemp;
+                    //throw new RuntimeException(e);
                 }
                 l.setEmail(email);
 
