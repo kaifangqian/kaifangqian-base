@@ -443,7 +443,9 @@
               documentList.value.forEach((item:any)=>{
                 if(item.activeControl){
                   item.activeControl.forEach(element => {
-                    element.signerId = signerList.value[0].id;
+                    if(!['signature', 'sign-date', 'seal', 'chop-stamp'].includes(element.controlType)){
+                      element.signerId = signerList.value[0].id;
+                    }
                   });
                 }
               })
