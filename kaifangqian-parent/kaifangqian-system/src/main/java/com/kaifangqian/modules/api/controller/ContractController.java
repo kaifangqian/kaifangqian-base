@@ -400,7 +400,9 @@ public class ContractController {
         if(MyStringUtils.isNotBlank(request.getBankCard())){
             infoExtend.setBankCard(request.getBankCard());
         }
-        tenantInfoExtendService.saveOrUpdate(infoExtend);
+        if(infoExtend.getAuthStatus() != null && infoExtend.getAuthStatus() != TenantAuthStatus.STATUS2.getStatus()) {
+            tenantInfoExtendService.saveOrUpdate(infoExtend);
+        }
 
         return ApiCommonRes.ok();
 
