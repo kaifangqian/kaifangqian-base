@@ -193,6 +193,7 @@ public class PdfSignService {
                 byte[] signedFile = assinaturaPDF.assina();
                 PdfboxSignData pdfboxSignData = new PdfboxSignData();
                 pdfboxSignData.setSignedFile(signedFile);
+
                 if (assinaturaPDF.getLateExternalSigning()) {
                     LateExternalSignData signData = assinaturaPDF.getLateExternalSignData();
                     pdfboxSignData.setOffset(signData.getOffset());
@@ -218,16 +219,19 @@ public class PdfSignService {
         }
         try {
             List<DocumentInfo> yundunDocumentList = null;
+            String responseMessage = null;
             if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
                 // 构建云盾意愿校验签署返回数据
                 AuthSignDocumentResponse authSignDocumentResponse = null;
                 // 返回云盾签署数据
                 authSignDocumentResponse = signServiceExternal.submitAuthHashSign(verifySignDocumentRequest);
+                responseMessage = authSignDocumentResponse.getResultMessage();
                 yundunDocumentList = authSignDocumentResponse.getDocuments();
 
             }else if (pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTO_SIGN.getCode())){
                 AutoSignDocumentResponse autoSignDocumentResponse = null;
                 autoSignDocumentResponse = signServiceExternal.submitAutoHashSign(autoSignDocumentRequest);
+                responseMessage = autoSignDocumentResponse.getResultMessage();
                 yundunDocumentList = autoSignDocumentResponse.getDocuments();
             }
             if(yundunDocumentList !=null && yundunDocumentList.size() > 0){
@@ -237,11 +241,12 @@ public class PdfSignService {
                     pdfSignVoInfo.getNewDocFileByteMap().put(documentInfoTemp.getDocumentId(),newPDF);
                 }
             }else{
-                throw new PaasException("文件签署失败，未检测到签署文件");
+                log.error("签署失败",responseMessage);
+                throw new PaasException(responseMessage);
             }
         } catch (Exception e) {
             log.error("签署失败",e);
-            throw new PaasException("签署失败",e);
+            throw new PaasException(e.getMessage());
         }
 //        log.info("签署完成了");
         return pdfSignVoInfo.getNewDocFileByteMap() ;
