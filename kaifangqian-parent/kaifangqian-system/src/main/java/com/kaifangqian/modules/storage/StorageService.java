@@ -22,11 +22,13 @@
 package com.kaifangqian.modules.storage;
 
 import com.aliyun.oss.OSS;
+import com.kaifangqian.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 
 /**
  * 提供存储服务类，所有存储服务均由该类对外提供
@@ -67,6 +69,11 @@ public class StorageService {
 
     public OSS getOSSClient() {
         return storage.getOSSClient();
+    }
+
+    public String buildPrefixPath(String name){
+        String prefix =  DateUtil.date2Str(new SimpleDateFormat("yyyy/MM/dd/HH"));
+        return   name.startsWith("/")? prefix + name :  prefix + "/" +  name;
     }
 }
 
