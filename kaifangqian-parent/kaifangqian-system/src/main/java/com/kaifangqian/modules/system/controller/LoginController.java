@@ -72,6 +72,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import com.kaifangqian.common.util.*;
 import com.kaifangqian.modules.system.service.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
@@ -1099,7 +1100,30 @@ public class LoginController {
         sysUserVO.setLoginTenantId(loginUser.getTenantId());
         if (tenantInfo != null) {
             sysUserVO.setLoginTenantName(tenantInfo.getTenantName());
+            if (tenantInfo.getTenantType().equals(TenantType.GROUP.getType())){
+
+                SysTenantUser tenantUser = iSysTenantUserService.getPersonalTenantUser(loginUser.getId());
+                SysTenantInfo personalTenantInfo = sysTenantInfoService.getById(tenantUser.getTenantId());
+
+                sysUserVO.setPersonalTenantId(personalTenantInfo.getId());
+                sysUserVO.setPersonalName(personalTenantInfo.getTenantName());
+                TenantInfoDTO personalTenant = tenantInfoExtendService.getTenantInfoExt(tenantUser.getTenantId());
+
+                Map<String, Object> personalTenantMap = getStringObjectMap(personalTenant);
+
+                sysUserVO.setPersonalTenant(personalTenantMap);
+            } else if(tenantInfo.getTenantType().equals(TenantType.PERSONAL.getType())){
+
+                TenantInfoDTO personalTenant = tenantInfoExtendService.getTenantInfoExt(loginUser.getTenantId());
+
+                sysUserVO.setPersonalTenantId(personalTenant.getId());
+                sysUserVO.setPersonalName(personalTenant.getName());
+                Map<String, Object> personalTenantMap = getStringObjectMap(personalTenant);
+                sysUserVO.setPersonalTenant(personalTenantMap);
+            }
+
         }
+
 
         TenantInfoExtend tenantInfoExtend = tenantInfoExtendService.getTenantInfoByTenantId(loginUser.getTenantId());
         if (tenantInfoExtend != null) {
@@ -1117,7 +1141,7 @@ public class LoginController {
             List<String> departNames = sysDeparts.stream().map(SysDepart::getDepartName).collect(Collectors.toList());
             sysUserVO.setDepartNames(departNames);
         }
-        TenantType tenantType = iSysTenantInfoService.getByTenantId(loginUser.getTenantId());
+        TenantType tenantType = sysTenantInfoService.getByTenantId(loginUser.getTenantId());
         if (tenantType != null) {
             sysUserVO.setLoginTenantType(tenantType.getType());
         } else {
@@ -1143,6 +1167,17 @@ public class LoginController {
         //清空用户登录Shiro权限缓存
         redisUtil.removeAll(CommonConstant.PREFIX_USER_SHIRO_CACHE + loginUser.getId() + loginUser.getTenantId() + loginUser.getAppCode());
         return Result.OK(sysUserVO);
+    }
+
+    private static @NotNull Map<String, Object> getStringObjectMap(TenantInfoDTO personalTenant) {
+        Map<String, Object> personalTenantMap = new HashMap<>();
+        personalTenantMap.put("id", personalTenant.getId());
+        personalTenantMap.put("authStatus", personalTenant.getAuthStatus());
+        personalTenantMap.put("name", personalTenant.getName());
+        personalTenantMap.put("organizationNo", personalTenant.getOrganizationNo());
+        personalTenantMap.put("phone", personalTenant.getPhone());
+        personalTenantMap.put("idCardType", personalTenant.getIdCardType());
+        return personalTenantMap;
     }
 
     /**

@@ -22,12 +22,14 @@ package com.kaifangqian.modules.system.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kaifangqian.modules.system.entity.SysAppInfo;
+import com.kaifangqian.modules.system.entity.TenantInfoExtend;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -156,6 +158,12 @@ public class SysUserVO implements Serializable {
     private Integer loginTenantType;
 
     private String loginTenantName;
+
+    private String personalTenantId;
+
+    private String personalName;
+
+    private Map<String, Object> personalTenant;
 
     private boolean initUserInfo;
 

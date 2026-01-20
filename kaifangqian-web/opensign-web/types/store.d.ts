@@ -108,6 +108,7 @@ export interface UserInfo {
   personalTenantFlag?:boolean;
   nickName?:string;
   sysType?:string;
+  personalTenant?: any;
   // [key: string]: string;
 }
 
