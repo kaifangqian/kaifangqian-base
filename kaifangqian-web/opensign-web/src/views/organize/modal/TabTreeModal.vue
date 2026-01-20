@@ -155,6 +155,7 @@
       async function handleSubmit() {
         emit('success',targetSource.value);
         // tabs.value = []  //解决params 参数 id缓存问题
+        handleClose();
       }
       function handleClose(){
         tabs.value = []

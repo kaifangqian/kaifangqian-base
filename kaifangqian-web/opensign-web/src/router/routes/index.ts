@@ -66,6 +66,15 @@ export const HomeRoute: AppRouteRecordRaw = {
         title: '首页',
       },
     },
+    {
+      path: '/check/auth',
+      name: 'checkAuth',
+      component: () => import('/@/views/sys/user/CheckUserAuth.vue'),
+      meta: {
+        ignoreAuth: true,
+        title: '实名认证检测',
+      },
+    },
   ],
 };
 

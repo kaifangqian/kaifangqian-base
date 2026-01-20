@@ -550,6 +550,7 @@ export default defineComponent({
     }
     function clone(origin: any) {
       const data = JSON.parse(JSON.stringify(origin));
+      delete data.popControls;
       //判断是否选中可参与方
       if (props.user) {
         data.user.index = props.user.index;
