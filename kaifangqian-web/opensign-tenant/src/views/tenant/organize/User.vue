@@ -172,7 +172,7 @@
   import { useAppStoreWithOut } from '/@/store/modules/app';
   import { BasicTable, useTable,TableAction, BasicColumn, ActionItem, EditRecordRow} from '/@/components/Table';
   
-  import { getUserForOrgList, getUserList,getDeptByKeywordList,getUserByKeywordList, getDeptTreeList } from '/@/api/demo/system'; 
+  import { getUserForOrgList, getUserList,getDeptByKeywordList,getUserByKeywordList, getDeptTreeList, getAllDeptTreeList } from '/@/api/demo/system'; 
   import { setBrozenBatch, changeDept, deleteUserBatch } from '/@/api/sys/user';
   import { getMyDeptTreeList,editDept,getDeptManagerList, remindUser } from '/@/api/sys/dept';
 
@@ -224,7 +224,7 @@
 
       async function fetch() {
         treeData.value = [];
-        let result = (await getDeptTreeList()) as unknown as TreeItem[];
+        let result = (await getAllDeptTreeList()) as unknown as TreeItem[];
         treeData.value =   formatTreeData(result)
         if( treeData.value.length){
           let params = {
@@ -274,7 +274,7 @@
       })
      async  function upDateTree(){
         treeData.value = [];
-        let result = (await getDeptTreeList()) as unknown as TreeItem[];
+        let result = (await getAllDeptTreeList()) as unknown as TreeItem[];
         treeData.value =  formatTreeData(result)
       }
       function formatTreeData(list){
@@ -801,7 +801,7 @@
               { 
                 title:'组织',
                 type:'dept',
-                api:getMyDeptTreeList,
+                api:getAllDeptTreeList,
                 asyncTree:false,
                 fieldNames:{
                   children:'children',

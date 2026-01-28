@@ -486,7 +486,7 @@
             {
               title: '组织',
               type: 'dept',
-              api: getDeptNoCountTree,
+              api: getAllDeptTreeForSelect,
               asyncTree: true,
               asyncFieldNames: {
                 title: 'name',

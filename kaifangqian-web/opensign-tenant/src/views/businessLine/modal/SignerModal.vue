@@ -325,7 +325,7 @@
   import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
   import SealModal from './SealModal.vue';
   import { loadInitiatorSignerType } from '../typeToName';
-  import { getDeptNoCountTree } from '/@/api/sys/dept';
+  import { getDeptNoCountTree,getAllDeptTreeForSelect } from '/@/api/sys/dept';
   import { getRoleTreeList, getUserByRoleId } from '/@/api/sys/role';
   import { getUserList } from '/@/api/demo/system';
   import { getSealInfo, getSealUserList, getSealList } from '/@/api/contract';
@@ -517,7 +517,7 @@
               {
                 title: '根据组织选人',
                 type: 'deptUser',
-                api: getDeptNoCountTree,
+                api: getAllDeptTreeForSelect,
                 asyncTree: true,
                 asyncApi: getUserList,
                 asyncFieldNames: {

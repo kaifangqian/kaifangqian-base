@@ -456,7 +456,7 @@
   import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
   import { getRoleTreeList, getAllRoleTreeListForSelect, getUserByRoleId } from '/@/api/sys/role';
   import { getUserList } from '/@/api/demo/system';
-  import { getAllDeptTreeForSelect, getDeptNoCountTree } from '/@/api/sys/dept';
+  import { getAllDeptTreeForSelect, getDeptNoCountTree, getAllDeptTree } from '/@/api/sys/dept';
   import { Loading } from '/@/components/Loading';
   import type { UploadChangeParam, UploadProps } from 'ant-design-vue';
 
@@ -803,7 +803,7 @@
             {
               title: '组织',
               type: 'dept',
-              api: getDeptNoCountTree,
+              api: getAllDeptTree,
               asyncTree: true,
               asyncFieldNames: {
                 title: 'name',
