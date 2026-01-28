@@ -114,8 +114,13 @@ public class ContractDraftAndStartService extends ContractService {
             }
 
             Date operateTime = new Date();
-            //发起流程
-            iFlowService.complete(startRuId, RuFlowEnum.INITIATE_FLOW.getName());
+
+            try {
+                //发起流程
+                iFlowService.complete(startRuId, RuFlowEnum.INITIATE_FLOW.getName());
+            }catch (Exception e){
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,e.getMessage());
+            }
             //回调发起
             LoginUser currentUser = MySecurityUtils.getCurrentUser();
             ruCallbackService.callback(startRuId,null, SignCallbackTypeEnum.SEND_SIGNING);
