@@ -36,6 +36,12 @@ public interface SignServiceManageExternal {
      */
     SignServiceOpenInfoResponse querySilentInfo() throws Exception;
 
+    /**
+     * 查询静默签署服务开通情况
+     * @return
+     */
+    SignServiceOpenInfoResponse querySilentInfo(String tenantId) throws Exception;
+
 
     /**
      * 查询静默签署服务开通记录

@@ -45,6 +45,19 @@ public class AuthSignDocumentResponse implements Serializable {
     // @ApiModelProperty("签署状态1：成功；0：失败")
     private Integer status;
 
+    // @ApiModelProperty("签署类型")
+    private Integer signType;
+
+    /**
+     * 个人签署实名要求
+     */
+    private String personalSignAuth;
+
+    /**
+     * 签署认证类型
+     */
+    private Integer authType;
+
     // @ApiModelProperty("返回信息")
     private String resultMessage;
 }

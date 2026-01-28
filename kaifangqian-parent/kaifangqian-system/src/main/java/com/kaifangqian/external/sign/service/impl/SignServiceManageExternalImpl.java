@@ -96,14 +96,13 @@ public class SignServiceManageExternalImpl implements SignServiceManageExternal 
     @Autowired
     private ISysTenantUserService sysTenantUserService;
 
-
-
     @Override
     public SignServiceOpenInfoResponse querySilentInfo() throws Exception {
 
         LoginUser loginUser = MySecurityUtils.getCurrentUser();
 
         SignServiceOpenInfoResponse signServiceOpenInfoResponse = null;
+
 
         String uri = "/yundun/api/v1/sign/silent/service/info?unionId="+loginUser.getTenantId();
         String querySilentInfoUrl = yundunSilentGetInfoUrl+"?unionId="+loginUser.getTenantId();
@@ -133,6 +132,40 @@ public class SignServiceManageExternalImpl implements SignServiceManageExternal 
 
         return signServiceOpenInfoResponse;
 
+    }
+
+    @Override
+    public SignServiceOpenInfoResponse querySilentInfo(String tenantId) throws Exception {
+
+        SignServiceOpenInfoResponse signServiceOpenInfoResponse = null;
+
+        String uri = "/yundun/api/v1/sign/silent/service/info?unionId="+tenantId;
+        String querySilentInfoUrl = yundunSilentGetInfoUrl+"?unionId="+tenantId;
+
+        // 构建请求头
+        Map<String,String> headers = SignHeadersGenerator.generateSignHeaders(appId, null, uri, privateKey);
+
+        String returnJson = null ;
+        try {
+            returnJson = HttpUtils.executeGetMap(querySilentInfoUrl, null, headers);
+            log.info("Query silent info result: {}", returnJson);
+            CommonResult<SignServiceOpenInfoResponse> result = JSONObject.parseObject(returnJson, new TypeReference<CommonResult<SignServiceOpenInfoResponse>>() {});
+            if (result != null && result.getCode().equals(YundunApiCode.SUCCESS.getCode())) {
+                signServiceOpenInfoResponse = result.getResult();
+                if(result.getResult().getStatus() == null){
+                    signServiceOpenInfoResponse.setStatus(0);
+                }
+            } else if(result != null && result.getCode().equals(YundunApiCode.SIGN_NO_SUBJECT_FOUND.getCode())){
+                signServiceOpenInfoResponse = new SignServiceOpenInfoResponse();
+                signServiceOpenInfoResponse.setStatus(-1);
+                signServiceOpenInfoResponse.setResultMessage(result.getMessage());
+                log.error("Response: {}", returnJson);
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while querying silent info.", e);
+        }
+
+        return signServiceOpenInfoResponse;
     }
 
     @Override

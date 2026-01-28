@@ -38,6 +38,7 @@ import com.kaifangqian.modules.opensign.service.business.vo.YundunSignPositionDa
 import com.kaifangqian.modules.opensign.service.ru.SignRuDocService;
 import com.kaifangqian.modules.opensign.service.tool.pojo.RealPositionProperty;
 import com.kaifangqian.modules.opensign.utils.Base64;
+import com.kaifangqian.modules.opensign.vo.base.sign.PdfSignResult;
 import com.kaifangqian.pdfbox.AddExternalSignature;
 import com.kaifangqian.pdfbox.AssinaturaPDF2;
 import com.kaifangqian.pdfbox.vo.*;
@@ -94,12 +95,15 @@ public class PdfSignService {
      * @Param [pdfFile 文档, signByte 签章, certInfo 证书, positions 位置]
      * @return byte[]
      **/
-    public Map<String,byte[]> signWithYundunHash(PdfSignVoInfo pdfSignVoInfo){
+    public PdfSignResult signWithYundunHash(PdfSignVoInfo pdfSignVoInfo){
 //        log.info("开始签署了");
         //开始签署
         List<DocumentInfo> documentList = new ArrayList<>();
         VerifySignDocumentRequest verifySignDocumentRequest = null;
         AutoSignDocumentRequest autoSignDocumentRequest = null;
+
+        //签署返回信息
+        PdfSignResult pdfSignResult = new PdfSignResult();
 
         if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
             verifySignDocumentRequest = new VerifySignDocumentRequest();
@@ -111,6 +115,7 @@ public class PdfSignService {
             autoSignDocumentRequest.setContractName(pdfSignVoInfo.getSignRu().getSubject());
             autoSignDocumentRequest.setUnionId(pdfSignVoInfo.getCertHolderTenantId());
             autoSignDocumentRequest.setSeal(Base64.encode(pdfSignVoInfo.getEntSealByte()));
+            autoSignDocumentRequest.setBizId(pdfSignVoInfo.getTaskId());
             if(MyStringUtils.isNotBlank(pdfSignVoInfo.getPersonalSignAuthType()) && pdfSignVoInfo.getPersonalSignAuthType().equals(PersonalSignAuthTypeEnum.REQUIRED.getType())){
                 autoSignDocumentRequest.setPersonalSignAuth(PersonalSignAuthTypeEnum.REQUIRED.getType());
             }else if(MyStringUtils.isBlank(pdfSignVoInfo.getPersonalSignAuthType())){
@@ -219,6 +224,9 @@ public class PdfSignService {
         }
         try {
             List<DocumentInfo> yundunDocumentList = null;
+            Integer signType = null;
+            String personalSignAuth = null;
+            Integer authType = null;
             String responseMessage = null;
             if(pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTH_SIGN.getCode())){
                 // 构建云盾意愿校验签署返回数据
@@ -228,11 +236,22 @@ public class PdfSignService {
                 responseMessage = authSignDocumentResponse.getResultMessage();
                 yundunDocumentList = authSignDocumentResponse.getDocuments();
 
+                if (authSignDocumentResponse.getSignType() != null){
+                    signType = authSignDocumentResponse.getSignType();
+                    personalSignAuth = authSignDocumentResponse.getPersonalSignAuth();
+                    authType = authSignDocumentResponse.getAuthType();
+                }
+
             }else if (pdfSignVoInfo.getSignType().equals(SignTypeEnum.AUTO_SIGN.getCode())){
                 AutoSignDocumentResponse autoSignDocumentResponse = null;
                 autoSignDocumentResponse = signServiceExternal.submitAutoHashSign(autoSignDocumentRequest);
                 responseMessage = autoSignDocumentResponse.getResultMessage();
                 yundunDocumentList = autoSignDocumentResponse.getDocuments();
+                if (autoSignDocumentResponse.getSignType() != null){
+                    signType = autoSignDocumentResponse.getSignType();
+                    personalSignAuth = autoSignDocumentResponse.getPersonalSignAuth();
+                    pdfSignResult.setSignOrderNo(autoSignDocumentResponse.getSignOrderNo());
+                }
             }
             if(yundunDocumentList !=null && yundunDocumentList.size() > 0){
                 for(DocumentInfo documentInfoTemp : yundunDocumentList){
@@ -244,11 +263,16 @@ public class PdfSignService {
                 log.error("签署失败",responseMessage);
                 throw new PaasException(responseMessage);
             }
+            pdfSignResult.setFinalSignType(signType);
+            pdfSignResult.setPersonalSignAuth(personalSignAuth);
+            pdfSignResult.setAuthType(authType);
         } catch (Exception e) {
             log.error("签署失败",e);
             throw new PaasException(e.getMessage());
         }
+
+        pdfSignResult.setNewDocFileByteMap(pdfSignVoInfo.getNewDocFileByteMap());
 //        log.info("签署完成了");
-        return pdfSignVoInfo.getNewDocFileByteMap() ;
+        return pdfSignResult ;
     }
 }

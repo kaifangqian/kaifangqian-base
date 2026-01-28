@@ -52,4 +52,7 @@ public class AutoSignDocumentRequest implements Serializable {
 
     // @ApiModelProperty("个人签署认证类型")
     private String personalSignAuth;
+
+    // @ApiModelProperty("签署任务ID")
+    private String bizId;
 }
