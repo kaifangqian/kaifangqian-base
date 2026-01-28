@@ -188,7 +188,7 @@
   import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
   import { getRoleTreeList, getUserByRoleId } from '/@/api/sys/role';
   import { getUserList } from '/@/api/demo/system';
-  import { getAllDeptTreeForSelect, getDeptNoCountTree } from '/@/api/sys/dept';
+  import { getAllDeptTreeForSelect, getDeptNoCountTree, getAllDeptTree } from '/@/api/sys/dept';
 
   export default defineComponent({
     name: 'sealCreated',
@@ -291,7 +291,7 @@
             {
               title: '组织',
               type: 'dept',
-              api: getDeptNoCountTree,
+              api: getAllDeptTree,
               asyncTree: true,
               asyncFieldNames: {
                 title: 'name',

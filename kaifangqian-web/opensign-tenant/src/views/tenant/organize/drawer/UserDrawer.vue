@@ -336,9 +336,9 @@
 
       function setArrayItemProperty(list) {
         list.map(item=>{
-          if(!item.oprateFlag){
-            item.disabled = true;
-          }
+          // if(!item.oprateFlag){
+          //   item.disabled = true;
+          // }
           if(item.children){
             setArrayItemProperty(item.children)
           }

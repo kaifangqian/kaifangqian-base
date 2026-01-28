@@ -169,7 +169,7 @@
   import { Icon, SvgIcon } from '/@/components/Icon';
   import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
   import { useModal } from '/@/components/Modal';
-  import { getDeptNoCountTree } from '/@/api/sys/dept';
+  import { getDeptNoCountTree, getAllDeptTreeForSelect } from '/@/api/sys/dept';
   import { getUserList } from '/@/api/demo/system';
   import { setBusinessLineAuth, getBusinessLineAuth } from '/@/api/businessLine';
   import { useRouter } from 'vue-router';
@@ -276,7 +276,7 @@
             {
               title: '根据组织选人',
               type: 'deptUser',
-              api: getDeptNoCountTree,
+              api: getAllDeptTreeForSelect,
               asyncTree: true,
               asyncApi: getUserList,
               asyncFieldNames: {

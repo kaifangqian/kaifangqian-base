@@ -25,6 +25,7 @@
     <!-- <BasicTable @register="registerTable" @fetch-success="onFetchSuccess" @row-click="onRowClick" @expand="handleExpand"
     :rowSelection="{ type: 'checkbox', selectedRowKeys: checkedKeys, onChange: onSelectChange }"> -->
     <BasicTable
+      :defaultExpandAll="true"
       @register="registerTable"
       @fetch-success="onFetchSuccess"
       @row-click="onRowClick"
@@ -74,7 +75,7 @@
   import TabTreeModal from './modal/TabTreeModal.vue';
   import { getUserList } from '/@/api/demo/system'; 
   // import { getRoleTreeList, getUserByRoleId } from '/@/api/sys/role'; 
-  import { editDept, getDeptLevel } from '/@/api/sys/dept';
+  import { editDept, getDeptLevel, getDeptList } from '/@/api/sys/dept';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { usePermission } from '/@/hooks/web/usePermission';
 
@@ -91,7 +92,7 @@
       const [registerDeptBatchDrawer, { openDrawer:openDeptBatchDrawer }] = useDrawer();
       const [registerTable, { reload }] = useTable({
         title: '',
-        api: getDeptLevel,
+        api: getDeptList,
         columns:deptColumns,
         isTreeTable: true,
         pagination: true,
@@ -265,7 +266,7 @@
       }
       async function handleExpand(expanded, record) {
         if (!expanded) return;
-        let result = await getDeptLevel({ id: record.id });
+        let result = await getDeptList({ id: record.id });
         if (result) {
           result.forEach((item) => {
             item.children = item.childCount > 0 ? [] : null;

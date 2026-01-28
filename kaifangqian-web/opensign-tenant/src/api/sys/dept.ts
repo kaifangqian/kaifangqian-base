@@ -37,6 +37,7 @@ enum Api {
   DeptTree = '/sys/sysDepart/queryTreeList',
   DeptNoCountTree = '/sys/sysDepart/queryMyDeptTreeConcise',
   DeptLevelList = '/sys/sysDepart/queryMyList',
+  DeptList = '/sys/sysDepart/queryList',
   DeptEdit = '/sys/sysDepart/edit',
   DeptManagerList = '/sys/sysDepart/queryManagerById',
   DeptMyTreeList = '/sys/sysDepart/queryMyDeptTreeList',
@@ -100,6 +101,13 @@ export function getAllDeptTree() {
  */
 export function getDeptLevel(params) {
   return defHttp.get({ url: Api.DeptLevelList,params });
+}
+
+/**
+ * @description: 分层查询所有部门数据
+ */
+export function getDeptList(params?: {}) {
+  return defHttp.get({ url: Api.DeptList,params });
 }
 
 /**

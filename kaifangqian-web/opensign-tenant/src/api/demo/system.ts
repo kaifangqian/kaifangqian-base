@@ -42,11 +42,12 @@ import { defHttp } from '/@/utils/http/axios';
 enum Api {
   AccountList = '/system/getAccountList',
   IsAccountExist = '/system/accountExist',
-  
+
   DeptLevelList = '/sys/sysDepart/queryList',
   DeptMyWidthCountList = '/sys/sysDepart/queryMyDeptTreeList',
-  DeptUserList = '/sys/sysDepart/getUsersByDepartId',   
-  DepartUserList  = '/sys/sysDepart/getUserListByDepartId',
+  DeptAllWidthCountList = '/sys/sysDepart/queryTreeList',
+  DeptUserList = '/sys/sysDepart/getUsersByDepartId',
+  DepartUserList = '/sys/sysDepart/getUserListByDepartId',
 
   DeptMyByKeyword = '/sys/sysDepart/searchMyBy',
   RoleMyByKeyword = '/sys/role/searchMyBy',
@@ -86,6 +87,9 @@ export const getAccountList = (params: AccountParams) =>
 
 export const getDeptTreeList = (params?: DeptListItem) =>
   defHttp.get({ url: Api.DeptMyWidthCountList, params });
+
+export const getAllDeptTreeList = (params?: DeptListItem) =>
+  defHttp.get({ url: Api.DeptAllWidthCountList, params });
 
 export const getDeptLevelList = (params?: DeptListItem) =>
   defHttp.get<DeptListGetResultModel>({ url: Api.DeptLevelList, params });
