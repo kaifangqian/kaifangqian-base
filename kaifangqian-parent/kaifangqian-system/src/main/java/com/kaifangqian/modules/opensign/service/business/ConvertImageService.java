@@ -193,8 +193,15 @@ public class ConvertImageService {
             for (int i = 0; i < pageCount; ++i) {
                 int page = i ;
                 BufferedImage image = renderer.renderImageWithDPI(page, resolution);
+
+                // 根据图片大小选择合适的格式
+                int imageBytes = image.getWidth() * image.getHeight() * 4; // 预估原始数据大小
+                String imageFormat = imageBytes > 1024 * 1024 ? IMG_JPE : IMG_PNG; // 如果预估超过1MB则使用JPG格式
                 ByteArrayOutputStream stream =  new ByteArrayOutputStream();
-                ImageIO.write(image, IMG_PNG, stream);
+                ImageIO.write(image, imageFormat, stream);
+
+//                ByteArrayOutputStream stream =  new ByteArrayOutputStream();
+//                ImageIO.write(image, IMG_PNG, stream);
                 byte[] bytes = stream.toByteArray();
                 if(bytes != null){
 
