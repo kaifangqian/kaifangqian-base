@@ -2592,7 +2592,7 @@ public class RuBusinessService {
             // 执行签署
             PdfSignResult pdfSignResult = pdfSignService.signWithYundunHash(pdfSignVoInfo);
 
-            if (pdfSignResult == null && MyStringUtils.isNotBlank(pdfSignResult.getSignOrderNo()) && pdfSignResult.getFinalSignType() == SignConsumeTypeEnum.AUTO_SIGN.getCode()){
+            if (pdfSignResult != null && MyStringUtils.isNotBlank(pdfSignResult.getSignOrderNo()) && pdfSignResult.getFinalSignType() == SignConsumeTypeEnum.AUTO_SIGN.getCode()){
                 if(signRuTask != null){
                     signRuTask.setOrderNo(pdfSignResult.getSignOrderNo());
                     ruTaskService.updateById(signRuTask);
