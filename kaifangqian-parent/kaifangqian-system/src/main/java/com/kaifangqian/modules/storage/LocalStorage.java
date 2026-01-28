@@ -65,7 +65,11 @@ public class LocalStorage implements Storage {
     @Override
     public boolean store(InputStream inputStream, long contentLength, String contentType, String keyName) {
         try {
-            Files.copy(inputStream, rootLocation.resolve(keyName), StandardCopyOption.REPLACE_EXISTING);
+            Path targetPath = rootLocation.resolve(keyName);
+            if(!Files.exists(targetPath)){
+                Files.createDirectories(targetPath);
+            }
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return true;
         } catch (IOException e) {
             log.error(e.getMessage(), e);

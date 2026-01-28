@@ -115,6 +115,7 @@ public class SignFileController {
         String fileNameNoExt = MyFileUtil.getFileNameNoEx(file.getOriginalFilename());
 //        String type = MyFileUtil.getFileType(suffix);
         String path = UUID.randomUUID().toString() + ".pdf";
+        path = storageService.buildPrefixPath(path);
         try {
             byte[] fileByte = IOUtils.stream2Byte(file.getInputStream());
 

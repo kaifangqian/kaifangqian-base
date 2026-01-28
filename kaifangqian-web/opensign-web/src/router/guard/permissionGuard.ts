@@ -51,8 +51,19 @@ const TRANSITION_PATH = PageEnum.TRANSITION_PATH;
 
 const ROOT_PATH = RootRoute.path;
 
-const whitePathList: PageEnum[] = [TRANSITION_PATH, LOGIN_PATH, AUTH_LOGIN, JOIN_PATH, CONTRACT_BASE_PATH, REGISTER_PATH, TERM_SERVICE, PRICACY_POLICY,PageEnum.WISHCHECK,PageEnum.YD_CALLBACKPAGE];
-
+const whitePathList: PageEnum[] = [
+  TRANSITION_PATH,
+  LOGIN_PATH,
+  AUTH_LOGIN,
+  JOIN_PATH,
+  CONTRACT_BASE_PATH,
+  REGISTER_PATH,
+  TERM_SERVICE,
+  PRICACY_POLICY,
+  PageEnum.WISHCHECK,
+  PageEnum.YD_CALLBACKPAGE,
+];
+const authCheckPathList: PageEnum[] = [PageEnum.CONTRACT_SIGN];
 
 const userStore = useUserStoreWithOut();
 const appToken = getHashQueryString('token');
@@ -60,7 +71,7 @@ const appId = getHashQueryString('appId');
 
 //工作台单独存下应用token
 if (appToken) {
-    userStore.setToken(appToken);
+  userStore.setToken(appToken);
 }
 // if(loginToken){
 //   userStore.setLoginToken(loginToken);
@@ -68,140 +79,151 @@ if (appToken) {
 
 const shareToken = getHashQueryString('token');
 if (shareToken) {
-    userStore.setToken(shareToken)
+  userStore.setToken(shareToken);
 }
 
 export function createPermissionGuard(router: Router) {
-    const permissionStore = usePermissionStoreWithOut();
+  const permissionStore = usePermissionStoreWithOut();
 
-    // console.log('路由拦截开始', (userStore.getToken))
+  // console.log('路由拦截开始', (userStore.getToken))
 
-
-
-    if (window.eventCenterForAppNameVite) {
-        // 主动获取基座下发的数据
-        let defaultData = window.eventCenterForAppNameVite.getData();
-        if (defaultData && !(userStore.getToken)) {
-            userStore.setToken(defaultData.token);
-        }
-        // console.log(userStore.getToken, '获取的新token')
+  if (window.eventCenterForAppNameVite) {
+    // 主动获取基座下发的数据
+    let defaultData = window.eventCenterForAppNameVite.getData();
+    if (defaultData && !userStore.getToken) {
+      userStore.setToken(defaultData.token);
     }
-    router.beforeEach(async (to, from, next) => {
-      
-        //获取网站配
-        await userStore.buildWebConfig();
-        // userStore.getWebConfig;
-      
-        if (
-            from.path === ROOT_PATH &&
-            to.path === PageEnum.BASE_HOME &&
-            userStore.getUserInfo.homePath &&
-            userStore.getUserInfo.homePath !== PageEnum.BASE_HOME
-        ) {
-            next(userStore.getUserInfo.homePath);
+    // console.log(userStore.getToken, '获取的新token')
+  }
+  router.beforeEach(async (to, from, next) => {
+    //获取网站配
+    await userStore.buildWebConfig();
+    // userStore.getWebConfig;
+
+    if (
+      from.path === ROOT_PATH &&
+      to.path === PageEnum.BASE_HOME &&
+      userStore.getUserInfo.homePath &&
+      userStore.getUserInfo.homePath !== PageEnum.BASE_HOME
+    ) {
+      next(userStore.getUserInfo.homePath);
+      return;
+    }
+
+    // if (to.meta.title !== undefined && to.meta.title === from.meta.title) {
+    //   next(`/redirect${to.path}`);
+    // } else {
+    //   next();
+    // }
+
+    const token = userStore.getToken;
+
+    // Whitelist can be directly entered
+    // console.log(whitePathList.includes(to.path as PageEnum), to.path, whitePathList, '白名单')
+    if (whitePathList.includes(to.path as PageEnum)) {
+      if (to.path === LOGIN_PATH && token) {
+        const isSessionTimeout = userStore.getSessionTimeout;
+        try {
+          await userStore.afterLoginAction();
+          if (!isSessionTimeout) {
+            next((to.query?.redirect as string) || '/');
             return;
-        }
+          }
+        } catch {}
+      }
+      next();
+      return;
+    }
 
-        // if (to.meta.title !== undefined && to.meta.title === from.meta.title) {
-        //   next(`/redirect${to.path}`);
-        // } else {
-        //   next();
-        // }
+    // token does not exist
+    if (!token && !window.eventCenterForAppNameVite) {
+      // You can access without permission. You need to set the routing meta.ignoreAuth to true
+      if (to.meta.ignoreAuth) {
+        next();
+        return;
+      }
 
+      // redirect login page
+      const redirectData: { path: string; replace: boolean; query?: Recordable<string> } = {
+        path: LOGIN_PATH,
+        replace: true,
+      };
+      if (to.path) {
+        redirectData.query = {
+          ...redirectData.query,
+          // redirect: to.path,
+        };
+      }
+      next(redirectData);
+      return;
+    }
 
-        const token = userStore.getToken;
+    // Jump to the 404 page after processing the login
+    if (
+      from.path === LOGIN_PATH &&
+      to.name === PAGE_NOT_FOUND_ROUTE.name &&
+      to.fullPath !== (userStore.getUserInfo.homePath || PageEnum.BASE_HOME)
+    ) {
+      next(userStore.getUserInfo.homePath || PageEnum.BASE_HOME);
+      return;
+    }
+    // get userinfo while last fetch time is empty
+    if (userStore.getLastUpdateTime === 0) {
+      try {
+        // console.log('请求用户信息----')
+        await userStore.getUserInfoAction();
+        await userStore.getTnantInfo();
+      } catch (err) {
+        next();
+        return;
+      }
+    }
 
-
-        // Whitelist can be directly entered
-        // console.log(whitePathList.includes(to.path as PageEnum), to.path, whitePathList, '白名单')
-        if (whitePathList.includes(to.path as PageEnum)) {
-            if (to.path === LOGIN_PATH && token) {
-                const isSessionTimeout = userStore.getSessionTimeout;
-                try {
-                    await userStore.afterLoginAction();
-                    if (!isSessionTimeout) {
-                        next((to.query?.redirect as string) || '/');
-                        return;
-                    }
-                } catch { }
-            }
-            next();
-            return;
-        }
-
-        // token does not exist
-        if (!token && !window.eventCenterForAppNameVite) {
-            // You can access without permission. You need to set the routing meta.ignoreAuth to true
-            if (to.meta.ignoreAuth) {
-                next();
-                return;
-            }
-
-            // redirect login page
-            const redirectData: { path: string; replace: boolean; query?: Recordable<string> } = {
-                path: LOGIN_PATH,
-                replace: true,
-            };
-            if (to.path) {
-                redirectData.query = {
-                    ...redirectData.query,
-                    // redirect: to.path,  
-                };
-            }
-            next(redirectData);
-            return;
-        }
-
-        // Jump to the 404 page after processing the login
-        if (
-            from.path === LOGIN_PATH &&
-            to.name === PAGE_NOT_FOUND_ROUTE.name &&
-            to.fullPath !== (userStore.getUserInfo.homePath || PageEnum.BASE_HOME)
-        ) {
-            next(userStore.getUserInfo.homePath || PageEnum.BASE_HOME);
-            return;
-        }
-        // get userinfo while last fetch time is empty
-        if (userStore.getLastUpdateTime === 0) {
-            try {
-                // console.log('请求用户信息----')
-                await userStore.getUserInfoAction();
-                await userStore.getTnantInfo();
-            } catch (err) {
-                next();
-                return;
-            }
-        }
-
-        if (permissionStore.getIsDynamicAddedRoute) {
-            next();
-            return;
-        }
-
-        const routes = await permissionStore.buildRoutesAction();
-        // console.log('请求接口路由---')
-
-        routes.forEach((route) => {
-            router.addRoute(route as unknown as RouteRecordRaw);
-        });
-        // console.log(routes, '最终渲染路由---')
-        router.addRoute(PAGE_NOT_FOUND_ROUTE as unknown as RouteRecordRaw);
-
-        permissionStore.setDynamicAddedRoute(true);
-
-        if (to.name === PAGE_NOT_FOUND_ROUTE.name) {
-            // 动态添加路由后，此处应当重定向到fullPath，否则会加载404页面内容
-            if (window.eventCenterForAppNameVite) {
-                next({ path: to.fullPath, replace: true, query: to.query });
-            } else {
-                next({ path: to.fullPath, replace: true, query: to.query });
-            }
-
+    if (permissionStore.getIsDynamicAddedRoute) {
+      if (authCheckPathList.includes(to.path as PageEnum)) {
+        // 如果去改页面需要实名认证的话，就需要跳转实名认证中转页面
+        // userStore.getUserInfo
+        if (userStore.getTenantInfo.tenantType == 1 && userStore.getTenantInfo.authStatus != 2) {
+          const redirect = encodeURIComponent(to.path);
+          next({
+            path: '/check/auth',
+            replace: true,
+            query: {
+              ...to.query,
+              redirect: redirect,
+            },
+          });
         } else {
-            const redirectPath = (from.query.redirect || to.path) as string;
-            const redirect = decodeURIComponent(redirectPath);
-            const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect };
-            next(nextData);
+          next();
         }
+      }
+      next();
+      return;
+    }
+
+    const routes = await permissionStore.buildRoutesAction();
+    // console.log('请求接口路由---')
+
+    routes.forEach((route) => {
+      router.addRoute(route as unknown as RouteRecordRaw);
     });
+    // console.log(routes, '最终渲染路由---')
+    router.addRoute(PAGE_NOT_FOUND_ROUTE as unknown as RouteRecordRaw);
+
+    permissionStore.setDynamicAddedRoute(true);
+
+    if (to.name === PAGE_NOT_FOUND_ROUTE.name) {
+      // 动态添加路由后，此处应当重定向到fullPath，否则会加载404页面内容
+      if (window.eventCenterForAppNameVite) {
+        next({ path: to.fullPath, replace: true, query: to.query });
+      } else {
+        next({ path: to.fullPath, replace: true, query: to.query });
+      }
+    } else {
+      const redirectPath = (from.query.redirect || to.path) as string;
+      const redirect = decodeURIComponent(redirectPath);
+      const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect };
+      next(nextData);
+    }
+  });
 }

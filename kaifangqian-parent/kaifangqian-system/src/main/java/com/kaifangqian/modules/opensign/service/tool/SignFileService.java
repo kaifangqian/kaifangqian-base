@@ -170,6 +170,7 @@ public class SignFileService {
     public String  saveAnnexStorage(byte[] fileByte,SignFileEnum signFileEnum,String fatherId,String realName){
         //设定文件名称
         String path = UUID.randomUUID().toString() + "." + signFileEnum.getSuffix();
+        path = storageService.buildPrefixPath(path);
         InputStream inputStream = new ByteArrayInputStream(fileByte);
         //存储文件
         boolean result = storageService.store(inputStream, fileByte.length, signFileEnum.getSuffix(), path);
@@ -216,6 +217,7 @@ public class SignFileService {
     public String  saveAnnexStorage(byte[] fileByte,SignFileEnum signFileEnum,String fatherId){
         //设定文件名称
         String path = UUID.randomUUID().toString() + "." + signFileEnum.getSuffix();
+        path = storageService.buildPrefixPath(path);
         InputStream inputStream = new ByteArrayInputStream(fileByte);
         //存储文件
         boolean result = storageService.store(inputStream, fileByte.length, signFileEnum.getSuffix(), path);
@@ -261,6 +263,7 @@ public class SignFileService {
     public String  saveAnnexStorage(byte[] fileByte,String fileName,String fileSuffix ,SignFileEnum signFileEnum){
         //设定文件名称
         String path = UUID.randomUUID().toString();
+        path = storageService.buildPrefixPath(path);
         if(fileSuffix.contains(".")){
             path = path + fileSuffix ;
         }else {

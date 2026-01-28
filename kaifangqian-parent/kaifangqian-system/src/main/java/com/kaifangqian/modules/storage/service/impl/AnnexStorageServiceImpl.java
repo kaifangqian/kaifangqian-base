@@ -64,6 +64,7 @@ public class AnnexStorageServiceImpl extends ServiceImpl<AnnexStorageMapper, Ann
         String suffix = MyFileUtil.getExtensionName(file.getOriginalFilename());
         String type = MyFileUtil.getFileType(suffix);
         String path = UUID.randomUUID().toString() + "." + suffix;
+        path = storageService.buildPrefixPath(path);
         try {
             boolean result = storageService.store(file.getInputStream(), file.getSize(), file.getContentType(), path);
             if (!result) {
@@ -112,6 +113,7 @@ public class AnnexStorageServiceImpl extends ServiceImpl<AnnexStorageMapper, Ann
         String suffix = MyFileUtil.getExtensionName(originalFilename);
         String type = MyFileUtil.getFileType(suffix);
         String path = UUID.randomUUID().toString() + "." + suffix;
+        path = storageService.buildPrefixPath(path);
         try {
             boolean result = storageService.store(IOUtils.byte2InputStream(file), 0, null, path);
             if (!result) {
@@ -148,6 +150,7 @@ public class AnnexStorageServiceImpl extends ServiceImpl<AnnexStorageMapper, Ann
         String suffix = MyFileUtil.getExtensionName(originalFilename);
         String type = MyFileUtil.getFileType(suffix);
         String path = UUID.randomUUID().toString() + "." + suffix;
+        path = storageService.buildPrefixPath(path);
         AnnexStorage annexStorage = new AnnexStorage();
         try {
             boolean result = storageService.store(inputStream, 0, null, path);

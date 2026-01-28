@@ -48,5 +48,7 @@ export enum PageEnum {
  // transition
   TRANSITION_PATH = '/transition',
   WISHCHECK = '/wishCheck',
-  YD_CALLBACKPAGE = '/callbackpage'
+  YD_CALLBACKPAGE = '/callbackpage',
+
+  CONTRACT_SIGN = '/contract/sign'
 }
