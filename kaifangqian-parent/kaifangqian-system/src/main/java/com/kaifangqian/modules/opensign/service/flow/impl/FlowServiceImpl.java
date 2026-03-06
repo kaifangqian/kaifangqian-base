@@ -493,6 +493,13 @@ public class FlowServiceImpl extends SignServiceImpl implements IFlowService {
         task.setTenantId(loginUser.getTenantId());
         task.setTaskLinkType("system");
 
+        if (MyStringUtils.isNotBlank(loginUser.getPhone())) {
+            task.setPhone(loginUser.getPhone());
+        }
+        if (MyStringUtils.isNotBlank(loginUser.getEmail())) {
+            task.setEmail(loginUser.getEmail());
+        }
+
         task.setCompleteUserId(loginUser.getId());
         task.setCompleteTenantId(loginUser.getTenantId());
         task.setCompleteTenantUserId(loginUser.getTenantUserId());

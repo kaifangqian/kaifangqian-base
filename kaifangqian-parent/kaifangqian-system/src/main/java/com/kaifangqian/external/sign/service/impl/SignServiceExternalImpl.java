@@ -23,6 +23,7 @@ package com.kaifangqian.external.sign.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.kaifangqian.exception.PaasException;
 import com.kaifangqian.external.base.CommonResult;
 import com.kaifangqian.modules.api.util.SignHeadersGenerator;
 import com.kaifangqian.modules.cert.service.HttpUtils;
@@ -342,12 +343,19 @@ public class SignServiceExternalImpl implements SignServiceExternal {
             }else if(result.getCode().equals(YundunApiCode.SIGNER_NO_AUTH.getCode())){
                 signOrderServiceInfoResponse.setStatus(1);
                 signOrderServiceInfoResponse.setResultMessage(result.getMessage());
+                throw new PaasException(result.getMessage());
             }else if(result.getCode().equals(YundunApiCode.SIGN_UNION_ID_MISMATCH.getCode())){
                 signOrderServiceInfoResponse.setStatus(1);
                 signOrderServiceInfoResponse.setResultMessage(result.getMessage());
+                throw new PaasException(result.getMessage());
             }else if(result.getCode().equals(YundunApiCode.SIGN_NO_SUBJECT_FOUND.getCode())){
                 signOrderServiceInfoResponse.setStatus(1);
                 signOrderServiceInfoResponse.setResultMessage(result.getMessage());
+                throw new PaasException(result.getMessage());
+            }else {
+                signOrderServiceInfoResponse.setStatus(1);
+                signOrderServiceInfoResponse.setResultMessage(result.getMessage());
+                throw new PaasException(result.getMessage());
             }
 
         }
