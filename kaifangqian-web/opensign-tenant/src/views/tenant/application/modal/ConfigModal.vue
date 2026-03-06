@@ -56,7 +56,7 @@
   import { defineComponent,ref,unref  } from 'vue';
   import { BasicModal, useModalInner, useModal } from '/@/components/Modal';
   import { updateAppStatus, updateAppUseful, getApplicationInfo } from '/@/api/tenant';
-  import { getDeptNoCountTree } from '/@/api/sys/dept'; 
+  import { getDeptNoCountTree,getAllDeptTreeForSelect } from '/@/api/sys/dept';
   import { getUserList } from '/@/api/demo/system'; 
   import TabTreeModal from '../../organize/modal/TabTreeModal.vue';
   // import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
@@ -201,7 +201,7 @@
                   { 
                     title:'根据组织选人',
                     type:'deptUser',
-                    api:getDeptNoCountTree,
+                    api:getAllDeptTreeForSelect,
                     asyncTree:true,
                     asyncApi:getUserList,
                     asyncFieldNames:{

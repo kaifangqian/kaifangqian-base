@@ -31,6 +31,7 @@ import com.kaifangqian.external.sign.response.SignAppInfoResponse;
 import com.kaifangqian.external.sign.response.SignServiceOpenInfoResponse;
 import com.kaifangqian.external.sign.service.SignServiceExternal;
 import com.kaifangqian.external.sign.service.SignServiceManageExternal;
+import com.kaifangqian.modules.account.enums.SignConsumeTypeEnum;
 import com.kaifangqian.modules.api.exception.RequestParamsException;
 import com.kaifangqian.modules.cert.enums.CertHolderTypeEnum;
 import com.kaifangqian.modules.cert.enums.CertTypeEnum;
@@ -1936,7 +1937,7 @@ public class RuBusinessService {
 //                throw new PaasException("业务线实例-企业证书不存在");
 //            }
 //        }
-        //操作记录
+
         SignRuOperateRecord operateRecord = null ;
         if(signRu.getCaSignType() == SignRuCaSignTypeEnum.CA.getCode() || signRu.getCaSignType() == SignRuCaSignTypeEnum.SYSTEM_CA.getCode()){
             operateRecord = new SignRuOperateRecord();
@@ -1953,7 +1954,7 @@ public class RuBusinessService {
         }
 
         try {
-            SignServiceOpenInfoResponse signServiceOpenInfoResponse = signServiceManageExternal.querySilentInfo();
+            SignServiceOpenInfoResponse signServiceOpenInfoResponse = signServiceManageExternal.querySilentInfo(entSeal.getSysTenantId());
             if(signServiceOpenInfoResponse.getStatus() == 0){
                 throw new PaasException("发起方企业未开通静默签署授权，或静默授权已到期，导致签署流程异常，请联系发起方企业。");
             }
@@ -1961,9 +1962,7 @@ public class RuBusinessService {
             throw new RuntimeException(e);
         }
 
-        //签署操作
-        operate(docControlList,signRu,operateTypeEnum,signRu.getSysTenantId(),entSealByte,operateRecord, SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuthType);
-
+        SignRuTask ruTask = null ;
         QueryWrapper<SignRuTask> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(SignRuTask::getSignRuId,signRu.getId());
         wrapper.lambda().eq(SignRuTask::getUserTaskId,sender.getId());
@@ -1971,10 +1970,31 @@ public class RuBusinessService {
         wrapper.lambda().orderByDesc(BaseEntity::getCreateTime);
         List<SignRuTask> taskList = ruTaskService.list(wrapper);
         if(taskList != null && taskList.size() > 0){
-            SignRuTask ruTask = taskList.get(0);
-            if(ruTask != null){
-                ruCallbackService.callback(signRu.getId(),ruTask.getId(),SignCallbackTypeEnum.SUBMIT_SIGN);
-            }
+            ruTask = taskList.get(0);
+        }
+
+        if (operateRecord != null){
+            operateRecord.setTaskId(ruTask.getId());
+        }
+
+        //签署操作
+        operate(docControlList,signRu,operateTypeEnum,signRu.getSysTenantId(),entSealByte,operateRecord, SignTypeEnum.AUTO_SIGN.getCode(),personalSignAuthType);
+
+//        QueryWrapper<SignRuTask> wrapper = new QueryWrapper<>();
+//        wrapper.lambda().eq(SignRuTask::getSignRuId,signRu.getId());
+//        wrapper.lambda().eq(SignRuTask::getUserTaskId,sender.getId());
+//        wrapper.lambda().eq(BaseEntity::getDeleteFlag,false);
+//        wrapper.lambda().orderByDesc(BaseEntity::getCreateTime);
+//        List<SignRuTask> taskList = ruTaskService.list(wrapper);
+//        if(taskList != null && taskList.size() > 0){
+//            SignRuTask ruTask = taskList.get(0);
+//            if(ruTask != null){
+//                ruCallbackService.callback(signRu.getId(),ruTask.getId(),SignCallbackTypeEnum.SUBMIT_SIGN);
+//            }
+//        }
+
+        if(ruTask != null){
+            ruCallbackService.callback(signRu.getId(),ruTask.getId(),SignCallbackTypeEnum.SUBMIT_SIGN);
         }
 
     }
@@ -2567,9 +2587,19 @@ public class RuBusinessService {
             pdfSignVoInfo.setYundunSignPositionArrayDatas(yundunSignPositionArrayDatas);
             pdfSignVoInfo.setSignType(signType);
             pdfSignVoInfo.setPersonalSignAuthType(personalSignAuthType);
+            pdfSignVoInfo.setTaskId(signRuTask.getId());
 
             // 执行签署
-            newDocFileByteMap = pdfSignService.signWithYundunHash(pdfSignVoInfo);
+            PdfSignResult pdfSignResult = pdfSignService.signWithYundunHash(pdfSignVoInfo);
+
+            if (pdfSignResult != null && MyStringUtils.isNotBlank(pdfSignResult.getSignOrderNo()) && pdfSignResult.getFinalSignType() == SignConsumeTypeEnum.AUTO_SIGN.getCode()){
+                if(signRuTask != null){
+                    signRuTask.setOrderNo(pdfSignResult.getSignOrderNo());
+                    ruTaskService.updateById(signRuTask);
+                }
+            }
+
+            newDocFileByteMap = pdfSignResult.getNewDocFileByteMap();
 
             if(newDocFileByteMap.size() == 0 || docOperateMap.size() == 0){
                 //签署失败回调
@@ -2595,6 +2625,20 @@ public class RuBusinessService {
             if(operateRecord != null){
                 String imageAnnexId = signFileService.saveAnnexStorage(entSealByte, SignFileEnum.SIGN_FILE_IMAGE, null);
                 operateRecord.setImageAnnexId(imageAnnexId);
+            }
+
+            if(operateRecord != null){
+                String imageAnnexId = signFileService.saveAnnexStorage(entSealByte, SignFileEnum.SIGN_FILE_IMAGE, null);
+                operateRecord.setImageAnnexId(imageAnnexId);
+                //获取最终签署类型,存储至签署记录表中
+                SignConsumeTypeEnum signConsumeTypeEnum = SignConsumeTypeEnum.matchSignDesc(pdfSignResult.getAuthType());
+                if (MyStringUtils.isNotBlank(pdfSignResult.getPersonalSignAuth())){
+                    PersonalSignAuthTypeEnum authType = PersonalSignAuthTypeEnum.getByType(pdfSignResult.getPersonalSignAuth());
+                    operateRecord.setOperateReason(authType.getName() + " : " +signConsumeTypeEnum.getDesc());
+                }else{
+                    operateRecord.setOperateReason(PersonalSignAuthTypeEnum.REQUIRED + " : " +signConsumeTypeEnum.getDesc());
+                }
+
             }
             //保存最新签约文件及转图片等业务
             saveSignNewOperateFile(newDocFileByteMap,docOperateMap,operateRecord);

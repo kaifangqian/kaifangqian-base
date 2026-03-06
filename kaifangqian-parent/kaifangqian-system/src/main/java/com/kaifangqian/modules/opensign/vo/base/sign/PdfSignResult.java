@@ -1,5 +1,5 @@
 /**
- * @description 静默签署响应对象
+ * @description 文档详情数据对象
  *
  * Copyright (C) [2025] [版权所有者（北京资源律动科技有限公司）]. All rights reserved.
  *
@@ -19,38 +19,47 @@
  * 注意：本代码基于 AGPLv3 协议发布。若通过网络提供服务（如 Web 应用），
  * 必须公开修改后的完整源代码（包括衍生作品），详见协议全文。
  */
-package com.kaifangqian.external.sign.response;
+package com.kaifangqian.modules.opensign.vo.base.sign;
 
-import com.kaifangqian.external.sign.request.DocumentInfo;
-// import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
 
 /**
- * @author : yxb
- * create at: 2025/6/6
+ * @Description: DocInfo
+ * @Package: com.kaifangqian.modules.opensign.vo.base
+ * @ClassName: DocInfo
+ * @author: FengLai_Gong
  */
 @Data
-public class AutoSignDocumentResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
+// @ApiModel("文档详情数据对象")
+public class PdfSignResult implements Serializable {
 
-    // @ApiModelProperty("文档列表")
-    private List<DocumentInfo> documents;
+    private static final long serialVersionUID = -4829924328211608565L;
 
-    // @ApiModelProperty("签署类型")
-    private Integer signType;
+    /**
+     * 新文档文件字节映射
+     */
+    private Map<String, byte[]> newDocFileByteMap;
+    /**
+     * 最终签署类型
+     */
+    private Integer finalSignType;
 
-    // @ApiModelProperty("签署状态1：成功；2失败")
-    private Integer status;
-
-    // @ApiModelProperty("个人签署实名授权类型")
+    /**
+     * 个人签署实名要求
+     */
     private String personalSignAuth;
 
-    // @ApiModelProperty("返回信息")
-    private String resultMessage;
+    /**
+     * 签署认证类型
+     */
+    private Integer authType;
 
-    // @ApiModelProperty("签署订单号")
+    /**
+     * 签署订单号
+     */
     private String signOrderNo;
+
 }

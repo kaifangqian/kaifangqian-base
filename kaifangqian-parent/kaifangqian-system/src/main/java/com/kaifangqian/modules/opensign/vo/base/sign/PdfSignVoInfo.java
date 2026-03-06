@@ -89,4 +89,8 @@ public class PdfSignVoInfo implements Serializable {
      * 个人签署认证类型
      */
     private String personalSignAuthType;
+    /**
+     * 签署任务ID
+     */
+    private String taskId;
 }

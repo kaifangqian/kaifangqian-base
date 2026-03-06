@@ -82,6 +82,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -214,6 +215,8 @@ public class ContractController {
     private PdfEncryptionService pdfEncryptionService ;
     @Autowired
     private PdfConvertService pdfConvertService ;
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor ;
 
 
     // @ApiOperation(value = "获取业务线列表", notes = "获取业务线列表")
@@ -483,10 +486,20 @@ public class ContractController {
             throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,保存签约文件失败");
         }
         //转图片
-        List<DocImageVo> voList = signFileService.saveAndConvertImage(annexId, pdfByte);
-        if(voList == null || voList.size() == 0){
-            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件图片转换失败");
-        }
+
+        byte[] newDocFileByte = pdfByte;
+
+        threadPoolTaskExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                signFileService.saveAndConvertImage(annexId,newDocFileByte);
+            }
+        });
+
+//        List<DocImageVo> voList = signFileService.saveAndConvertImage(annexId, pdfByte);
+//        if(voList == null || voList.size() == 0){
+//            throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,签约文件图片转换失败");
+//        }
         //返回
         ContractDocumentFile contractDocumentFile = new ContractDocumentFile();
         contractDocumentFile.setDocId(annexId);

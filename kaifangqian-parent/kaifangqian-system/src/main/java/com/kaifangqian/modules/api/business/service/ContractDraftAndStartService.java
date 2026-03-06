@@ -114,8 +114,13 @@ public class ContractDraftAndStartService extends ContractService {
             }
 
             Date operateTime = new Date();
-            //发起流程
-            iFlowService.complete(startRuId, RuFlowEnum.INITIATE_FLOW.getName());
+
+            try {
+                //发起流程
+                iFlowService.complete(startRuId, RuFlowEnum.INITIATE_FLOW.getName());
+            }catch (Exception e){
+                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,e.getMessage());
+            }
             //回调发起
             LoginUser currentUser = MySecurityUtils.getCurrentUser();
             ruCallbackService.callback(startRuId,null, SignCallbackTypeEnum.SEND_SIGNING);
@@ -809,75 +814,110 @@ public class ContractDraftAndStartService extends ContractService {
             }
 
         }
-        List<ContractTemplate> signTemplateParamList = request.getSignTemplateParamList();
-        if(signTemplateParamList == null || signTemplateParamList.size() == 0){
-            //如果存在必填项，但是没有相关的模板参数
-            if(isRequiredFlag){
-                throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败,业务线模板必填参数缺失");
-            }
-            return;
-        }
+
         //获取业务线配置的填写控件关联人
         List<SignReDocParam> paramList = reDocParamService.listByReId(createData.getReId());
 
-        //创建填写控件数据
-        for(SignTemplateControl templateControl : templateControlList){
-            RuDataControl ruDataControl = new RuDataControl();
+        // 查出发起人
+        // 查出发起人并判断其是否为控件填写人
+        boolean isSenderFiller = false;
+        if (isRequiredFlag){
+            String senderRuSignerId = null;
+            for (RuDataSigner signer : createData.getSignerList()) {
+                if (signer.getSignerType() == SignerTypeEnum.SENDER.getCode()) {
+                    senderRuSignerId = signer.getRuSigner().getId();
+                    break;
+                }
+            }
 
-            SignRuDocControl ruDocControl = new SignRuDocControl();
-            BeanUtils.copyProperties(templateControl,ruDocControl);
-            ruDocControl.setSignRuId(createData.getRuId());
-            //封装控件其他参数
-            ruDocControl.setControlType(templateControl.getType());
-            ruDocControl.setOriginType(ControlOriginTypeEnum.RE.getCode());
-            ruDocControl.setInterfaceParamName(templateControl.getInterfaceParamName());
-            ruDocControl.setDeleteFlag(false);
-            ruDocControl.setId(UUIDGenerator.generate());
-            //归属人
-            String reSignerId = null ;
-            if(paramList != null && paramList.size() > 0){
-                for(SignReDocParam signReDocParam : paramList){
-                    if(signReDocParam.getInterfaceParamName().equals(ruDocControl.getInterfaceParamName())){
-                        reSignerId = signReDocParam.getSignerId();
+            if (senderRuSignerId != null && paramList != null) {
+                for (SignReDocParam param : paramList) {
+                    if (param.getSignerId().equals(senderRuSignerId)) {
+                        isSenderFiller = true;
+                        break;
                     }
                 }
             }
-            String ruSignerId = null ;
-            if(reSignerId != null){
-                ruSignerId = createData.getReSigner2RuSingerMap().get(reSignerId);
+        }
+
+        // 获取请求中传入的模板参数列表
+        List<ContractTemplate> signTemplateParamList = request.getSignTemplateParamList();
+        // 如果发起人是必填控件的填写人
+        if (isSenderFiller){
+            // 校验模板参数列表是否为空
+            if(signTemplateParamList == null || signTemplateParamList.size() == 0){
+                // 如果存在必填项，但是没有相关的模板参数，则抛出异常
+                if(isRequiredFlag){
+                    throw new RequestParamsException(ApiCode.BUSINESS_HANDLE_ERROR,"业务处理失败，业务线模板必填参数缺失");
+                }
+                // 不存在必填项且无参数时，直接返回
+                return;
             }
-            if(ruSignerId == null){
-                //查出发起人
-                for(RuDataSigner signer : createData.getSignerList()){
-                    if(signer.getSignerType() == SignerTypeEnum.SENDER.getCode()){
-                        ruSignerId = signer.getRuSigner().getId();
+        }
+
+        //创建填写控件数据
+        if (templateControlList != null && !templateControlList.isEmpty()) {
+            for (SignTemplateControl templateControl : templateControlList) {
+                RuDataControl ruDataControl = new RuDataControl();
+
+                SignRuDocControl ruDocControl = new SignRuDocControl();
+                BeanUtils.copyProperties(templateControl, ruDocControl);
+                ruDocControl.setSignRuId(createData.getRuId());
+                //封装控件其他参数
+                ruDocControl.setControlType(templateControl.getType());
+                ruDocControl.setOriginType(ControlOriginTypeEnum.RE.getCode());
+                ruDocControl.setInterfaceParamName(templateControl.getInterfaceParamName());
+                ruDocControl.setDeleteFlag(false);
+                ruDocControl.setId(UUIDGenerator.generate());
+                //归属人
+                String reSignerId = null;
+                if (paramList != null && paramList.size() > 0) {
+                    for (SignReDocParam signReDocParam : paramList) {
+                        if (signReDocParam.getInterfaceParamName().equals(ruDocControl.getInterfaceParamName())) {
+                            reSignerId = signReDocParam.getSignerId();
+                        }
                     }
                 }
-            }
-            ruDocControl.setSignerId(ruSignerId);
-            //填写值
-            for(ContractTemplate template : signTemplateParamList){
-                List<ContractTemplateParam> templateParamList = template.getTemplateParamList();
-                if(templateParamList != null && templateParamList.size() > 0){
-                    for(ContractTemplateParam param : templateParamList){
-                        if(param.getParamKey().equals(ruDocControl.getInterfaceParamName())){
-                            if(ruDocControl.getControlType() != null & ruDocControl.getControlType().equals(ControlTypeEnum.IMAGE.getName())){
-                                byte[] decode = Base64.getDecoder().decode(param.getParamValue());
-                                String annexId = signFileService.saveAnnexStorage(decode, SignFileEnum.SIGN_FILE_IMAGE, null);
-                                ruDocControl.setValue(annexId);
-                            }else {
-                                ruDocControl.setValue(param.getParamValue());
+                String ruSignerId = null;
+                if (reSignerId != null) {
+                    ruSignerId = createData.getReSigner2RuSingerMap().get(reSignerId);
+                }
+                if (ruSignerId == null) {
+                    //查出发起人
+                    for (RuDataSigner signer : createData.getSignerList()) {
+                        if (signer.getSignerType() == SignerTypeEnum.SENDER.getCode()) {
+                            ruSignerId = signer.getRuSigner().getId();
+                        }
+                    }
+                }
+                ruDocControl.setSignerId(ruSignerId);
+                if(signTemplateParamList != null && !signTemplateParamList.isEmpty()){
+                    //填写值
+                    for (ContractTemplate template : signTemplateParamList) {
+                        List<ContractTemplateParam> templateParamList = template.getTemplateParamList();
+                        if (templateParamList != null && templateParamList.size() > 0) {
+                            for (ContractTemplateParam param : templateParamList) {
+                                if (param.getParamKey().equals(ruDocControl.getInterfaceParamName())) {
+                                    if (ruDocControl.getControlType() != null & ruDocControl.getControlType().equals(ControlTypeEnum.IMAGE.getName())) {
+                                        byte[] decode = Base64.getDecoder().decode(param.getParamValue());
+                                        String annexId = signFileService.saveAnnexStorage(decode, SignFileEnum.SIGN_FILE_IMAGE, null);
+                                        ruDocControl.setValue(annexId);
+                                    } else {
+                                        ruDocControl.setValue(param.getParamValue());
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            //归属文档
-            String ruDocId = createData.getTemplateId2RuDocMap().get(templateControl.getTemplateId());
-            ruDocControl.setSignRuDocId(ruDocId);
 
-            ruDataControl.setRuDocControl(ruDocControl);
-            createData.getWriteControlList().add(ruDataControl);
+                //归属文档
+                String ruDocId = createData.getTemplateId2RuDocMap().get(templateControl.getTemplateId());
+                ruDocControl.setSignRuDocId(ruDocId);
+
+                ruDataControl.setRuDocControl(ruDocControl);
+                createData.getWriteControlList().add(ruDataControl);
+            }
         }
 
     }

@@ -120,7 +120,7 @@
   import { useMessage } from '/@/hooks/web/useMessage';
   import { addAuth,editAuth,deleAuthMember,getAuthGroup,deleteAuthRoleData,addAuthRoleData, getAuthGroupMember,addAuthMember,setAuthPermission,getAuthRoleData} from '/@/api/auth/group'; 
   import { getUserList } from '/@/api/demo/system'; 
-  import { getDeptNoCountTree } from '/@/api/sys/dept'; 
+  import { getDeptNoCountTree, getAllDeptTreeForSelect } from '/@/api/sys/dept';  
   import { usePermission } from '/@/hooks/web/usePermission';
   import { getRoleTreeList,getUserByRoleId,  } from '/@/api/sys/role'; 
   import TabTreeModal from '/@/views/organize/modal/TabTreeModal.vue';
@@ -254,7 +254,7 @@
               { 
                 title:'组织',
                 type:'dept',
-                api:getDeptNoCountTree,
+                api:getAllDeptTreeForSelect,
                 asyncTree:true,
                 asyncFieldNames:{
                   title:'name',
@@ -282,7 +282,7 @@
               { 
                 title:'根据组织选人',
                 type:'deptUser',
-                api:getDeptNoCountTree,
+                api:getAllDeptTreeForSelect,
                 asyncTree:true,
                 asyncApi:getUserList,
                 asyncFieldNames:{
