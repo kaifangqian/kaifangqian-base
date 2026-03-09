@@ -5401,7 +5401,7 @@ INSERT INTO `sys_permission` (`id`, `app_id`, `name`, `menu_type`, `parent_id`, 
 INSERT INTO `sys_app_version_permission` (`id`, `app_info_id`, `app_version_id`, `permission_id`, `delete_flag`, `delete_by`, `delete_time`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('e83c31cd-250b-4d33-b24b-0cc9fb67cb17', '70588803-52e4-433d-a61f-0a68e1febd72', '2e1f31de-651b-49da-a89c-03f6b5daa9be', '850397f1-2ac9-40c2-a19f-8ddfe180523b', 0, NULL, NULL, NULL, '2025-09-04 14:17:42', NULL, NULL);
 INSERT INTO `sys_auth_group_permission` (`id`, `group_id`, `app_id`, `permission_id`, `permission_perms`, `permission_data_id`) VALUES ('c4b7c959-c3da-421e-a5d0-3c8f237dc588', '07b3e2cd-eb1b-4e07-8844-685478909734', '70588803-52e4-433d-a61f-0a68e1febd72', '850397f1-2ac9-40c2-a19f-8ddfe180523b', NULL, NULL);
 
--- v3.1    -2025-10-15 增加非实名认证签署
+-- v3.1.0    -2025-10-15 增加非实名认证签署
 INSERT INTO `sys_config` (`id`, `name`, `type`, `value`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('5coo6af-1eff-ad09-4fb4-p93b22d61608', '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）', 'personal_sign_auth', 'required', NULL, NULL, 'admin', '2025-09-23 08:28:01');
 ALTER TABLE `sign_re` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
 ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `personal_sign_auth` varchar(20) NULL DEFAULT NULL COMMENT '个人签署实名认证：required（须实名认证）、allowed（允许不实名认证）、not_required（无需实名认证）';
@@ -5416,6 +5416,42 @@ ALTER TABLE `sign_re_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAU
 ALTER TABLE `sign_ru_sign_confirm` ADD COLUMN `seal_type` varchar(20) NULL DEFAULT NULL COMMENT '不限制：NOLIMIT；TEMPLATE：模板生成、HAND：手写签名;';
 UPDATE `sys_permission` SET `delete_flag` = 0 WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
 UPDATE `sys_permission` SET `path` = '/contract/approval/:signReId?/:signRuId?/:__full__?/:type?/:isDetail?/:from?', `component` = '/contract/approval/index' WHERE `id` = '4f0121fb-328f-4061-a1e2-efa412262a81';
+
+
+-- 平台配置-短信配置中增加审批通知模板
+INSERT INTO `sys_config` (`id`, `name`, `type`, `value`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('5c9ad6af-1ppf-ad09-4fb4-o93b22d69408', '短信模板-文件审批通知', 'mes_template_approvalTask', '', NULL, NULL, '', '2025-10-27 15:41:36');
+
+-- 邮件发送模板-增加审批通知模板
+INSERT INTO `message_template` (`id`, `app_id`, `template_type`, `template_code`, `template_title`, `template_content`, `create_by`, `update_by`, `create_time`, `update_time`, `delete_flag`, `delete_time`, `delete_by`) VALUES ('31c87c59-2fe6-4907-b290-f66e215eeb51', '490489ab-d8b4-414c-ad77-d856962c286f', '53b8220f-e0cd-40f0-b33d-4f0188a7853c', 'email_approvalTask', '文件签署审批通知', '<p>${sender}给您发送了一份文件《${contract}》需要您审批，请访问 ${domain}/#/contract/detail/base?code=${code} 完成审批</p>', 'admin', NULL, '2025-10-27 15:41:36', NULL, 0, NULL, NULL);
+
+-- 站内信通知，增加签署审批模板
+-- 模板主表
+INSERT INTO `message_template` (`id`, `app_id`, `template_type`, `template_code`, `template_title`, `template_content`, `create_by`, `update_by`, `create_time`, `update_time`, `delete_flag`, `delete_time`, `delete_by`) VALUES ('b3e25c70-9f8c-4803-a8b0-da232573b399', '490489ab-d8b4-414c-ad77-d856962c286f', 'efab6159-65b4-4da5-8991-32a596148f5d', 'opensign_approval', '${sender}给您发送了一份文件《${contract}》需要您审批', '<p>${sender}给您发送了一份文件《${contract}》需要您审批</p>', 'admin', 'admin', '2025-10-27 15:41:36', '2025-10-27 15:41:36', 0, NULL, NULL);
+INSERT INTO `message_template` (`id`, `app_id`, `template_type`, `template_code`, `template_title`, `template_content`, `create_by`, `update_by`, `create_time`, `update_time`, `delete_flag`, `delete_time`, `delete_by`) VALUES ('42d5a3b9-bf3b-48e2-8ac6-4e083036d3eg', '490489ab-d8b4-414c-ad77-d856962c286f', 'efab6159-65b4-4da5-8991-32a596148f5d', 'opensign_approval_reject', '您发送的文件《${contract}》审批未通过，审批人：${signer}', '<p>您发送的文件《${contract}》审批未通过，审批人：${signer}</p>', 'admin', 'admin', '2025-10-27 15:41:36', '2025-10-27 15:41:36', 0, NULL, NULL);
+-- 模板按钮
+INSERT INTO `message_template_button` (`id`, `template_id`, `button_name`, `button_code`, `button_desc`, `button_route`, `button_style`, `route_method`, `button_order`) VALUES ('3dd85c38-1997-4a0b-a783-27956300a399', 'b3e25c70-9f8c-4803-a8b0-da232573b399', '去审批', 'contract_approval', '', '/contract/approval', 'primary', '', NULL);
+INSERT INTO `message_template_button` (`id`, `template_id`, `button_name`, `button_code`, `button_desc`, `button_route`, `button_style`, `route_method`, `button_order`) VALUES ('f26133c7-5553-411b-a1bc-33b67ca6b099', '42d5a3b9-bf3b-48e2-8ac6-4e083036d3eg', '查看', 'approval_reject', '', '/contract/detail/sign', 'primary', '', NULL);
+
+-- 模板按钮参数
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', 'type', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', 'from', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', '__full__', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', 'taskId', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', 'signRuId', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), '3dd85c38-1997-4a0b-a783-27956300a399', 'isDetail', NULL, '');
+
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), 'f26133c7-5553-411b-a1bc-33b67ca6b099', 'type', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), 'f26133c7-5553-411b-a1bc-33b67ca6b099', 'from', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), 'f26133c7-5553-411b-a1bc-33b67ca6b099', 'isDetail', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), 'f26133c7-5553-411b-a1bc-33b67ca6b099', '__full__', NULL, '');
+INSERT INTO `message_template_button_para` (`id`, `button_id`, `para_name`, `para_type`, `send_type`) VALUES (UUID(), 'f26133c7-5553-411b-a1bc-33b67ca6b099', 'signRuId', NULL, '');
+
+-- 修改审批页面组件路由
+UPDATE `sys_permission` SET `app_id` = '490489ab-d8b4-414c-ad77-d856962c286f', `name` = '审批页面', `menu_type` = 1, `parent_id` = 'f3c931cb-5955-495c-9b9a-d578cebefca2', `sort_no` = 125, `path` = '/contract/approval/:signReId?/:signRuId?/:__full__?/:type?/:isDetail?/:from?', `component` = '/contract/approval/index', `perms` = NULL, `icon` = NULL, `route_flag` = 0, `hidden_flag` = 0, `keep_alive_flag` = 0, `internal_or_external` = 0, `description` = NULL, `status` = 1, `rule_flag` = 0, `form_table_id` = NULL, `create_by` = 'admin', `create_time` = '2023-11-24 14:48:06', `update_by` = 'admin', `update_time` = '2023-12-13 16:43:00', `delete_flag` = 0, `delete_by` = NULL, `delete_time` = NULL, `auth_visible` = 0, `fast_icon` = '', `fast_icon_address` = 'false', `fast_flag` = 0 WHERE `id` = '4f0121fb-328f-4061-a1e2-efa412262a81';
+
+-- 修改验签页面菜单
+UPDATE `sys_permission` SET `app_id` = '490489ab-d8b4-414c-ad77-d856962c286f', `name` = '验签', `menu_type` = 1, `parent_id` = '', `sort_no` = 5, `path` = '/doc/verification', `component` = '/signature/doc/verification', `perms` = NULL, `icon` = '', `route_flag` = 0, `hidden_flag` = 0, `keep_alive_flag` = 0, `internal_or_external` = 0, `description` = NULL, `status` = 1, `rule_flag` = 0, `form_table_id` = NULL, `create_by` = 'admin', `create_time` = '2023-08-14 14:28:06', `update_by` = 'admin', `update_time` = '2024-07-24 10:22:04', `delete_flag` = 0, `delete_by` = NULL, `delete_time` = NULL, `auth_visible` = 1, `fast_icon` = '', `fast_icon_address` = NULL, `fast_flag` = 0 WHERE `id` = '06705052-19d4-4e89-8d78-b7ad5e23e943';
+
 -- 这是最后一句
 SET FOREIGN_KEY_CHECKS = 1;
 
