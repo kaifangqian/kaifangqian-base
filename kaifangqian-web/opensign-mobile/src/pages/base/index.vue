@@ -491,7 +491,7 @@
         if (taskType.value == 'approval') {
           redirectPath.value = '/approval';
         }
-        if (taskType.value == 'copy') {
+        else {
           redirectPath.value = '/detail';
         }
         const appToken = session.getItem(APP_TOKEN);
