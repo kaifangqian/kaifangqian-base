@@ -189,7 +189,7 @@
       });
       
       if (userInfo) {
-        emit('success')
+        emit('success', userInfo);
       }else{
         handleChangeCheckCode();
         console.log(userInfo,'--返回的信息--')

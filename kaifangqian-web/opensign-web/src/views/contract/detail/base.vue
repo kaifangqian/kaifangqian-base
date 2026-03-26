@@ -341,7 +341,7 @@
         //const taskType = ref(route.query.taskType);
         // taskType=sign&phone=13793014727&signRuId=223ccb7e-d7a5-4f69-801b-5e51ab7fde3d&taskId=ca7b5c22-7d00-4233-8287-3a17d865cd16
 
-        if (route.query.signRuId && route.query.taskType) {
+        if (route.query.signRuId) {
           compState.loading = true;
           initTastType(taskType.value);
           getContrctInfo();
@@ -421,7 +421,7 @@
             accountValue +
             '&from=list';
         }
-        if (taskType.value == 'copy') {
+        else {
           redirectPath = '/#/contract/detail/sign';
           paramsStr =
             '__full__&signRuId=' +

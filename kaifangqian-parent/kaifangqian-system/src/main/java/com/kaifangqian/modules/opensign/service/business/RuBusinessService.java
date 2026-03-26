@@ -1194,8 +1194,11 @@ public class RuBusinessService {
                                 Boolean enterpriseControlFlag = true;
                                 for(SignRuDocControl signRuDocControl : controlList){
                                     //必须是企业签章
-                                    if(signRuDocControl.getSignerId() != null && signRuDocControl.getSignerId().equals(sender.getId()) && ControlTypeEnum.SEAL.getName().equals(signRuDocControl.getControlType())){
-                                        enterpriseControlFlag = false ;
+                                    if(signRuDocControl.getSignerId() != null && signRuDocControl.getSignerId().equals(sender.getId())){
+                                        if(ControlTypeEnum.SEAL.getName().equals(signRuDocControl.getControlType()) ||
+                                                ControlTypeEnum.CHOP_STAMP.getName().equals(signRuDocControl.getControlType())){
+                                            enterpriseControlFlag = false ;
+                                        }
                                     }
                                 }
                                 if(enterpriseControlFlag){
